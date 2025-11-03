@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import ClientLayout from "./ClientLayout";
+import { UserProvider } from "./context/UserContext"; // 추가
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -20,15 +22,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <UserProvider> {/* 추가 */}
+          <ClientLayout>{children}</ClientLayout>
+        </UserProvider> {/* 추가 */}
       </body>
     </html>
   );
