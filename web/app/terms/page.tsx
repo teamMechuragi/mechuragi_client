@@ -39,6 +39,14 @@ export default function TermsAgreementPage() {
       localStorage.setItem("termsAgreement", JSON.stringify(updatedTerms));
     } else {
       const updatedTerms = { ...terms, [name]: !terms[name as keyof typeof terms] };
+      
+      const allChecked = 
+        (name === "required1" ? !terms.required1 : updatedTerms.required1) &&
+        (name === "required2" ? !terms.required2 : updatedTerms.required2) &&
+        (name === "required3" ? !terms.required3 : updatedTerms.required3) &&
+        (name === "optional" ? !terms.optional : updatedTerms.optional);
+      
+      updatedTerms.all = allChecked;
       setTerms(updatedTerms);
       localStorage.setItem("termsAgreement", JSON.stringify(updatedTerms));
     }
@@ -48,24 +56,27 @@ export default function TermsAgreementPage() {
     setExpanded(expanded === key ? null : key);
   };
 
-  const isAllChecked = terms.required1 && terms.required2 && terms.required3 && terms.optional;
   const canProceed = terms.required1 && terms.required2 && terms.required3;
 
   return (
-    <div className="flex flex-col items-center justify-between min-h-screen px-4 pt-4 pb-50 bg-white-100">
-      <div className="w-full max-w-sm">
-        
+    <div className="flex flex-col min-h-screen bg-white">
+      <div className="w-full max-w-sm mx-auto">
         {/* 헤더 */}
-        <Header title="이용약관" backLink="/login" />
+        <Header title="회원가입" backLink="/" isSignup />
+      </div>
 
+      <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1">
         {/* 제목 */}
-        <h3 className="text-[26px] font-bold mb-2">서비스 이용 약관에 <br></br> 동의해 주세요.</h3> <br></br>
+        <h3 className="text-[26px] font-bold mb-8 mt-6">
+          서비스 이용 약관에<br />
+          동의해 주세요.
+        </h3>
         
         {/* 전체 동의 */}
-        <div className="flex items-center mb-4 border-b border-gray-200 pb-3">
+        <div className="mb-4 pb-4 border-b border-gray-200">
           <TermsCheckbox 
-            label="전체 동의"
-            checked={isAllChecked}
+            label="전체동의"
+            checked={terms.all}
             onChange={() => handleToggle("all")}
           />
         </div>
@@ -89,8 +100,13 @@ export default function TermsAgreementPage() {
         ))}
       </div>
       
-      {/* 푸터 (회원가입 페이지로 이동) */}
-      <Footer type="button" buttonText="다음" onButtonClick={() => router.push("/signup")} />
+      {/* 푸터 */}
+      <Footer 
+        type="button" 
+        buttonText="완료" 
+        disabled={!canProceed}
+        onButtonClick={() => router.push("/signup")} 
+      />
     </div>
   );
 }

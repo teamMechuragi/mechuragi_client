@@ -22,16 +22,12 @@ export default function InputField({
   iconSrc,
 }: InputFieldProps) {
   return (
-    <div
-      className={`flex items-center border rounded-2xl px-4 py-2 mb-3 transition-all ${
-        isFocused ? "border-[#3CDCBA]" : "border-[#BDBDBD]"
-      }`}
-    >
+    <div className="flex items-center px-3 py-3">
       <Image src={iconSrc} alt="아이콘" width={20} height={20} />
       <input
         type={type}
         placeholder={placeholder}
-        className="w-full ml-2 focus:outline-none text-lg placeholder:text-lg text-[#3C3C43] placeholder-opacity-30 font-pretendard placeholder:font-pretendard placeholder:font-semibold"
+        className="w-full ml-2 text-gray-600 placeholder-gray-400 focus:outline-none text-base"
         value={value}
         onChange={onChange}
         onFocus={onFocus}
