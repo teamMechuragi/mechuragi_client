@@ -11,9 +11,10 @@ import { useUser } from "@/app/context/UserContext";
 export default function ProfileEditPage() {
   const router = useRouter();
   const { user, setUser } = useUser();
-  const [username, setUsername] = useState(user?.username || "아이디");
-  const [profileImage, setProfileImage] = useState("/profile/default-profile.png");
+  const [nickname, setNickname] = useState(user?.username || "");
+  const [profileImage, setProfileImage] = useState(user?.profileImage || "/profile/default-profile.png");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // 이미지 파일 선택 처리
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,51 +30,91 @@ export default function ProfileEditPage() {
 
   // 저장하기
   const handleSave = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+
     try {
-      // ========== 실제 서버 연결 시 사용할 코드 ==========
-      // 1. FormData 생성 (이미지 + 아이디)
-      const formData = new FormData();
-      formData.append("username", username);
+      // ✅ localStorage에서 사용자 정보 가져오기
+      const token = localStorage.getItem('accessToken');
+      const userStr = localStorage.getItem('user');
       
-      // 2. 이미지 파일이 있으면 추가
-      const fileInput = document.getElementById("profile-image") as HTMLInputElement;
-      if (fileInput?.files?.[0]) {
-        formData.append("profileImage", fileInput.files[0]);
+      if (!userStr) {
+        alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        setLoading(false);
+        return;
       }
       
-      // 3. 서버에 업로드 요청
-      const response = await fetch("http://13.125.127.106/api/user/profile", {
-        method: "PUT",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const currentUser = JSON.parse(userStr);
+      const memberId = currentUser.id;
+
+      // ✅ 닉네임 중복 체크 (기존 닉네임과 다를 때만)
+      if (nickname !== currentUser.username) {
+        const checkResponse = await fetch(
+          `http://15.165.136.100:8080/api/members/check/nickname?nickname=${encodeURIComponent(nickname)}`,
+          {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+        
+        const isExist = await checkResponse.json();
+        
+        if (isExist) {
+          alert('이미 사용중인 닉네임입니다.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // TODO: 이미지 파일 업로드가 필요하면 여기서 S3 등에 업로드하고 URL 받기
+      // const uploadedImageUrl = await uploadImageToS3(file);
       
-      // 4. 응답 처리
+      // ✅ 수정: 올바른 엔드포인트로 요청
+      const response = await fetch(
+        `http://15.165.136.100:8080/api/members/${memberId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nickname: nickname,
+            profileImageUrl: profileImage, // 실제로는 업로드된 이미지 URL
+          }),
+        }
+      );
+
       if (!response.ok) {
         throw new Error("프로필 업데이트 실패");
       }
-      
+
       const data = await response.json();
       
-      // 5. 서버에서 받은 이미지 URL로 사용자 정보 업데이트
+      // ✅ 수정: API 명세서 응답 구조에 맞게
       const userData = {
-        username: data.username,
+        id: data.id,
+        username: data.nickname,
         email: data.email,
-        profileImage: data.profileImageUrl, // 서버에서 받은 이미지 URL
+        profileImage: data.profileImageUrl,
+        emailVerified: data.emailVerified,
+        provider: data.provider,
+        role: data.role,
+        status: data.status,
       };
       
-      // 6. Context와 localStorage에 저장
+      // Context와 localStorage에 저장
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
-      // ========== 실제 서버 연결 코드 끝 ==========
 
       alert("프로필이 저장되었습니다.");
       router.back();
     } catch (error) {
       alert("프로필 저장 중 오류가 발생했습니다.");
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -115,18 +156,18 @@ export default function ProfileEditPage() {
           </div>
         </div>
 
-        {/* 아이디 입력 */}
+        {/* 닉네임 입력 */}
         <div className="w-full max-w-sm">
           <div className="mb-8">
             <label className="block text-sm font-bold text-gray-700 mb-2">
-              아이디
+              닉네임
             </label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
               className="w-full px-4 py-3 border-b-2 border-[#3CDCBA] focus:outline-none text-center text-lg"
-              placeholder="아이디를 입력하세요"
+              placeholder="닉네임을 입력하세요"
             />
           </div>
         </div>
@@ -135,8 +176,9 @@ export default function ProfileEditPage() {
       {/* 푸터 */}
       <Footer
         type="button"
-        buttonText="저장하기"
+        buttonText={loading ? "저장 중..." : "저장하기"}
         onButtonClick={handleSave}
+        disabled={loading || !nickname.trim()}
       />
     </div>
   );

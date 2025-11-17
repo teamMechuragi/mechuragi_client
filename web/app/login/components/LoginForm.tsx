@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SocialLogin from "./SocialLogin";
 import Link from "next/link";
-import { useUser } from "@/app/context/UserContext"; // 추가
+import { useUser } from "@/app/context/UserContext";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -14,7 +14,7 @@ export default function LoginForm() {
   const [focusedField, setFocusedField] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useUser(); // 추가
+  const { setUser } = useUser();
 
   const isValidEmail = (email: string): boolean =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -28,36 +28,42 @@ export default function LoginForm() {
     }
 
     try {
-      const response = await fetch("http://13.125.127.106/api/login", { // URL 수정
+      // ✅ 수정: /api/auth/login으로 변경
+      const response = await fetch("http://15.165.136.100:8080/api/auth/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await response.json();
 
       if (!response.ok) {
         setError("아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.");
         return;
       }
 
+      const data = await response.json();
       console.log("로그인 성공:", data);
 
-      // 토큰 저장
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
+      // ✅ 수정: tokens 객체에서 접근
+      localStorage.setItem("accessToken", data.tokens.accessToken);
+      localStorage.setItem("refreshToken", data.tokens.refreshToken);
 
-      // 사용자 정보 저장
+      // ✅ 수정: member 객체에서 사용자 정보 가져오기
       const userData = {
-        username: data.username || data.nickname,
-        email: data.email,
+        id: data.member.id,
+        username: data.member.nickname,
+        email: data.member.email,
+        emailVerified: data.member.emailVerified,
+        provider: data.member.provider,
+        role: data.member.role,
+        status: data.member.status,
       };
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
 
       router.push("/");
-    } catch {
+    } catch (err) {
+      console.error("로그인 에러:", err);
       setError("서버 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };

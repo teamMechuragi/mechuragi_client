@@ -36,7 +36,7 @@ function SignupPageContent() {
   // 닉네임 자동생성 - API 수정
   const generateNickname = async () => {
     try {
-      const response = await fetch("http://13.125.127.106/api/auth/nickname/generate", {
+      const response = await fetch("http://15.165.136.100:8080/api/auth/nickname/generate", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ function SignupPageContent() {
     }
 
     try {
-      const response = await fetch(`http://13.125.127.106/api/members/check/email?email=${encodeURIComponent(form.email)}`, {
+      const response = await fetch(`http://15.165.136.100:8080/api/members/check/email?email=${encodeURIComponent(form.email)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -153,7 +153,7 @@ function SignupPageContent() {
     }
 
     try {
-      const response = await fetch(`http://13.125.127.106/api/members/check/nickname?nickname=${encodeURIComponent(form.username)}`, {
+      const response = await fetch(`http://15.165.136.100:8080/api/members/check/nickname?nickname=${encodeURIComponent(form.username)}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -221,7 +221,7 @@ function SignupPageContent() {
     }
 
     try {
-      const response = await fetch("http://13.125.127.106/api/auth/signup", {
+      const response = await fetch("http://15.165.136.100:8080/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

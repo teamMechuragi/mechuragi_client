@@ -7,7 +7,7 @@ export default function SocialLogin() {
     {
       name: "카카오",
       src: "/icon/kakao.png",
-      loginUrl: "http://13.125.127.106/oauth2/authorization/kakao",
+      loginUrl: "http://15.165.136.100:8080/oauth2/authorization/kakao",
     },
   ];
 

@@ -8,17 +8,81 @@ import { useState, useEffect } from 'react';
 
 export default function ProfileSection() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const [detailSettings, setDetailSettings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ========== 임시 방법: localStorage에서 가져오기 (서버 없을 때) ==========
+    fetchUserProfile();
+  }, []);
+
+  // ✅ 사용자 정보 조회
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userStr = localStorage.getItem('user');
+      
+      if (!token || !userStr) {
+        setLoading(false);
+        return;
+      }
+
+      const currentUser = JSON.parse(userStr);
+      const memberId = currentUser.id;
+
+      // ✅ 회원 정보 조회 API 호출
+      const response = await fetch(
+        `http://15.165.136.100:8080/api/members/${memberId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("사용자 정보 조회 실패");
+      }
+
+      const data = await response.json();
+      
+      // ✅ 사용자 정보 업데이트
+      const userData = {
+        id: data.id,
+        username: data.nickname,
+        email: data.email,
+        profileImage: data.profileImageUrl,
+        emailVerified: data.emailVerified,
+        provider: data.provider,
+        role: data.role,
+        status: data.status,
+      };
+      
+      // Context와 localStorage 업데이트
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      // 상세정보 설정 처리 (나중에 백엔드 API 추가되면 수정)
+      loadDetailSettings();
+      
+    } catch (error) {
+      console.error("사용자 정보 조회 실패:", error);
+      // 에러 발생 시 localStorage의 정보라도 사용
+      loadDetailSettings();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 상세정보 설정 로드 (임시 - localStorage)
+  const loadDetailSettings = () => {
     const stored = localStorage.getItem("detailSettings");
     if (stored) {
       const data = JSON.parse(stored);
-      
-      // 설정이 있으면 토글 목록 생성
       const settings = [];
+      
       if (data.nickname) {
         settings.push({ 
           label: data.nickname, 
@@ -28,67 +92,24 @@ export default function ProfileSection() {
       
       setDetailSettings(settings);
     }
-    // ========== 임시 방법 끝 ==========
+  };
 
-    // ========== 실제 서버 연결 시 사용할 코드 ==========
-    // const fetchDetailSettings = async () => {
-    //   try {
-    //     const token = localStorage.getItem("accessToken");
-    //     if (!token) {
-    //       // 로그인 안 되어있으면 빈 상태로 유지
-    //       return;
-    //     }
-    //
-    //     // 서버에서 로그인한 사용자의 상세정보 가져오기
-    //     const response = await fetch("http://13.125.127.106/api/user/detail-settings", {
-    //       method: "GET",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //     });
-    //
-    //     if (!response.ok) {
-    //       throw new Error("상세정보 조회 실패");
-    //     }
-    //
-    //     const data = await response.json();
-    //     
-    //     // 설정이 있으면 토글 목록 생성
-    //     const settings = [];
-    //     if (data.preferenceName) {
-    //       settings.push({ 
-    //         label: data.preferenceName, // 백엔드는 preferenceName 사용
-    //         defaultChecked: true
-    //       });
-    //     }
-    //     
-    //     setDetailSettings(settings);
-    //     
-    //     // localStorage에도 저장 (빠른 로딩용)
-    //     localStorage.setItem("detailSettings", JSON.stringify(data));
-    //     
-    //   } catch (error) {
-    //     console.error("상세정보 조회 실패:", error);
-    //     // 에러 시 localStorage에 저장된 정보라도 표시
-    //     const stored = localStorage.getItem("detailSettings");
-    //     if (stored) {
-    //       const data = JSON.parse(stored);
-    //       const settings = [];
-    //       if (data.nickname || data.preferenceName) {
-    //         settings.push({ 
-    //           label: data.nickname || data.preferenceName, 
-    //           defaultChecked: true
-    //         });
-    //       }
-    //       setDetailSettings(settings);
-    //     }
-    //   }
-    // };
-    //
-    // fetchDetailSettings();
-    // ========== 실제 서버 연결 코드 끝 ==========
-  }, []);
+  if (loading) {
+    return (
+      <div className="px-6 pt-6 pb-6 bg-white">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="flex flex-col gap-2">
+              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-3 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div className="w-20 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -103,13 +124,13 @@ export default function ProfileSection() {
                 alt="프로필" 
                 width={64} 
                 height={64}
-                className="object-cover"
+                className="object-cover w-full h-full"
               />
             </div>
             
             <div className="flex flex-col">
               <h2 className="text-base font-bold mb-0.5">{user?.username || '아이디'}</h2>
-              <p className="text-xs text-gray-500">{user?.email || 'asdfg1234@naver.com'}</p>
+              <p className="text-xs text-gray-500">{user?.email || 'email@example.com'}</p>
             </div>
           </div>
           

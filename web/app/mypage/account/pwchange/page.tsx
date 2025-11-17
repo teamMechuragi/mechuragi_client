@@ -104,8 +104,21 @@ export default function PasswordChangePage() {
     }
 
     try {
+      // ✅ 수정: localStorage에서 사용자 정보 가져오기
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://13.125.127.106/api/user/password', {
+      const userStr = localStorage.getItem('user');
+      
+      if (!userStr) {
+        setServerError('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+        setLoading(false);
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      const memberId = user.id;
+
+      // ✅ 수정: 엔드포인트 경로 변경
+      const response = await fetch(`http://15.165.136.100:8080/api/members/${memberId}/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -117,13 +130,18 @@ export default function PasswordChangePage() {
         }),
       });
 
-      const data = await response.json();
-
+      // ✅ 수정: 200 OK는 응답 본문이 없을 수 있음
       if (response.ok) {
         alert('비밀번호가 변경되었습니다.');
         router.push('/mypage/account');
       } else {
-        setServerError(data.message || '현재 비밀번호가 일치하지 않습니다.');
+        // 에러 응답 처리
+        try {
+          const data = await response.json();
+          setServerError(data.message || '현재 비밀번호가 일치하지 않습니다.');
+        } catch {
+          setServerError('현재 비밀번호가 일치하지 않습니다.');
+        }
       }
     } catch (error) {
       console.error('비밀번호 변경 요청 실패:', error);
