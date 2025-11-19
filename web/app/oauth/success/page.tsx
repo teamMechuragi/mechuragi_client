@@ -22,7 +22,7 @@ export default function OAuthSuccess() {
         try {
           // 2. 토큰으로 사용자 정보 가져오기
           // ✅ 수정: URL과 엔드포인트 확인 필요
-          const response = await fetch("http://15.165.136.100:8080/api/members/me", {
+          const response = await fetch("https://mechuragi.kro.kr/api/members/me", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",

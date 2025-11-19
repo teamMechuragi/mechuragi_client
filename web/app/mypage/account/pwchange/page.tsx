@@ -118,7 +118,7 @@ export default function PasswordChangePage() {
       const memberId = user.id;
 
       // ✅ 수정: 엔드포인트 경로 변경
-      const response = await fetch(`http://15.165.136.100:8080/api/members/${memberId}/password`, {
+      const response = await fetch(`https://mechuragi.kro.kr/api/members/${memberId}/password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

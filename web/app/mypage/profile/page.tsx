@@ -51,7 +51,7 @@ export default function ProfileEditPage() {
       // ✅ 닉네임 중복 체크 (기존 닉네임과 다를 때만)
       if (nickname !== currentUser.username) {
         const checkResponse = await fetch(
-          `http://15.165.136.100:8080/api/members/check/nickname?nickname=${encodeURIComponent(nickname)}`,
+          `https://mechuragi.kro.kr/api/members/check/nickname?nickname=${encodeURIComponent(nickname)}`,
           {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
@@ -72,7 +72,7 @@ export default function ProfileEditPage() {
       
       // ✅ 수정: 올바른 엔드포인트로 요청
       const response = await fetch(
-        `http://15.165.136.100:8080/api/members/${memberId}`,
+        `https://mechuragi.kro.kr/api/members/${memberId}`,
         {
           method: "PUT",
           headers: {

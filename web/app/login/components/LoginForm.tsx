@@ -29,7 +29,7 @@ export default function LoginForm() {
 
     try {
       // ✅ 수정: /api/auth/login으로 변경
-      const response = await fetch("http://15.165.136.100:8080/api/auth/login", { 
+      const response = await fetch("https://mechuragi.kro.kr/api/auth/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
