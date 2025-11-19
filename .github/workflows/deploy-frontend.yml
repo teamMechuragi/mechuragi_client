@@ -1,0 +1,66 @@
+name: Deploy Frontend to S3
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync out/ s3://mechuragi-dev-frontend --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "*.html" \
+            --exclude "*.json"
+
+          aws s3 sync out/ s3://mechuragi-dev-frontend --delete \
+            --cache-control "public,max-age=0,must-revalidate" \
+            --exclude "*" \
+            --include "*.html" \
+            --include "*.json"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E2055JLBFIVGCA \
+            --paths "/*"
+
+      - name: Deployment summary
+        run: |
+          echo "✅ 프론트엔드 배포 완료!"
+          echo "📦 S3 버킷: mechuragi-dev-frontend"
+          echo "🌐 CloudFront: https://mechuragi.kro.kr"
