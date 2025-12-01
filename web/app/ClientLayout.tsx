@@ -20,6 +20,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     || pathname === "/mypage/account/withdrawal" 
     || pathname === "/recommend/mood" 
     || pathname === "/recommend/weather"
+    || pathname === "/recommend/time"
+    || pathname === "/recommend/ingredients"
+    || pathname === "/recommend/Aichat"
+    || pathname === "/recommend/result"
     || pathname === "/onboarding" 
     || pathname === "/community" 
     || isCommunityDetail;

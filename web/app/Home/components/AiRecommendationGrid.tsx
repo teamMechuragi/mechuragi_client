@@ -54,7 +54,7 @@ export default function AiRecommendationGrid() {
       description: "AI 대화를 통해 추천받기",
       bg: "#DCE8FF",
       image: "/icon/talk.png",
-      link: "/recommend/ai-chat",
+      link: "/recommend/Aichat",
     },
   ];
 

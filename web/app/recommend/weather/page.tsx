@@ -4,84 +4,136 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
-import Image from "next/image";
 
-export default function WeatherRecommendPage() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+
+export default function WeatherPage() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState<number | null>(null);
-  const [selectedWeather, setSelectedWeather] = useState<string | null>(null);
+  const [selectedWeather, setSelectedWeather] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const dates = [12, 21];
-  
-  const weathers = [
-    { id: "sunny", label: "맑음", icon: "☀️" },
-    { id: "cloudy", label: "흐림", icon: "☁️" },
-    { id: "rainy", label: "비", icon: "🌧️" },
-    { id: "snowy", label: "눈", icon: "❄️" },
+  const weatherOptions = [
+    { value: "맑음", label: "맑음" },
+    { value: "흐림", label: "흐림" },
+    { value: "비", label: "비" },
+    { value: "눈", label: "눈" },
   ];
 
-  const handleComplete = () => {
-    if (selectedDate && selectedWeather) {
-      // API 호출 또는 추천 페이지로 이동
-      router.push(`/recommend/weather/result?date=${selectedDate}&weather=${selectedWeather}`);
-    }
+  const temperatureOptions = [
+    { value: "춥다", label: "춥다" },
+    { value: "적당", label: "적당" },
+    { value: "더움", label: "더움" },
+  ];
+
+  const humidityOptions = [
+    { value: "건조함", label: "건조함" },
+    { value: "습함", label: "습함" },
+    { value: "찜통", label: "찜통" },
+  ];
+
+  const toggleOption = (value: string) => {
+    setSelectedWeather((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value]
+    );
   };
 
-  const isFormValid = selectedDate !== null && selectedWeather !== null;
+  const handleComplete = async () => {
+    if (loading || selectedWeather.length === 0) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/ai-recommendations/weather`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          weatherConditions: selectedWeather,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // 추천 결과 페이지로 이동
+        router.push(`/recommend/result?data=${encodeURIComponent(JSON.stringify(data))}`);
+      } else {
+        alert("추천을 가져오는데 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("API 호출 실패:", error);
+      alert("서버와 연결할 수 없습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="w-full max-w-sm mx-auto">
-        <Header title="오늘의 날씨는 어떤가요?" backLink="/Home" />
+        <Header title="날씨 추천" backLink="/Home" />
       </div>
 
-      <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1">
-        {/* 날짜 섹션 */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="text-2xl font-bold">12월</span>
-          </div>
-          
-          {/* 날짜 선택 버튼들 */}
-          <div className="flex justify-center gap-4 mb-8">
-            {dates.map((date) => (
+      <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-6">
+        <h2 className="text-2xl font-bold mb-8">오늘의 날씨는 어떤가요?</h2>
+
+        {/* 날씨 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">날씨</h3>
+          <div className="flex flex-wrap gap-2">
+            {weatherOptions.map((option) => (
               <button
-                key={date}
-                onClick={() => setSelectedDate(date)}
-                className={`w-16 h-16 rounded-full font-bold text-lg transition-all ${
-                  selectedDate === date
-                    ? "bg-[#3CDCBA] text-white"
-                    : "bg-gray-100 text-gray-700"
+                key={option.value}
+                onClick={() => toggleOption(option.value)}
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-colors ${
+                  selectedWeather.includes(option.value)
+                    ? "bg-[#00D9A0] text-white"
+                    : "bg-gray-100 text-gray-600"
                 }`}
               >
-                {date}
+                {option.label}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* 날짜 라벨 */}
-          <div className="flex justify-center gap-4">
-            <span className="w-16 text-center text-sm text-gray-500">월요일</span>
-            <span className="w-16 text-center text-sm text-gray-500">금요일</span>
+        {/* 온도 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">온도</h3>
+          <div className="flex flex-wrap gap-2">
+            {temperatureOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => toggleOption(option.value)}
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-colors ${
+                  selectedWeather.includes(option.value)
+                    ? "bg-[#00D9A0] text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* 날씨 선택 */}
-        <div>
-          <h3 className="text-lg font-bold mb-4 text-center">날씨</h3>
-          <div className="grid grid-cols-4 gap-3">
-            {weathers.map((weather) => (
+        {/* 습도 */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">습도</h3>
+          <div className="flex flex-wrap gap-2">
+            {humidityOptions.map((option) => (
               <button
-                key={weather.id}
-                onClick={() => setSelectedWeather(weather.id)}
-                className={`py-4 rounded-2xl font-bold transition-all flex flex-col items-center gap-2 ${
-                  selectedWeather === weather.id
-                    ? "bg-[#3CDCBA] text-white"
-                    : "bg-gray-100 text-gray-700"
+                key={option.value}
+                onClick={() => toggleOption(option.value)}
+                className={`px-6 py-3 rounded-full text-sm font-medium transition-colors ${
+                  selectedWeather.includes(option.value)
+                    ? "bg-[#00D9A0] text-white"
+                    : "bg-gray-100 text-gray-600"
                 }`}
               >
-                <span className="text-3xl">{weather.icon}</span>
-                <span className="text-xs">{weather.label}</span>
+                {option.label}
               </button>
             ))}
           </div>
@@ -90,9 +142,9 @@ export default function WeatherRecommendPage() {
 
       <Footer
         type="button"
-        buttonText="완료"
+        buttonText={loading ? "추천 받는 중..." : "완료"}
         onButtonClick={handleComplete}
-        disabled={!isFormValid}
+        disabled={selectedWeather.length === 0 || loading}
       />
     </div>
   );
