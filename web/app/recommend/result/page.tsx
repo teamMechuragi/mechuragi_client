@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
@@ -15,7 +15,7 @@ interface FoodRecommendation {
   bookmarked?: boolean;
 }
 
-export default function RecommendResultPage() {
+function RecommendResultContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [recommendations, setRecommendations] = useState<FoodRecommendation[]>([]);
@@ -121,5 +121,24 @@ export default function RecommendResultPage() {
         onButtonClick={handleComplete}
       />
     </div>
+  );
+}
+
+export default function RecommendResultPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen bg-white">
+        <div className="w-full max-w-sm mx-auto">
+          <Header title="추천 결과" backLink="/Home" />
+        </div>
+        <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-6">
+          <div className="text-center py-20 text-gray-400">
+            로딩 중...
+          </div>
+        </div>
+      </div>
+    }>
+      <RecommendResultContent />
+    </Suspense>
   );
 }
