@@ -7,11 +7,7 @@ export default function SocialLogin() {
     {
       name: "카카오",
       src: "/icon/kakao.png",
-<<<<<<< HEAD
-      loginUrl: "https://mechuragi.kro.kr/oauth2/authorization/kakao",
-=======
       loginUrl: "https://mechuragi.kro.kr/api/oauth2/authorization/kakao",
->>>>>>> 22777b5859637d246963058bb38c2eb2de0ffa1f
     },
   ];
 
