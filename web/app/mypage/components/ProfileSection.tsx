@@ -32,7 +32,7 @@ export default function ProfileSection() {
 
       // ✅ 회원 정보 조회 API 호출
       const response = await fetch(
-        `http://15.165.136.100:8080/api/members/${memberId}`,
+        `https://mechuragi.kro.kr/api/members/${memberId}`,
         {
           method: "GET",
           headers: {

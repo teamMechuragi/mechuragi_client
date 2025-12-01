@@ -55,7 +55,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
       // ✅ 수정: 올바른 엔드포인트로 사용자 정보 조회
       const response = await fetch(
-        `http://15.165.136.100:8080/api/members/${memberId}`,
+        `https://mechuragi.kro.kr/api/members/${memberId}`,
         {
           method: "GET",
           headers: {

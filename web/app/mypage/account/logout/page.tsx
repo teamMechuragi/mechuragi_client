@@ -19,7 +19,7 @@ export default function LogoutPage() {
       const accessToken = localStorage.getItem('accessToken');
       
       if (accessToken) {
-        const response = await fetch('http://15.165.136.100:8080/api/auth/logout', {
+        const response = await fetch('https://mechuragi.kro.kr/api/auth/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

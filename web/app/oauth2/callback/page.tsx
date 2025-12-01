@@ -67,7 +67,7 @@ export default function OAuthSuccess() {
     };
 
     handleOAuthCallback();
-  }, [router, setUser]);
+  }, []); // 마운트 시 한 번만 실행
 
   return (
     <div className="flex items-center justify-center min-h-screen">
