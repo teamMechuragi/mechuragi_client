@@ -6,12 +6,14 @@ import Header from '@/app/common/Header';
 import VoteTypeSelect from './components/VoteTypeSelect';
 import VoteOptionInput from './components/VoteOptionInput';
 import TimeSelector from './components/TimeSelector';
+import { createVote, uploadVoteImage } from '@/lib/api/voteApi';
+import type { VoteOptionRequest } from '@/types/vote';
 
 type VoteType = '사진' | '일반' | null;
 
 export default function CommunityWritePage() {
   const router = useRouter();
-  
+
   const [title, setTitle] = useState('투표 제목');
   const [content, setContent] = useState('');
   const [voteType, setVoteType] = useState<VoteType>(null);
@@ -20,11 +22,12 @@ export default function CommunityWritePage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isMultipleChoice, setIsMultipleChoice] = useState(false);
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false); // 👈 추가
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [deadline, setDeadline] = useState('30분 후 종료');
   const [days, setDays] = useState(0);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(30);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleTimeConfirm = (d: number, h: number, m: number) => {
     setDays(d);
@@ -40,7 +43,8 @@ export default function CommunityWritePage() {
     setShowTimePicker(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // 유효성 검사
     if (!title.trim() || title === '투표 제목') {
       alert('제목을 입력해주세요');
       return;
@@ -58,18 +62,67 @@ export default function CommunityWritePage() {
       return;
     }
 
-    console.log({
-      title,
-      content,
-      voteType,
-      options,
-      images,
-      isMultipleChoice,
-      isNotificationEnabled,
-      deadline: { days, hours, minutes }
-    });
+    setIsSubmitting(true);
 
-    router.push('/community');
+    try {
+      // 마감 시간 계산 (현재 시간 + 설정한 시간)
+      const deadlineDate = new Date();
+      deadlineDate.setDate(deadlineDate.getDate() + days);
+      deadlineDate.setHours(deadlineDate.getHours() + hours);
+      deadlineDate.setMinutes(deadlineDate.getMinutes() + minutes);
+
+      // 투표 옵션 준비
+      const voteOptions: VoteOptionRequest[] = [];
+
+      if (voteType === '사진') {
+        // 이미지가 있는 경우 이미지 업로드
+        for (let i = 0; i < options.length; i++) {
+          let imageUrl: string | undefined = undefined;
+
+          if (images[i]) {
+            try {
+              const uploadResult = await uploadVoteImage(images[i]);
+              imageUrl = uploadResult.imageUrl;
+            } catch (error) {
+              console.error(`이미지 업로드 실패 (옵션 ${i + 1}):`, error);
+              alert(`이미지 업로드에 실패했습니다 (옵션 ${i + 1}). 다시 시도해주세요.`);
+              setIsSubmitting(false);
+              return;
+            }
+          }
+
+          voteOptions.push({
+            optionText: options[i],
+            imageUrl,
+          });
+        }
+      } else {
+        // 일반 투표 (이미지 없음)
+        for (const option of options) {
+          voteOptions.push({
+            optionText: option,
+          });
+        }
+      }
+
+      // 투표 생성 요청
+      const newVote = await createVote({
+        title: title.trim(),
+        description: content.trim() || undefined,
+        deadline: deadlineDate.toISOString(),
+        allowMultipleChoice: isMultipleChoice,
+        options: voteOptions,
+      });
+
+      console.log('투표 생성 성공:', newVote);
+
+      // 생성된 투표 페이지로 이동
+      router.push(`/community/${newVote.id}`);
+    } catch (error) {
+      console.error('투표 생성 실패:', error);
+      alert('투표 생성에 실패했습니다. 다시 시도해주세요.');
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = title.trim() && title !== '투표 제목' && voteType && options.every(opt => opt.trim()) &&
@@ -77,12 +130,12 @@ export default function CommunityWritePage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Header 
+      <Header
         isWrite={true}
-        backLink="/community" 
+        backLink="/community"
         title="투표 작성"
         onSubmit={handleSubmit}
-        submitDisabled={!isFormValid}
+        submitDisabled={!isFormValid || isSubmitting}
       />
 
       <div className="flex-1 px-6 pt-6 pb-6 overflow-y-auto">

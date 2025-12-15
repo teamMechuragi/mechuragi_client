@@ -26,11 +26,10 @@ const apiClient = axios.create({
 // 요청 인터셉터 (토큰 추가 등)
 apiClient.interceptors.request.use(
   (config) => {
-    // TODO: 로그인 구현 후 토큰 추가
-    // const token = localStorage.getItem('accessToken');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

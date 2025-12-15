@@ -31,8 +31,9 @@ export default function ProfileSection() {
       const memberId = currentUser.id;
 
       // ✅ 회원 정보 조회 API 호출
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
       const response = await fetch(
-        `https://mechuragi.kro.kr/api/members/${memberId}`,
+        `${apiUrl}/members/${memberId}`,
         {
           method: "GET",
           headers: {

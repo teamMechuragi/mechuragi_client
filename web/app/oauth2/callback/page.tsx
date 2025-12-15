@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
 
 export default function OAuthSuccess() {
   const router = useRouter();
   const { setUser } = useUser();
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // React Strict Mode에서 중복 실행 방지
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
     const handleOAuthCallback = async () => {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get("accessToken");
@@ -21,8 +26,10 @@ export default function OAuthSuccess() {
 
         try {
           // 2. 토큰으로 사용자 정보 가져오기
-          // ✅ 수정: URL과 엔드포인트 확인 필요
-          const response = await fetch("https://mechuragi.kro.kr/api/members/me", {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
+          console.log("사용자 정보 조회 시도:", `${apiUrl}/members/me`);
+
+          const response = await fetch(`${apiUrl}/members/me`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -30,14 +37,18 @@ export default function OAuthSuccess() {
             },
           });
 
+          console.log("사용자 정보 조회 응답:", response.status, response.statusText);
+
           if (!response.ok) {
-            throw new Error("사용자 정보 조회 실패");
+            const errorText = await response.text();
+            console.error("API 에러 응답:", errorText);
+            throw new Error(`사용자 정보 조회 실패: ${response.status} ${errorText}`);
           }
 
           const data = await response.json();
+          console.log("사용자 정보 조회 성공:", data);
 
           // 3. 사용자 정보 저장
-          // ✅ 수정: API 명세서 구조에 맞게 수정
           const userData = {
             id: data.id,
             username: data.nickname,
@@ -54,20 +65,20 @@ export default function OAuthSuccess() {
           console.log("OAuth 로그인 성공:", userData);
 
           // 4. 홈으로 이동
-          router.push("/");
+          router.replace("/Home");
         } catch (error) {
           console.error("사용자 정보 조회 실패:", error);
           alert("로그인 처리 중 오류가 발생했습니다");
-          router.push("/login");
+          router.replace("/login");
         }
       } else {
         alert("로그인 실패 또는 토큰이 없습니다");
-        router.push("/login");
+        router.replace("/login");
       }
     };
 
     handleOAuthCallback();
-  }, []); // 마운트 시 한 번만 실행
+  }, [router, setUser]); // 의존성 배열에 router와 setUser 추가
 
   return (
     <div className="flex items-center justify-center min-h-screen">

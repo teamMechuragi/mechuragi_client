@@ -79,10 +79,14 @@ export interface VoteParticipationRequest {
 
 // 투표 참여 응답
 export interface VoteParticipationResponse {
-  id: number;
   voteId: number;
-  selectedOptionIds: number[];
-  participatedAt: string; // ISO 8601 형식
+  voteTitle: string;
+  participatedOptions: Array<{
+    optionId: number;
+    optionText: string;
+    imageUrl?: string;
+  }>;
+  participatedAt: string | null; // ISO 8601 형식
 }
 
 // 댓글 응답
