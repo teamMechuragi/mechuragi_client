@@ -3,11 +3,13 @@
 import Image from "next/image";
 
 export default function SocialLogin() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr/api";
+  
   const socialPlatforms = [
     {
       name: "카카오",
       src: "/icon/kakao.png",
-      loginUrl: "https://mechuragi.kro.kr/api/oauth2/authorization/kakao",
+      loginUrl: `${apiUrl}/oauth2/authorization/kakao`,  // 이렇게 수정
     },
   ]
 
