@@ -1,49 +1,44 @@
 'use client';
 
-import { useState } from 'react';
 import DateCell from './DateCell';
 
-export default function CalendarGrid() {
-  const [currentDate] = useState(new Date(2024, 11)); // 2024년 12월
-  const [images, setImages] = useState<Record<number, string[]>>({});
+interface DiaryEntry {
+  date: string;
+  thumbnail: string;
+}
 
-  // 날짜 계산
-  const getDays = () => {
-    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    const days = [];
-    
-    // 빈 칸 추가 (달의 첫 날 이전)
-    for (let i = 0; i < firstDay.getDay(); i++) {
-      days.push(null);
-    }
-    
-    // 날짜 추가
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      days.push(i);
-    }
-    
-    return days;
+interface CalendarGridProps {
+  year: number;
+  month: number;
+  diaryEntries: DiaryEntry[];
+  onDateClick: (date: string) => void;
+}
+
+export default function CalendarGrid({ year, month, diaryEntries, onDateClick }: CalendarGridProps) {
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month + 1, 0).getDate();
   };
 
-  // 이미지 업로드 핸들러
-  const handleImageUpload = (day: number, files: FileList) => {
-    const urls = Array.from(files).map(file => URL.createObjectURL(file));
-    setImages(prev => ({
-      ...prev,
-      [day]: [...(prev[day] || []), ...urls]
-    }));
+  const getFirstDayOfMonth = (year: number, month: number) => {
+    return new Date(year, month, 1).getDay();
   };
+
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = getFirstDayOfMonth(year, month);
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const emptyDays = Array.from({ length: firstDay }, (_, i) => i);
+
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
-    <div className="p-4">
+    <div className="w-full">
       {/* 요일 헤더 */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {['일', '월', '화', '수', '목', '금', '토'].map((day, idx) => (
-          <div 
-            key={day} 
+      <div className="grid grid-cols-7 px-4 mb-2">
+        {weekDays.map((day, index) => (
+          <div
+            key={day}
             className={`text-center text-sm font-medium py-2 ${
-              idx === 0 ? 'text-red-500' : idx === 6 ? 'text-blue-500' : 'text-gray-600'
+              index === 0 ? 'text-red-400' : index === 6 ? 'text-[#3CDCBA]' : 'text-gray-400'
             }`}
           >
             {day}
@@ -51,17 +46,29 @@ export default function CalendarGrid() {
         ))}
       </div>
 
-      {/* 날짜 그리드 */}
-      <div className="grid grid-cols-7 gap-1">
-        {getDays().map((day, idx) => (
-          <DateCell 
-            key={idx} 
-            day={day} 
-            images={images[day || 0] || []}
-            dayOfWeek={idx % 7}
-            onImageUpload={handleImageUpload}
-          />
+      {/* 날짜 그리드 - 꽉 채움 */}
+      <div className="grid grid-cols-7">
+        {emptyDays.map((_, index) => (
+          <div key={`empty-${index}`} className="h-20" />
         ))}
+
+        {days.map((day) => {
+          const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const entry = diaryEntries.find(e => e.date === dateString);
+          const dayOfWeek = new Date(year, month, day).getDay();
+
+          return (
+            <DateCell
+              key={day}
+              day={day}
+              date={dateString}
+              thumbnail={entry?.thumbnail}
+              onClick={() => onDateClick(dateString)}
+              isWeekend={dayOfWeek === 0 || dayOfWeek === 6}
+              isSunday={dayOfWeek === 0}
+            />
+          );
+        })}
       </div>
     </div>
   );

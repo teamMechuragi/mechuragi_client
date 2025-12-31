@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import NotificationBell from '@/app/components/NotificationBell';
 
 interface HeaderProps {
   title?: string;
@@ -57,9 +58,7 @@ export default function Header({
     return (
       <div className="relative w-full max-w-sm px-6 py-4 flex items-center justify-between min-h-[56px]">
         <Image src="/icon/logo.png" alt="로고" width={36} height={36} />
-        <button onClick={() => router.push("/notifications")}>
-          <Image src="/icon/bell.png" alt="알림" width={24} height={24} />
-        </button>
+        <NotificationBell onClick={() => router.push("/notifications")} />
       </div>
     );
   }

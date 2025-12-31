@@ -1,71 +1,79 @@
 'use client';
 
-import { useRef } from 'react';
-
 interface DateCellProps {
-  day: number | null;
-  images: string[];
-  dayOfWeek: number;
-  onImageUpload: (day: number, files: FileList) => void;
+  day: number;
+  date: string;
+  thumbnail?: string;
+  images?: string[]; // 추가!
+  onClick: () => void;
+  isWeekend: boolean;
+  isSunday: boolean;
 }
 
-export default function DateCell({ day, images, dayOfWeek, onImageUpload }: DateCellProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  if (!day) return <div className="aspect-square" />;
-
-  const hasImages = images.length > 0;
-
-  const handleClick = () => {
-    if (!hasImages) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      onImageUpload(day, files);
-    }
-  };
+export default function DateCell({ 
+  day, 
+  date, 
+  thumbnail, 
+  images,  // 추가!
+  onClick, 
+  isWeekend, 
+  isSunday 
+}: DateCellProps) {
+  const today = new Date();
+  const isToday = 
+    today.getDate() === day &&
+    today.getMonth() === parseInt(date.split('-')[1]) - 1 &&
+    today.getFullYear() === parseInt(date.split('-')[0]);
 
   return (
-    <div 
-      className="aspect-square relative rounded-lg cursor-pointer hover:bg-gray-50"
-      onClick={handleClick}
+    <button
+      onClick={onClick}
+      className="relative h-20 border-b border-r border-gray-100 hover:bg-gray-50 transition-colors"
     >
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        <span className={`text-sm mb-1 ${
-          dayOfWeek === 0 ? 'text-red-500' : 
-          dayOfWeek === 6 ? 'text-blue-500' : 
-          'text-gray-900'
-        }`}>
-          {day}
-        </span>
-        
-        {hasImages ? (
-          <img 
-            src={images[0]} 
-            alt={`${day}일`}
-            className="w-16 h-12 object-cover rounded"
-          />
-        ) : (
-          <div className="w-16 h-12 flex items-center justify-center text-gray-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
-        )}
+      {/* 날짜 숫자 */}
+      <div className={`absolute top-1 left-1 text-xs font-medium z-10 ${
+        isToday 
+          ? 'bg-[#3CDCBA] text-white w-5 h-5 rounded-full flex items-center justify-center' 
+          : isSunday 
+            ? 'text-red-500' 
+            : isWeekend 
+              ? 'text-[#3CDCBA]' 
+              : 'text-gray-900'
+      }`}>
+        {day}
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={handleFileChange}
-      />
-    </div>
+      {/* 썸네일 표시 */}
+      {(images || thumbnail) && (
+        <div className="w-full h-full pt-6 px-1">
+          {images && images.length > 1 ? (
+            // 여러 장 - 그리드로 표시
+            <div className="grid grid-cols-3 gap-0.5 h-full">
+              {images.slice(0, 6).map((img, idx) => (
+                <div
+                  key={idx}
+                  className="aspect-square bg-gray-200 rounded-sm overflow-hidden"
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            // 1장 - 전체 크기
+            <div className="w-full h-full bg-gray-200 rounded-lg overflow-hidden">
+              <img
+                src={thumbnail || images?.[0]}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </button>
   );
 }

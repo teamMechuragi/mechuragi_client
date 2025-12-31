@@ -17,6 +17,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mechuragi.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/splashBG.png",
         "backgroundColor": "#ffffff"
@@ -28,7 +29,14 @@
       "favicon": "./assets/splashBG.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "메추라기가 갤러리에 접근하려고 합니다.",
+          "cameraPermission": "메추라기가 카메라를 사용하려고 합니다."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

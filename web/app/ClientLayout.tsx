@@ -12,12 +12,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   
   const hideLayout = pathname === "/" 
     || pathname === "/terms" 
-    || pathname === "/signup" 
+    || pathname === "/signup"
+    || pathname === "/notifications" 
     || pathname === "/mypage/profile" 
     || pathname === "/settings/details" 
     || pathname === "/mypage/account" 
     || pathname === "/mypage/account/pwchange"
     || pathname === "/mypage/account/withdrawal" 
+    || pathname === "/mypage/notifications" 
     || pathname === "/recommend/mood" 
     || pathname === "/recommend/weather"
     || pathname === "/recommend/time"
@@ -25,7 +27,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     || pathname === "/recommend/Aichat"
     || pathname === "/recommend/result"
     || pathname === "/onboarding" 
-    || pathname === "/community" 
+    || pathname === "/community"
+    || pathname === "/calendar"
+    || pathname === "/calendar/gallery"
+    || pathname === "/calendar/diary/new" 
     || isCommunityDetail;
 
   const isHome = pathname === "/Home";
