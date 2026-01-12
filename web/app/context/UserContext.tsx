@@ -239,6 +239,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
     await fetchPreferences();
   };
 
+  // 초기화 로딩 화면
+  if (!isInitialized) {
+    return (
+      <UserContext.Provider value={{
+        user,
+        setUser,
+        preferences,
+        activePreference,
+        activePreferenceDetail,
+        refreshUser,
+        refreshPreferences
+      }}>
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-[#3CDCBA] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500 text-sm">로딩 중...</p>
+          </div>
+        </div>
+      </UserContext.Provider>
+    );
+  }
+
   return (
     <UserContext.Provider value={{
       user,
