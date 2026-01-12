@@ -29,14 +29,39 @@ export default function MoodPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/ai-recommendations/conversation`, {
+      // 1. 사용자 취향 데이터 조회
+      const preferencesResponse = await fetch(`${API_URL}/api/preferences`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!preferencesResponse.ok) {
+        alert("사용자 취향 정보를 불러오는데 실패했습니다.");
+        setLoading(false);
+        return;
+      }
+
+      const preferencesData = await preferencesResponse.json();
+
+      // 2. 취향 데이터를 포함하여 AI 추천 요청
+      const response = await fetch(`${API_URL}/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          message: selectedOption.message,
+          type: "FEELING",
+          feeling: selectedOption.message,
+          // 사용자 취향 데이터 추가
+          dietStatus: preferencesData.isOnDiet,
+          veganOption: preferencesData.veganOption,
+          spiceLevel: preferencesData.spiceLevel,
+          foodTypes: preferencesData.preferredFoodTypes,
+          tastes: preferencesData.preferredTastes,
+          dislikedFoods: preferencesData.dislikedFoods,
         }),
       });
 

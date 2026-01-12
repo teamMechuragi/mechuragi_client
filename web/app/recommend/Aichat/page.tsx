@@ -136,26 +136,56 @@ export default function AIChatPage() {
 
     // 실제 API 호출
     try {
-      const response = await fetch(`${API_URL}/api/ai-recommendations/conversation`, {
+      // 1. 사용자 취향 데이터 조회
+      const preferencesResponse = await fetch(`${API_URL}/api/preferences`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!preferencesResponse.ok) {
+        const errorMessage: Message = {
+          role: "assistant",
+          content: "사용자 취향 정보를 불러오는데 실패했습니다.",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        setLoading(false);
+        return;
+      }
+
+      const preferencesData = await preferencesResponse.json();
+
+      // 2. 취향 데이터를 포함하여 AI 추천 요청
+      const response = await fetch(`${API_URL}/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          message: inputValue,
+          type: "CONVERSATION",
+          userMessage: inputValue,
+          // 사용자 취향 데이터 추가
+          dietStatus: preferencesData.isOnDiet,
+          veganOption: preferencesData.veganOption,
+          spiceLevel: preferencesData.spiceLevel,
+          foodTypes: preferencesData.preferredFoodTypes,
+          tastes: preferencesData.preferredTastes,
+          dislikedFoods: preferencesData.dislikedFoods,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // 추천 결과 저장
         setLastRecommendations(data);
-        
+
         // AI 응답 조합: 메시지 + 추천 결과
         let responseText = data.message || "";
-        
+
         if (data.recommendations && data.recommendations.length > 0) {
           // 추천 결과를 텍스트로 변환
           data.recommendations.forEach((food: FoodRecommendation, index: number) => {
@@ -165,7 +195,7 @@ export default function AIChatPage() {
             }
           });
         }
-        
+
         const assistantMessage: Message = {
           role: "assistant",
           content: responseText,
