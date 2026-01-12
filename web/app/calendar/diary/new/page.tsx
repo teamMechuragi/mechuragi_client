@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/common/Header';
 
@@ -9,10 +9,11 @@ interface ImageFile {
   file?: File;
 }
 
-export default function NewDiaryPage() {
+// 1. useSearchParams를 사용하는 실제 폼 내용을 별도 컴포넌트로 분리
+function DiaryFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams.get('editId'); // URL에서 수정 ID 추출
+  const editId = searchParams.get('editId');
 
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
   const [title, setTitle] = useState<string>('');
@@ -29,7 +30,6 @@ export default function NewDiaryPage() {
 
   const recommendedTags = ['맛있음', '가성비', '분위기갑', '재방문의사', '데이트', '혼밥'];
 
-  // --- 수정 모드 데이터 불러오기 로직 추가 ---
   useEffect(() => {
     if (editId) {
       const saved = localStorage.getItem('myDiaries');
@@ -46,7 +46,6 @@ export default function NewDiaryPage() {
         }
       }
     } else {
-      // 신규 작성일 때만 갤러리에서 넘어온 사진 처리
       const savedPhotos = localStorage.getItem('selectedPhotos');
       if (savedPhotos) {
         try {
@@ -106,13 +105,11 @@ export default function NewDiaryPage() {
     setSatisfaction(score);
   };
 
-  // --- 저장 로직 (신규 등록 및 수정 분기 처리) ---
   const handleSave = () => {
     const saved = localStorage.getItem('myDiaries');
     const existingDiaries = saved ? JSON.parse(saved) : [];
 
     if (editId) {
-      // [수정 모드] 해당 ID만 찾아서 업데이트
       const updatedDiaries = existingDiaries.map((d: any) => 
         d.id === editId 
           ? { 
@@ -128,7 +125,6 @@ export default function NewDiaryPage() {
       localStorage.setItem('myDiaries', JSON.stringify(updatedDiaries));
       router.push(`/calendar/diary/${editId}`);
     } else {
-      // [신규 작성 모드] 새 데이터 추가
       const newId = Date.now().toString(); 
       const newDiary = {
         id: newId,
@@ -205,11 +201,6 @@ export default function NewDiaryPage() {
                     메인 대표
                   </div>
                 )}
-                <div className="absolute top-2 right-8 opacity-50 pointer-events-none">
-                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                     <path d="M7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z" />
-                   </svg>
-                </div>
               </div>
             ))}
           </div>
@@ -281,6 +272,15 @@ export default function NewDiaryPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+// 2. 메인 페이지 컴포넌트: Suspense로 감싸기
+export default function NewDiaryPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center text-gray-400">불러오는 중...</div>}>
+      <DiaryFormContent />
+    </Suspense>
   );
 }
 
