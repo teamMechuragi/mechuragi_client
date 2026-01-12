@@ -4,6 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/app/common/Header';
 
+// 1. 빌드 에러 방지를 위한 정적 경로 생성
+export async function generateStaticParams() {
+  return [{ id: '1' }];
+}
+
+// 2. 빌드 타임에 없는 ID도 클라이언트 사이드에서 처리하도록 설정
+export const dynamicParams = true;
+
 export default function DiaryDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -23,23 +31,11 @@ export default function DiaryDetailPage() {
 
   // 1. 페이지 로드 시 로컬 스토리지에서 해당 ID의 데이터 불러오기
   useEffect(() => {
-    /* // [BACKEND API] 일기 상세 정보 불러오기
-      const fetchDiary = async () => {
-        try {
-          const response = await fetch(`/api/diaries/${id}`);
-          const data = await response.json();
-          setDiary(data);
-        } catch (error) {
-          console.error("Failed to fetch diary:", error);
-        }
-      };
-      fetchDiary();
-    */
-
     const saved = localStorage.getItem('myDiaries');
     if (saved) {
       const diaries = JSON.parse(saved);
-      const found = diaries.find((d: any) => d.id === id);
+      // 타입 차이로 인한 오류 방지를 위해 String으로 변환 후 비교
+      const found = diaries.find((d: any) => String(d.id) === String(id));
       if (found) {
         setDiary(found);
       }
@@ -77,55 +73,39 @@ export default function DiaryDetailPage() {
     if (isViewerOpen) setShowUI(!showUI);
   };
 
-  // --- 추가된 수정 및 삭제 로직 시작 ---
-
-  // 삭제 로직 (팝업 내 '삭제' 버튼 클릭 시 실행)
+  // 삭제 로직
   const handleDelete = async () => {
-    /* // [BACKEND API] 일기 삭제 요청
-      try {
-        const response = await fetch(`/api/diaries/${id}`, { method: 'DELETE' });
-        if (response.ok) router.push('/calendar');
-      } catch (error) {
-        console.error("Delete failed:", error);
-      }
-    */
-
-    // 로컬 스토리지 삭제 처리
     const saved = localStorage.getItem('myDiaries');
     if (saved) {
       const diaries = JSON.parse(saved);
-      const filtered = diaries.filter((d: any) => d.id !== id);
+      const filtered = diaries.filter((d: any) => String(d.id) !== String(id));
       localStorage.setItem('myDiaries', JSON.stringify(filtered));
       router.push('/calendar');
     }
   };
 
-  // 수정 로직 (기존 작성 페이지로 바로 이동하도록 수정)
+  // 수정 로직
   const handleEdit = () => {
-    // 갤러리가 아닌 작성이 이루어지는 'new' 페이지로 이동해야 기존 데이터가 채워집니다.
     router.push(`/calendar/diary/new?editId=${id}`); 
   };
 
-  // --- 추가된 수정 및 삭제 로직 끝 ---
-
-  // 데이터가 없을 때 노출
+  // 데이터가 없을 때 로딩 UI
   if (!diary) {
     return (
       <div className="min-h-screen bg-white">
         <Header title="먹방 일기" />
-        <div className="pt-20 text-center text-gray-400">일기를 불러오는 중입니다...</div>
+        <div className="pt-24 text-center text-gray-400">일기를 불러오는 중입니다...</div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-white relative max-w-sm mx-auto">
-      {/* 뒤로가기 시 캘린더 화면으로 이동하도록 backLink 설정 */}
       <Header 
         title="먹방 일기" 
         isDetail={true}
         backLink="/calendar"
-        onDelete={() => setIsDeleteModalOpen(true)} // 브라우저 confirm 대신 모달 오픈
+        onDelete={() => setIsDeleteModalOpen(true)}
         onEdit={handleEdit}
       />
       
@@ -139,6 +119,7 @@ export default function DiaryDetailPage() {
             onScroll={handleScroll}
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide rounded-3xl relative"
           >
+            {/* 옵셔널 체이닝 추가로 런타임 에러 방지 */}
             {diary.images && diary.images.length > 0 ? (
               diary.images.map((img: string, idx: number) => (
                 <div key={idx} className="relative w-full aspect-square snap-center flex-shrink-0">
@@ -151,7 +132,6 @@ export default function DiaryDetailPage() {
                       setIsViewerOpen(true);
                     }}
                   />
-                  {/* --- 수정 포인트: 앞 4장에만 썸네일 표시 뱃지 추가 --- */}
                   {idx < 4 && (
                     <div className="absolute top-4 left-4 bg-[#3CDCBA] text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm z-10">
                       썸네일 {idx + 1}
@@ -256,7 +236,7 @@ export default function DiaryDetailPage() {
             className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
             onClick={toggleUI}
           >
-            {diary.images.map((img: string, idx: number) => (
+            {diary.images?.map((img: string, idx: number) => (
               <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center snap-center">
                 <img 
                   src={img} 

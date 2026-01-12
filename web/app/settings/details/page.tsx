@@ -161,7 +161,7 @@ export default function DetailsSettingsPage() {
       </div>
 
       {/* 컨텐츠 */}
-      <div className="flex-1 w-full max-w-sm mx-auto px-6 pt-6 pb-32 overflow-y-auto">
+      <div className="flex-1 w-full max-w-sm mx-auto px-6 pt-16 pb-32 overflow-y-auto">
         
         {/* 별칭 입력 */}
         <div className="mb-10">
