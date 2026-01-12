@@ -40,7 +40,7 @@ export default function AIChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 🎨 목업 모드 (디자인 확인용)
-  const MOCK_MODE = true;
+  const MOCK_MODE = false;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

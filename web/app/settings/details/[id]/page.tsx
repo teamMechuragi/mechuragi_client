@@ -8,6 +8,10 @@ import { useUser } from "@/app/context/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
 
+export async function generateStaticParams() {
+  return [];
+}
+
 interface PreferenceDetail {
   id: number;
   preferenceName: string;
