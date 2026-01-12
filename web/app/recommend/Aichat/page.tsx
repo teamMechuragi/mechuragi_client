@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import ExitModal from "./components/ExitModal";
+import { useUser } from "@/app/context/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
 
@@ -24,6 +25,7 @@ interface FoodRecommendation {
 
 export default function AIChatPage() {
   const router = useRouter();
+  const { activePreferenceDetail } = useUser();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -136,18 +138,11 @@ export default function AIChatPage() {
 
     // 실제 API 호출
     try {
-      // 1. 사용자 취향 데이터 조회
-      const preferencesResponse = await fetch(`${API_URL}/api/preferences`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      if (!preferencesResponse.ok) {
+      // 활성화된 취향 확인
+      if (!activePreferenceDetail) {
         const errorMessage: Message = {
           role: "assistant",
-          content: "사용자 취향 정보를 불러오는데 실패했습니다.",
+          content: "활성화된 취향이 없습니다. 취향을 먼저 등록해주세요.",
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errorMessage]);
@@ -155,25 +150,23 @@ export default function AIChatPage() {
         return;
       }
 
-      const preferencesData = await preferencesResponse.json();
-
-      // 2. 취향 데이터를 포함하여 AI 추천 요청
+      // 취향 데이터를 포함하여 AI 추천 요청
       const response = await fetch(`${API_URL}/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({
           type: "CONVERSATION",
           userMessage: inputValue,
           // 사용자 취향 데이터 추가
-          dietStatus: preferencesData.isOnDiet,
-          veganOption: preferencesData.veganOption,
-          spiceLevel: preferencesData.spiceLevel,
-          foodTypes: preferencesData.preferredFoodTypes,
-          tastes: preferencesData.preferredTastes,
-          dislikedFoods: preferencesData.dislikedFoods,
+          dietStatus: activePreferenceDetail.isOnDiet,
+          veganOption: activePreferenceDetail.veganOption,
+          spiceLevel: activePreferenceDetail.spiceLevel,
+          foodTypes: activePreferenceDetail.preferredFoodTypes,
+          tastes: activePreferenceDetail.preferredTastes,
+          dislikedFoods: activePreferenceDetail.dislikedFoods,
         }),
       });
 

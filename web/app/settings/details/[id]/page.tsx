@@ -1,45 +1,62 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
 
-export default function DetailsSettingsPage() {
+interface PreferenceDetail {
+  id: number;
+  preferenceName: string;
+  numberOfDiners: number;
+  allergyInfo: string | null;
+  isOnDiet: string;
+  veganOption: string;
+  spiceLevel: string;
+  preferredFoodTypes: string[];
+  preferredTastes: string[];
+  dislikedFoods: string[];
+}
+
+export default function EditDetailsSettingsPage() {
   const router = useRouter();
+  const params = useParams();
+  const preferenceId = params.id as string;
   const { refreshPreferences } = useUser();
+
+  const [loading, setLoading] = useState(true);
 
   // 별칭
   const [nickname, setNickname] = useState("");
-  
+
   // 선호하는 음식
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
-  
+
   // 생활 습관 맛
   const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
-  
+
   // 시식 인원
   const [servings, setServings] = useState(2);
-  
+
   // 알레르기 목록
   const [allergies, setAllergies] = useState<string[]>([]);
   const [newAllergy, setNewAllergy] = useState("");
   const [showAllergyModal, setShowAllergyModal] = useState(false);
-  
+
   // 싫어하는 음식
   const [dislikedFoods, setDislikedFoods] = useState<string[]>([]);
   const [newDislikedFood, setNewDislikedFood] = useState("");
   const [showDislikedFoodModal, setShowDislikedFoodModal] = useState(false);
-  
+
   // 비건 여부
   const [selectedVegan, setSelectedVegan] = useState<string>("");
-  
+
   // 다이어트 여부
   const [selectedDiet, setSelectedDiet] = useState<string>("");
-  
+
   // 매운맛 단계
   const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<string>("");
 
@@ -58,6 +75,52 @@ export default function DetailsSettingsPage() {
   ];
   const dietOptions = ["다이어트_중", "해당_없음"];
   const spiceLevelOptions = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
+
+  useEffect(() => {
+    fetchPreferenceDetail();
+  }, [preferenceId]);
+
+  const fetchPreferenceDetail = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/preferences/${preferenceId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("상세정보 조회 실패");
+      }
+
+      const data: PreferenceDetail = await response.json();
+
+      // 상태 업데이트
+      setNickname(data.preferenceName);
+      setServings(data.numberOfDiners);
+      setAllergies(data.allergyInfo ? data.allergyInfo.split(", ") : []);
+      setSelectedDiet(data.isOnDiet);
+      setSelectedVegan(data.veganOption);
+      setSelectedSpiceLevel(data.spiceLevel);
+      setSelectedPreferences(data.preferredFoodTypes);
+      setSelectedHabits(data.preferredTastes);
+      setDislikedFoods(data.dislikedFoods || []);
+
+      setLoading(false);
+    } catch (error) {
+      console.error("상세정보 조회 실패:", error);
+      alert("상세정보를 불러오는데 실패했습니다.");
+      router.back();
+    }
+  };
 
   const toggleSelection = (item: string, list: string[], setList: (list: string[]) => void) => {
     if (list.includes(item)) {
@@ -91,7 +154,7 @@ export default function DetailsSettingsPage() {
     setDislikedFoods(dislikedFoods.filter((f) => f !== food));
   };
 
-  const handleSave = async () => {
+  const handleUpdate = async () => {
     // 필수 필드 검증
     if (!nickname.trim()) {
       alert("별칭을 입력해주세요.");
@@ -124,62 +187,99 @@ export default function DetailsSettingsPage() {
     }
 
     try {
-      // API 명세서에 맞게 데이터 변환
-      const settingsData = {
-        preferenceName: nickname.trim(), // 필수 사항
+      const updateData = {
+        preferenceName: nickname.trim(),
         numberOfDiners: servings,
-        allergyInfo: allergies.length > 0 ? allergies.join(", ") : undefined, // 선택 사항
-        isOnDiet: selectedDiet, // "다이어트_중" | "해당_없음"
-        veganOption: selectedVegan, // "비건" | "락토_베지테리언" | ... | "해당없음"
-        spiceLevel: selectedSpiceLevel, // "맵찔이" | "순한맛" | ...
-        preferredFoodTypes: selectedPreferences, // 필수, 1개 이상
-        preferredTastes: selectedHabits, // 필수, 1개 이상
-        dislikedFoods: dislikedFoods.length > 0 ? dislikedFoods : undefined, // 선택 사항
+        allergyInfo: allergies.length > 0 ? allergies.join(", ") : undefined,
+        isOnDiet: selectedDiet,
+        veganOption: selectedVegan,
+        spiceLevel: selectedSpiceLevel,
+        preferredFoodTypes: selectedPreferences,
+        preferredTastes: selectedHabits,
+        dislikedFoods: dislikedFoods.length > 0 ? dislikedFoods : undefined,
       };
 
-      console.log("전송 데이터:", settingsData);
+      console.log("수정 데이터:", updateData);
 
-      // POST /api/preferences
-      const response = await fetch(`${API_URL}/api/preferences`, {
-        method: "POST",
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(`${API_URL}/api/preferences/${preferenceId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(settingsData),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "저장 실패");
+        throw new Error(errorData.message || "수정 실패");
       }
-
-      // 성공 시 Location 헤더에서 생성된 리소스 ID 확인 가능
-      const locationHeader = response.headers.get("Location");
-      console.log("생성된 리소스:", locationHeader);
 
       // Context의 preferences 새로고침
       await refreshPreferences();
 
-      alert("설정이 저장되었습니다.");
+      alert("설정이 수정되었습니다.");
       router.back();
 
     } catch (error) {
-      console.error("저장 중 오류:", error);
-      alert(`설정 저장에 실패했습니다: ${error instanceof Error ? error.message : "다시 시도해주세요"}`);
+      console.error("수정 중 오류:", error);
+      alert(`설정 수정에 실패했습니다: ${error instanceof Error ? error.message : "다시 시도해주세요"}`);
     }
   };
+
+  const handleDelete = async () => {
+    if (!confirm("이 상세정보를 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(`${API_URL}/api/preferences/${preferenceId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("삭제 실패");
+      }
+
+      // Context의 preferences 새로고침
+      await refreshPreferences();
+
+      alert("상세정보가 삭제되었습니다.");
+      router.back();
+
+    } catch (error) {
+      console.error("삭제 중 오류:", error);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#00D9A0] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* 헤더 */}
       <div className="w-full max-w-sm mx-auto">
-        <Header title="상세한 정보를 입력해 주세요" backLink="/Home" isSignup />
+        <Header title="상세정보 수정" backLink="/mypage" />
       </div>
 
       {/* 컨텐츠 */}
       <div className="flex-1 w-full max-w-sm mx-auto px-6 pb-24 overflow-y-auto">
-        
+
         {/* 별칭 입력 */}
         <div className="mb-8">
           <h3 className="text-sm font-bold text-gray-700 mb-3">
@@ -193,7 +293,7 @@ export default function DetailsSettingsPage() {
             className="w-full px-4 py-2.5 bg-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00D9A0]"
           />
         </div>
-        
+
         {/* 선호하는 음식 */}
         <div className="mb-8">
           <h3 className="text-sm font-bold text-gray-700 mb-3">
@@ -396,6 +496,16 @@ export default function DetailsSettingsPage() {
             ))}
           </div>
         </div>
+
+        {/* 삭제 버튼 */}
+        <div className="mb-8">
+          <button
+            onClick={handleDelete}
+            className="w-full py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+          >
+            이 상세정보 삭제
+          </button>
+        </div>
       </div>
 
       {/* 알레르기 추가 모달 */}
@@ -467,8 +577,8 @@ export default function DetailsSettingsPage() {
       {/* 푸터 */}
       <Footer
         type="button"
-        buttonText="완료"
-        onButtonClick={handleSave}
+        buttonText="수정 완료"
+        onButtonClick={handleUpdate}
       />
     </div>
   );
