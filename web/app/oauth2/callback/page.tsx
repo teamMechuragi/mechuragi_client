@@ -65,15 +65,15 @@ export default function OAuthSuccess() {
           console.log("OAuth 로그인 성공:", userData);
 
           // 4. 홈으로 이동
-          router.replace("/Home");
+          window.location.href = "/Home";
         } catch (error) {
           console.error("사용자 정보 조회 실패:", error);
           alert("로그인 처리 중 오류가 발생했습니다");
-          router.replace("/login");
+          window.location.href = "/login";
         }
       } else {
         alert("로그인 실패 또는 토큰이 없습니다");
-        router.replace("/login");
+        window.location.href = "/login";
       }
     };
 

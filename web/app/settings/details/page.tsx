@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
+import { useUser } from "@/app/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
@@ -19,6 +20,7 @@ const SectionTitle = ({ title, required = false, sub = "" }: { title: string; re
 
 export default function DetailsSettingsPage() {
   const router = useRouter();
+  const { refreshPreferences } = useUser();
 
   const [nickname, setNickname] = useState("");
   const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
@@ -70,12 +72,16 @@ export default function DetailsSettingsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify(settingsData),
       });
 
       if (!response.ok) throw new Error("저장 실패");
+
+      // Context의 preferences 새로고침
+      await refreshPreferences();
+
       alert("설정이 저장되었습니다.");
       router.back();
     } catch (error) {

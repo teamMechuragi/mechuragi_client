@@ -8,8 +8,7 @@ import { useState, useEffect } from 'react';
 
 export default function ProfileSection() {
   const router = useRouter();
-  const { user, setUser } = useUser();
-  const [detailSettings, setDetailSettings] = useState<any[]>([]);
+  const { user, setUser, preferences, refreshPreferences } = useUser();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,33 +64,44 @@ export default function ProfileSection() {
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // 상세정보 설정 처리 (나중에 백엔드 API 추가되면 수정)
-      loadDetailSettings();
-      
     } catch (error) {
       console.error("사용자 정보 조회 실패:", error);
-      // 에러 발생 시 localStorage의 정보라도 사용
-      loadDetailSettings();
     } finally {
       setLoading(false);
     }
   };
 
-  // 상세정보 설정 로드 (임시 - localStorage)
-  const loadDetailSettings = () => {
-    const stored = localStorage.getItem("detailSettings");
-    if (stored) {
-      const data = JSON.parse(stored);
-      const settings = [];
-      
-      if (data.nickname) {
-        settings.push({ 
-          label: data.nickname, 
-          defaultChecked: true
-        });
+  // 상세정보 활성화 토글
+  const handleToggleActive = async (preferenceId: number) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
       }
-      
-      setDetailSettings(settings);
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr';
+      const response = await fetch(
+        `${apiUrl}/api/preferences/${preferenceId}/toggle-active`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("활성화 변경 실패");
+      }
+
+      // Context의 preferences 새로고침
+      await refreshPreferences();
+
+    } catch (error) {
+      console.error("활성화 변경 실패:", error);
+      alert("활성화 변경에 실패했습니다.");
     }
   };
 
@@ -145,16 +155,38 @@ export default function ProfileSection() {
 
         {/* 상세정보 설정 */}
         <div className="mt-6">
-          <h3 className="text-base font-bold mb-3">상세정보 설정</h3>
-          <div className="space-y-1">
-            {detailSettings.length > 0 ? (
-              detailSettings.map((setting, index) => (
-                <ToggleItem 
-                  key={index}
-                  label={setting.label} 
-                  defaultChecked={setting.defaultChecked}
-                  onClick={() => router.push('/settings/details?from=mypage')}
-                />
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-bold">상세정보 설정</h3>
+            <button
+              onClick={() => router.push('/settings/details?from=mypage')}
+              className="px-3 py-1 text-xs text-[#00D9A0] border border-[#00D9A0] rounded-lg hover:bg-[#00D9A0] hover:text-white transition-colors"
+            >
+              + 추가
+            </button>
+          </div>
+          <div className="space-y-2">
+            {preferences.length > 0 ? (
+              preferences.map((preference) => (
+                <div
+                  key={preference.id}
+                  className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {/* 라디오 버튼 */}
+                  <input
+                    type="radio"
+                    name="activePreference"
+                    checked={preference.isActive}
+                    onChange={() => handleToggleActive(preference.id)}
+                    className="w-4 h-4 text-[#00D9A0] focus:ring-[#00D9A0] cursor-pointer"
+                  />
+                  {/* 별칭 (클릭 시 수정 페이지로 이동) */}
+                  <button
+                    onClick={() => router.push(`/settings/details/${preference.id}?from=mypage`)}
+                    className="flex-1 text-left text-sm font-medium text-gray-700"
+                  >
+                    {preference.preferenceName}
+                  </button>
+                </div>
               ))
             ) : (
               <button

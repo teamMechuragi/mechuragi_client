@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
+import { useUser } from "@/app/context/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
 
 export default function WeatherPage() {
   const router = useRouter();
+  const { activePreferenceDetail } = useUser();
   const [selectedWeather, setSelectedWeather] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -42,16 +44,31 @@ export default function WeatherPage() {
   const handleComplete = async () => {
     if (loading || selectedWeather.length === 0) return;
 
+    // 활성화된 취향 확인
+    if (!activePreferenceDetail) {
+      alert("활성화된 취향이 없습니다. 취향을 먼저 등록해주세요.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/ai-recommendations/weather`, {
+      // 취향 데이터를 포함하여 AI 추천 요청
+      const response = await fetch(`${API_URL}/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({
+          type: "WEATHER",
           weatherConditions: selectedWeather,
+          // 사용자 취향 데이터 추가
+          dietStatus: activePreferenceDetail.isOnDiet,
+          veganOption: activePreferenceDetail.veganOption,
+          spiceLevel: activePreferenceDetail.spiceLevel,
+          foodTypes: activePreferenceDetail.preferredFoodTypes,
+          tastes: activePreferenceDetail.preferredTastes,
+          dislikedFoods: activePreferenceDetail.dislikedFoods,
         }),
       });
 

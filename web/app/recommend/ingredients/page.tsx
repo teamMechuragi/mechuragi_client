@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
+import { useUser } from "@/app/context/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
 
 export default function IngredientPage() {
   const router = useRouter();
+  const { activePreferenceDetail } = useUser();
   const [inputValue, setInputValue] = useState("");
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,18 +47,31 @@ export default function IngredientPage() {
   const handleComplete = async () => {
     if (loading || selectedIngredients.length === 0) return;
 
-    const message = `냉장고에 ${selectedIngredients.join(", ")}이(가) 있어요. 이 재료들로 만들 수 있는 음식을 추천해주세요.`;
+    // 활성화된 취향 확인
+    if (!activePreferenceDetail) {
+      alert("활성화된 취향이 없습니다. 취향을 먼저 등록해주세요.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/ai-recommendations/conversation`, {
+      // 취향 데이터를 포함하여 AI 추천 요청
+      const response = await fetch(`${API_URL}/recommend`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
         body: JSON.stringify({
-          message: message,
+          type: "INGREDIENTS",
+          ingredients: selectedIngredients,
+          // 사용자 취향 데이터 추가
+          dietStatus: activePreferenceDetail.isOnDiet,
+          veganOption: activePreferenceDetail.veganOption,
+          spiceLevel: activePreferenceDetail.spiceLevel,
+          foodTypes: activePreferenceDetail.preferredFoodTypes,
+          tastes: activePreferenceDetail.preferredTastes,
+          dislikedFoods: activePreferenceDetail.dislikedFoods,
         }),
       });
 
