@@ -15,7 +15,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/signup",         // 회원가입
     "/onboarding",     // 온보딩
     "/recommend/result",
-    "/settings/details"
+    "/settings/details/[id]",
+    "/mypage",
+    "/recommend/ingredients",
+    "/recommend/ingredients/seasoning"
   ];
 
   // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
@@ -23,7 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/",                   // 로그인
     "/terms",              // 약관
     "/signup",             // 회원가입
-    "/settings/details",   // 상세 설정
+    "/settings/details/[id]",   // 상세 설정
     "/notifications",
     "/mypage/profile",
     "/mypage/account",
@@ -34,6 +37,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/recommend/weather",
     "/recommend/time",
     "/recommend/ingredients",
+    "/recommend/ingredients/seasoning",
     "/recommend/Aichat",
     "/recommend/result",
     "/calendar/diary/new",

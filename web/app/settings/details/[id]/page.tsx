@@ -1,11 +1,11 @@
-import EditDetailsClient from './EditDetailsClient';
+import DetailsClient from './EditDetailsClient';
 
 export async function generateStaticParams() {
-  // Static export를 위해 더미 페이지 생성
-  // 실제 데이터는 클라이언트 사이드에서 동적으로 로드됨
-  return [{ id: '1' }];
+  // 정적 빌드를 위한 더미 (필요에 따라 수정 가능)
+  return [{ id: 'new' }];
 }
 
 export default function Page({ params }: { params: { id: string } }) {
-  return <EditDetailsClient id={params.id} />;
+  // params.id가 'new'가 아니면 수정 모드로 동작하게 됩니다.
+  return <DetailsClient id={params.id} />;
 }

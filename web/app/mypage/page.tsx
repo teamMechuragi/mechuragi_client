@@ -1,11 +1,12 @@
 import Header from '../common/Header';
 import Footer from '../common/Footer';
 import ProfileSection from './components/ProfileSection';
+
 import MenuList from './components/MenuList';
 
 export default function MyPage() {
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-white pb-24 pt-4">
       <ProfileSection />
       <MenuList />
       <Footer type="nav" />
