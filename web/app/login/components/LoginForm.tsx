@@ -42,10 +42,12 @@ export default function LoginForm() {
 
       const data = await response.json();
       console.log("로그인 성공:", data);
+      console.log("member 데이터:", data.member);
 
       // ✅ 수정: tokens 객체에서 접근
       localStorage.setItem("accessToken", data.tokens.accessToken);
       localStorage.setItem("refreshToken", data.tokens.refreshToken);
+      console.log("토큰 저장 완료");
 
       // ✅ 수정: member 객체에서 사용자 정보 가져오기
       const userData = {
@@ -58,12 +60,15 @@ export default function LoginForm() {
         status: data.member.status,
       };
 
+      console.log("사용자 정보 저장 완료:", userData);
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      router.push("/");
+      console.log("메인 페이지로 이동 시도...");
+      window.location.href = "/Home";
     } catch (err) {
       console.error("로그인 에러:", err);
+      alert("에러 발생: " + err);
       setError("서버 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
