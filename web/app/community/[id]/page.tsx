@@ -11,6 +11,10 @@ import LikeButton from '../components/LikeButton';
 import CommentSection from '../components/CommentSection';
 import { getRelativeTime } from '@/lib/utils/dateFormat';
 
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function CommunityDetailPage() {
   const router = useRouter();
   const params = useParams();
