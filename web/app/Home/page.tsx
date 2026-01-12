@@ -34,7 +34,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen px-5 bg-white max-w-sm mx-auto pb-12">
       
       {/* 1. 개인화 헤더 */}
-      <header className="mt-12 mb-7">
+      <header className="mt-4 mb-7">
         <motion.div
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
