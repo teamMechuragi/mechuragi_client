@@ -28,6 +28,7 @@ export default function LoginForm() {
     }
 
     try {
+      // ✅ 수정: /api/auth/login으로 변경
       const response = await fetch("https://mechuragi.kro.kr/api/auth/login", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,11 +43,11 @@ export default function LoginForm() {
       const data = await response.json();
       console.log("로그인 성공:", data);
 
-      // ✅ 수정 1: 다른 페이지와 키 이름을 맞춥니다 ("accessToken" -> "token")
-      // 만약 다른 페이지에서 getItem("token")을 쓴다면 아래처럼 "token"으로 저장해야 합니다.
-      localStorage.setItem("token", data.tokens.accessToken);
+      // ✅ 수정: tokens 객체에서 접근
+      localStorage.setItem("accessToken", data.tokens.accessToken);
       localStorage.setItem("refreshToken", data.tokens.refreshToken);
 
+      // ✅ 수정: member 객체에서 사용자 정보 가져오기
       const userData = {
         id: data.member.id,
         username: data.member.nickname,
@@ -60,10 +61,7 @@ export default function LoginForm() {
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // ✅ 수정 2: "/" 대신 확실하게 "/Home"으로 이동 (대소문자 주의)
-      // Next.js의 router.push가 가끔 작동하지 않을 때를 대비해 확실한 이동 로직을 사용합니다.
-      window.location.href = "/Home"; 
-      
+      router.push("/");
     } catch (err) {
       console.error("로그인 에러:", err);
       setError("서버 오류가 발생했습니다. 다시 시도해주세요.");
