@@ -14,7 +14,7 @@ export default function LoginForm() {
   const [focusedField, setFocusedField] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser, refreshPreferences } = useUser();
 
   const isValidEmail = (email: string): boolean =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -64,8 +64,11 @@ export default function LoginForm() {
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
 
+      // 로그인 후 preferences 로드
+      await refreshPreferences();
+
       console.log("메인 페이지로 이동 시도...");
-      window.location.href = "/Home";
+      router.push("/Home");
     } catch (err) {
       console.error("로그인 에러:", err);
       alert("에러 발생: " + err);

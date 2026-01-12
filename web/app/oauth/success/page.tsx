@@ -6,7 +6,7 @@ import { useUser } from "@/app/context/UserContext";
 
 export default function OAuthSuccess() {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser, refreshPreferences } = useUser();
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
@@ -53,8 +53,11 @@ export default function OAuthSuccess() {
 
           console.log("OAuth 로그인 성공:", userData);
 
+          // preferences 로드
+          await refreshPreferences();
+
           // 4. 홈으로 이동
-          router.push("/");
+          router.push("/Home");
         } catch (error) {
           console.error("사용자 정보 조회 실패:", error);
           alert("로그인 처리 중 오류가 발생했습니다");
