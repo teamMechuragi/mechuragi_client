@@ -8,36 +8,89 @@ export default function PopularMenuList() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // ✅ 목업 데이터 사용
-    const timeout = setTimeout(() => {
-      const fakeMenus = ["김치찌개", "알리오올리오", "비빔밥", "부대찌개", "삼겹살덮밥","아무말","길게길게말해보기","그다음은 뭐지뭐지"];
-      setMenus(fakeMenus);
-      setLoading(false);
-    }, 500); // 0.5초 딜레이
-
-    return () => clearTimeout(timeout);
+    const fetchPopularMenus = async () => {
+      try {
+        setLoading(true);
+        // 실제 연동 시: const response = await fetch('YOUR_API_URL');
+        // const data = await response.json();
+        
+        // 백엔드 API 응답을 가정함
+        const data = [
+          "김치찜", "알리오올리오", "비빔밥", "부대찌개", 
+          "삼겹살덮밥", "제육볶음", "돈까스", "파스타",
+          "된장찌개", "샐러드", "라면", "초밥"
+        ];
+        
+        setMenus(data);
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPopularMenus();
   }, []);
 
-  if (loading) {
-    return <p className="text-gray-500 text-sm">인기 메뉴 불러오는 중...</p>;
-  }
+  if (loading) return <div className="h-[100px] flex items-center text-gray-400 text-[12px]">인기 메뉴 로딩 중...</div>;
+  if (error) return <div className="h-[100px] flex items-center text-red-400 text-[12px]">메뉴를 불러오지 못했습니다.</div>;
 
-  if (error) {
-    return <p className="text-red-500 text-sm">인기 메뉴를 불러오지 못했어요.</p>;
-  }
+  // 무한 루프를 위해 데이터를 반으로 나누고 각각 복제함
+  const half = Math.ceil(menus.length / 2);
+  const row1 = [...menus.slice(0, half), ...menus.slice(0, half)];
+  const row2 = [...menus.slice(half), ...menus.slice(half)];
 
   return (
-    <section>
-      <div className="flex flex-wrap gap-[10px] max-h-[72px] overflow-y-auto">
-        {menus.map((menu, idx) => (
-          <button
-            key={idx}
-            className=" px-[14px] py-[6px] rounded-full bg-gray-100 whitespace-nowrap text-sm text-[12px] font-regular"
-          >
-            {menu}
-          </button>
-        ))}
+    <div className="w-full flex flex-col gap-3 overflow-hidden py-2">
+      <style jsx>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-scroll {
+          display: flex;
+          gap: 8px;
+          width: max-content;
+          animation: scroll 30s linear infinite;
+        }
+        .animate-scroll-reverse {
+          display: flex;
+          gap: 8px;
+          width: max-content;
+          animation: scroll 25s linear infinite reverse;
+        }
+        .animate-scroll:hover, .animate-scroll-reverse:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      {/* 첫 번째 줄 (왼쪽으로 흐름) */}
+      <div className="flex w-full overflow-hidden">
+        <div className="animate-scroll">
+          {row1.map((menu, idx) => (
+            <button
+              key={`row1-${idx}`}
+              className="px-[16px] py-[8px] rounded-full bg-[#F2F2F4] text-[#1A1A1A] text-[14px] font-medium whitespace-nowrap shrink-0 active:scale-95"
+            >
+              {menu}
+            </button>
+          ))}
+        </div>
       </div>
-    </section>
+
+      {/* 두 번째 줄 (오른쪽으로 흐름) */}
+      <div className="flex w-full overflow-hidden">
+        <div className="animate-scroll-reverse">
+          {row2.map((menu, idx) => (
+            <button
+              key={`row2-${idx}`}
+              className="px-[16px] py-[8px] rounded-full bg-[#F2F2F4] text-[#1A1A1A] text-[14px] font-medium whitespace-nowrap shrink-0 active:scale-95"
+            >
+              {menu}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

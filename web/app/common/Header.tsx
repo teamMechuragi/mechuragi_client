@@ -16,10 +16,15 @@ interface HeaderProps {
   onPrev?: () => void;
   currentSlide?: number;
   totalSlides?: number;
-  // 👇 글쓰기용 추가
+  isCalendar?: boolean;
+  onCalendarClick?: () => void;
   isWrite?: boolean;
   onSubmit?: () => void;
   submitDisabled?: boolean;
+  submitText?: string;
+  isDetail?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export default function Header({ 
@@ -34,123 +39,169 @@ export default function Header({
   onPrev,
   currentSlide = 0,
   totalSlides = 4,
+  isCalendar = false,
+  onCalendarClick,
   isWrite = false,
   onSubmit,
-  submitDisabled = true
+  submitDisabled = true,
+  submitText = "등록",
+  isDetail = false,
+  onEdit,
+  onDelete
 }: HeaderProps) {
   const router = useRouter();
 
-  // 닫기(X) 헤더
+  // 수정 포인트: px-6을 px-4로 변경하여 본문(px-4)과 시작점을 일치시킴
+  const headerBaseStyle = "fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-sm z-50 bg-white border-b border-gray-50 h-14 flex items-center px-4";
+
+  // 1. 닫기(X) 헤더
   if (close) {
     return (
-      <div className="relative w-full max-w-sm px-6 py-4 flex items-center min-h-[56px]">
-        <button onClick={() => router.push("/Home")}>
+      <header className={headerBaseStyle}>
+        <button onClick={() => router.push("/Home")} className="p-1 -ml-1">
           <Image src="/icon/x.png" alt="닫기" width={24} height={24} />
         </button>
-        {title && <div className="flex-1 text-center text-lg font-bold">{title}</div>}
-        {title && <div className="w-[24px]" />}
-      </div>
+        {title && <div className="flex-1 text-center text-[18px] font-bold">{title}</div>}
+        <div className="w-[24px]" />
+      </header>
     );
   }
 
-  // 홈 헤더
+  // 2. 홈 헤더
   if (isHome) {
     return (
-      <div className="relative w-full max-w-sm px-6 py-4 flex items-center justify-between min-h-[56px]">
-        <Image src="/icon/logo.png" alt="로고" width={36} height={36} />
+      <header className={`${headerBaseStyle} justify-between`}>
+        <div className="flex items-center">
+          {/* 로고와 하단 텍스트 정렬을 위해 추가적인 여백 없이 깔끔하게 배치 */}
+          <Image src="/icon/logo.png" alt="로고" width={32} height={32} />
+        </div>
         <NotificationBell onClick={() => router.push("/notifications")} />
-      </div>
+      </header>
     );
   }
 
-  // 회원가입 헤더
+  // 3. 회원가입/일반 헤더
   if (isSignup) {
     return (
-      <div className="relative w-full px-6 py-4 flex items-center min-h-[56px] bg-white z-10">
+      <header className={headerBaseStyle}>
         {backLink ? (
-          <button onClick={() => router.push(backLink)}>
+          <button onClick={() => router.push(backLink)} className="p-1 -ml-1">
             <Image src="/icon/arrow-left.png" alt="뒤로가기" width={24} height={24} />
           </button>
         ) : (
           <div className="w-[24px]" />
         )}
-        <h2 className="text-lg font-bold flex-1 text-center">{title}</h2>
+        <h2 className="text-[18px] font-bold flex-1 text-center">{title}</h2>
         <div className="w-[24px]" />
-      </div>
+      </header>
     );
   }
 
-  // 온보딩 헤더
+  // 4. 온보딩 헤더
   if (isOnboarding) {
+    // 온보딩 역시 px-6에서 px-4로 수정하여 통일감 부여
     return (
-      <div className="relative w-full max-w-sm px-6 py-4 min-h-[56px]">
+      <header className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-sm z-50 bg-white px-4 pt-4 pb-2 border-b border-gray-50">
         <div className="flex items-center justify-between mb-3">
           <button 
             onClick={onPrev}
-            className={`text-gray-400 text-base ${!showPrev ? 'invisible' : ''}`}
+            className={`text-gray-400 text-sm font-medium ${!showPrev ? 'invisible' : ''}`}
           >
             이전
           </button>
           <button 
             onClick={onSkip}
-            className="text-teal-500 font-medium text-base"
+            className="text-[#3CDCBA] font-bold text-sm"
           >
             건너뛰기
           </button>
         </div>
-        <div className="flex justify-center gap-2">
+        <div className="flex justify-center gap-1.5">
           {Array.from({ length: totalSlides }).map((_, index) => (
             <div
               key={index}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide 
-                  ? 'w-8 bg-teal-500' 
-                  : 'w-2 bg-gray-300'
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                index === currentSlide ? 'w-6 bg-[#3CDCBA]' : 'w-1.5 bg-gray-200'
               }`}
             />
           ))}
         </div>
-      </div>
+      </header>
     );
   }
 
-  // 👇 글쓰기 헤더 추가
+  // 5. 캘린더 전용 헤더
+  if (isCalendar) {
+    return (
+      <header className={`${headerBaseStyle} justify-center`}>
+        <button
+          onClick={onCalendarClick}
+          className="flex items-center gap-1 text-[18px] font-bold text-gray-900"
+        >
+          {title}
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </header>
+    );
+  }
+
+  // 6. 글쓰기/갤러리 헤더
   if (isWrite) {
     return (
-      <div className="relative w-full px-6 py-4 flex items-center justify-between min-h-[56px] bg-white border-b border-gray-100">
-        {backLink ? (
-          <button onClick={() => router.push(backLink)}>
-            <Image src="/icon/arrow-left.png" alt="뒤로가기" width={24} height={24} />
-          </button>
-        ) : (
-          <div className="w-[24px]" />
-        )}
-        <h2 className="text-lg font-bold flex-1 text-center">{title}</h2>
+      <header className={`${headerBaseStyle} justify-between`}>
+        <button onClick={() => (backLink ? router.push(backLink) : router.back())} className="p-1 -ml-1">
+          <Image src="/icon/arrow-left.png" alt="뒤로가기" width={24} height={24} />
+        </button>
+        <h2 className="text-[18px] font-bold flex-1 text-center">{title}</h2>
         <button
           onClick={onSubmit}
           disabled={submitDisabled}
-          className={`px-4 py-2 rounded-full font-medium text-sm ${
-            !submitDisabled ? 'bg-[#3CDCBA] text-white' : 'bg-gray-200 text-gray-400'
+          className={`font-bold text-[16px] transition-colors ${
+            !submitDisabled ? 'text-[#3CDCBA]' : 'text-gray-300'
           }`}
         >
-          등록
+          {submitText}
         </button>
-      </div>
+      </header>
     );
   }
 
-  // 일반 헤더
+  // 8. 상세페이지 헤더
+  if (isDetail) {
+    return (
+      <header className={headerBaseStyle}>
+        <button onClick={() => (backLink ? router.push(backLink) : router.back())} className="p-1 -ml-1">
+          <Image src="/icon/arrow-left.png" alt="뒤로가기" width={24} height={24} />
+        </button>
+        <h2 className="text-[18px] font-bold absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+          {title}
+        </h2>
+        <div className="ml-auto flex gap-2">
+          <button onClick={onDelete} className="p-1">
+            <Image src="/icon/trash.png" alt="삭제" width={22} height={22} />
+          </button>
+          <button onClick={onEdit} className="p-1">
+            <Image src="/icon/edit.png" alt="수정" width={22} height={22} />
+          </button>
+        </div>
+      </header>
+    );
+  }
+
+  // 기본 헤더
   return (
-    <div className="relative w-full max-w-sm px-6 py-4 flex items-center min-h-[56px]">
+    <header className={headerBaseStyle}>
       {backLink ? (
-        <button onClick={() => router.push(backLink)}>
+        <button onClick={() => router.push(backLink)} className="p-1 -ml-1">
           <Image src="/icon/arrow-left.png" alt="뒤로가기" width={24} height={24} />
         </button>
       ) : (
         <div className="w-[24px]" />
       )}
-      <h2 className="text-lg font-bold flex-1 text-center">{title}</h2>
+      <h2 className="text-[18px] font-bold flex-1 text-center">{title}</h2>
       <div className="w-[24px]" />
-    </div>
+    </header>
   );
 }

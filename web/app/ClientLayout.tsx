@@ -7,39 +7,61 @@ import Footer from "./common/Footer";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
-  // 커뮤니티 상세 페이지 체크
+  // 커뮤니티 상세 페이지 여부
   const isCommunityDetail = pathname.startsWith("/community/") && pathname !== "/community";
-  
-  const hideLayout = pathname === "/" 
-    || pathname === "/terms" 
-    || pathname === "/signup"
-    || pathname === "/notifications" 
-    || pathname === "/mypage/profile" 
-    || pathname === "/settings/details" 
-    || pathname === "/mypage/account" 
-    || pathname === "/mypage/account/pwchange"
-    || pathname === "/mypage/account/withdrawal" 
-    || pathname === "/mypage/notifications" 
-    || pathname === "/recommend/mood" 
-    || pathname === "/recommend/weather"
-    || pathname === "/recommend/time"
-    || pathname === "/recommend/ingredients"
-    || pathname === "/recommend/Aichat"
-    || pathname === "/recommend/result"
-    || pathname === "/onboarding" 
-    || pathname === "/community"
-    || pathname === "/calendar"
-    || pathname === "/calendar/gallery"
-    || pathname === "/calendar/diary/new" 
-    || isCommunityDetail;
+
+  // 1. 헤더를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
+  const hideHeaderPaths = [
+    "/signup",         // 회원가입
+    "/onboarding",     // 온보딩
+    "/recommend/result",
+    "/settings/details"
+  ];
+
+  // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
+  const hideFooterPaths = [
+    "/",                   // 로그인
+    "/terms",              // 약관
+    "/signup",             // 회원가입
+    "/settings/details",   // 상세 설정
+    "/notifications",
+    "/mypage/profile",
+    "/mypage/account",
+    "/mypage/account/pwchange",
+    "/mypage/account/withdrawal",
+    "/mypage/notifications",
+    "/recommend/mood",
+    "/recommend/weather",
+    "/recommend/time",
+    "/recommend/ingredients",
+    "/recommend/Aichat",
+    "/recommend/result",
+    "/calendar/diary/new",
+    "/onboarding"
+  ];
+
+  // 최종 노출 여부 판단
+  const shouldHideHeader = hideHeaderPaths.includes(pathname);
+  const shouldHideFooter = hideFooterPaths.includes(pathname) || isCommunityDetail;
 
   const isHome = pathname === "/Home";
 
   return (
-    <div className="flex flex-col min-h-screen max-w-sm mx-auto bg-white">
-      {!hideLayout && <Header isHome={isHome} />}
-      <main className="flex-1">{children}</main>
-      {!hideLayout && <Footer type="nav" />}
+    <div className="flex flex-col min-h-screen max-w-sm mx-auto bg-white shadow-2xl shadow-black/5 relative overflow-x-hidden">
+      
+      {/* 1. 헤더 렌더링 */}
+      {!shouldHideHeader && <Header isHome={isHome} />}
+
+      {/* 2. 메인 컨텐츠 영역 */}
+      <main className={`flex-1 w-full 
+        ${!shouldHideHeader ? "pt-[60px]" : ""} 
+        ${!shouldHideFooter ? "pb-24" : ""}
+      `}>
+        {children}
+      </main>
+
+      {/* 3. 푸터 렌더링 */}
+      {!shouldHideFooter && <Footer type="nav" />}
     </div>
   );
 }
