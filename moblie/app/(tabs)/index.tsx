@@ -1,11 +1,24 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as ImagePicker from 'expo-image-picker';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TabOneScreen() {
   const webViewRef = useRef<WebView>(null);
+
+  // 알림 핸들러 설정 - 타입 명시
+  useEffect(() => {
+    Notifications.setNotificationHandler({
+      handleNotification: async (notification: Notifications.Notification) => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      } as Notifications.NotificationBehavior),
+    });
+  }, []);
 
   const handleMessage = async (event: any) => {
     try {
@@ -62,6 +75,48 @@ export default function TabOneScreen() {
           }));
         }
       }
+
+      if (message.action === 'REQUEST_NOTIFICATION_PERMISSION') {
+        if (!Device.isDevice) {
+          webViewRef.current?.postMessage(JSON.stringify({
+            type: 'NOTIFICATION_PERMISSION_RESULT',
+            granted: false,
+            error: 'NOT_DEVICE'
+          }));
+          return;
+        }
+
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        webViewRef.current?.postMessage(JSON.stringify({
+          type: 'NOTIFICATION_PERMISSION_RESULT',
+          granted: finalStatus === 'granted',
+          status: finalStatus
+        }));
+      }
+
+      if (message.action === 'GET_PUSH_TOKEN') {
+        try {
+          const token = await Notifications.getExpoPushTokenAsync();
+          
+          webViewRef.current?.postMessage(JSON.stringify({
+            type: 'PUSH_TOKEN_RESULT',
+            token: token.data
+          }));
+        } catch (error) {
+          webViewRef.current?.postMessage(JSON.stringify({
+            type: 'PUSH_TOKEN_RESULT',
+            error: String(error)
+          }));
+        }
+      }
+
     } catch (error) {
       console.error('메시지 처리 실패:', error);
     }

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Header from '@/app/common/Header'; // 공통 헤더 임포트
 import CalendarGrid from './components/CalendarGrid';
 import Footer from '@/app/common/Footer';
 
 interface DiaryEntry {
+  id: string;
   date: string;
-  thumbnail: string;
+  images: string[];
 }
 
 export default function CalendarPage() {
@@ -15,173 +17,172 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
+  // --- 데이터 페칭 및 로컬 테스트 영역 ---
   useEffect(() => {
-    fetchDiaryEntries(year, month);
+    /**
+     * [백엔드 API 연동 시 사용할 코드 (주석)]
+     * const fetchDiaryEntries = async () => {
+     * try {
+     * const response = await fetch(`/api/diaries?year=${year}&month=${month + 1}`);
+     * const data = await response.json();
+     * setDiaryEntries(data);
+     * } catch (error) {
+     * console.error("데이터 로드 실패:", error);
+     * }
+     * };
+     * fetchDiaryEntries();
+     */
+
+    // [로컬 스토리지 테스트용 실무 코드]
+    const loadLocalData = () => {
+      const saved = localStorage.getItem('myDiaries');
+      if (saved) {
+        try {
+          const allDiaries: DiaryEntry[] = JSON.parse(saved);
+          // 현재 달력의 연/월에 해당하는 데이터만 필터링 (선택 사항)
+          setDiaryEntries(allDiaries);
+        } catch (e) {
+          console.error("로컬 데이터 파싱 실패", e);
+          setDiaryEntries([]);
+        }
+      } else {
+        setDiaryEntries([]);
+      }
+    };
+
+    loadLocalData();
   }, [year, month]);
+  // ------------------------------------
 
-  const fetchDiaryEntries = async (year: number, month: number) => {
-    try {
-      // TODO: API 연동
-      setDiaryEntries([
-        { date: '2024-12-07', thumbnail: '/images/food1.jpg' },
-        { date: '2024-12-15', thumbnail: '/images/food2.jpg' },
-        { date: '2024-12-24', thumbnail: '/images/food3.jpg' },
-      ]);
-    } catch (error) {
-      console.error('일기 데이터 가져오기 실패:', error);
-    }
-  };
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-  const handleDateClick = (date: string) => {
-    router.push(`/calendar/gallery?date=${date}`);
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1));
-  };
-
-  const handleMonthSelect = (selectedYear: number, selectedMonth: number) => {
-    setCurrentDate(new Date(selectedYear, selectedMonth));
-    setShowMonthPicker(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 75) {
-      handleNextMonth();
-    }
-    if (touchStart - touchEnd < -75) {
-      handlePrevMonth();
+  const onTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (Math.abs(distance) > 50) {
+      distance > 0 ? handleNextMonth() : handlePrevMonth();
     }
   };
+
+  // --- 수정된 부분: 날짜 매칭 로직 (숫자 기반 비교) ---
+  const handleDateClick = (date: string) => {
+    // 1. 클릭한 날짜 문자열에서 숫자만 추출 (예: "2026-01-05" -> "20260105")
+    const clickedDateNumeric = date.replace(/[^0-9]/g, '');
+
+    // 2. 저장된 일기 데이터 중 날짜 숫자가 일치하는 항목 찾기
+    const entry = diaryEntries.find(e => {
+      const savedDateNumeric = e.date.replace(/[^0-9]/g, '');
+      return savedDateNumeric === clickedDateNumeric;
+    });
+
+    if (entry) {
+      // 일기가 있다면 상세 페이지로 이동
+      router.push(`/calendar/diary/${entry.id}`);
+    } else {
+      // 일기가 없다면 갤러리/작성 페이지로 이동
+      router.push(`/calendar/gallery?date=${date}`);
+    }
+  };
+  // ------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* 헤더 영역 */}
-      <div className="px-6 pt-4 pb-4">
-        {/* 년/월 선택 */}
-        <div className="flex items-center justify-center mb-4">
-          <button
-            onClick={() => setShowMonthPicker(!showMonthPicker)}
-            className="flex items-center gap-2 text-lg font-bold"
-          >
-            {year}년 {month + 1}월
-            <svg 
-              className={`w-5 h-5 transition-transform ${showMonthPicker ? 'rotate-180' : ''}`}
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
+    <div 
+      className="min-h-screen bg-white pb-24 font-sans select-none touch-pan-y"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* 수정된 부분: 수동 header 대신 공통 Header 컴포넌트 사용 */}
+      <Header 
+        isCalendar 
+        title={`${year}년 ${month + 1}월`} 
+        onCalendarClick={() => setShowMonthPicker(true)} 
+      />
 
-        {/* 월 선택 드롭다운 */}
-        {showMonthPicker && (
-          <MonthPicker
-            currentYear={year}
-            currentMonth={month}
-            onSelect={handleMonthSelect}
-            onClose={() => setShowMonthPicker(false)}
-          />
-        )}
-      </div>
-
-      {/* 캘린더 그리드 */}
-      <div 
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      {/* 헤더가 fixed이므로 본문 겹침 방지를 위해 pt-14 추가 */}
+      <main className="pt-14 px-1">
         <CalendarGrid
           year={year}
           month={month}
           diaryEntries={diaryEntries}
           onDateClick={handleDateClick}
         />
-      </div>
+      </main>
+
+      {showMonthPicker && (
+        <MonthPicker 
+          initialYear={year}
+          initialMonth={month}
+          onSelect={(y: number, m: number) => {
+            setCurrentDate(new Date(y, m, 1));
+            setShowMonthPicker(false);
+          }}
+          onClose={() => setShowMonthPicker(false)}
+        />
+      )}
 
       <Footer type="nav" />
     </div>
   );
 }
 
-// 월 선택 컴포넌트
+// MonthPicker의 props 인터페이스 정의
 interface MonthPickerProps {
-  currentYear: number;
-  currentMonth: number;
+  initialYear: number;
+  initialMonth: number;
   onSelect: (year: number, month: number) => void;
   onClose: () => void;
 }
 
-function MonthPicker({ currentYear, currentMonth, onSelect, onClose }: MonthPickerProps) {
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+function MonthPicker({ initialYear, initialMonth, onSelect, onClose }: MonthPickerProps) {
+  const [viewYear, setViewYear] = useState(initialYear);
+  const months = Array.from({ length: 12 }, (_, i) => i);
 
   return (
-    <>
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-30 z-40"
-        onClick={onClose}
-      />
-      
-      <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-lg z-50 p-4 w-80">
-        {/* 년도 선택 */}
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => setSelectedYear(selectedYear - 1)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-[32px] p-8 w-full max-w-sm shadow-2xl">
+        <div className="flex justify-between items-center mb-8">
+          <button onClick={() => setViewYear(viewYear - 1)} className="p-2 text-gray-300">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-lg font-bold">{selectedYear}년</span>
-          <button
-            onClick={() => setSelectedYear(selectedYear + 1)}
-            className="p-2 hover:bg-gray-100 rounded-full"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span className="text-xl font-extrabold">{viewYear}년</span>
+          <button onClick={() => setViewYear(viewYear + 1)} className="p-2 text-gray-300">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
-
-        {/* 월 그리드 */}
-        <div className="grid grid-cols-4 gap-2">
-          {months.map((monthName, index) => (
-            <button
-              key={index}
-              onClick={() => onSelect(selectedYear, index)}
-              className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                selectedYear === currentYear && index === currentMonth
-                  ? 'bg-[#3CDCBA] text-white'
-                  : 'hover:bg-gray-100'
+        <div className="grid grid-cols-3 gap-3">
+          {months.map(m => (
+            <button 
+              key={m} 
+              onClick={() => onSelect(viewYear, m)}
+              className={`py-4 rounded-2xl text-sm font-bold ${
+                viewYear === initialYear && m === initialMonth
+                ? 'bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/30'
+                : 'bg-gray-50 text-gray-600'
               }`}
             >
-              {monthName}
+              {m + 1}월
             </button>
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }

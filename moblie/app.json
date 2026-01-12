@@ -14,14 +14,21 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "package": "com.mechuragi.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/splashBG.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -36,8 +43,22 @@
           "photosPermission": "메추라기가 갤러리에 접근하려고 합니다.",
           "cameraPermission": "메추라기가 카메라를 사용하려고 합니다."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4ECDC4",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "메추라기 알림"
+        }
       ]
     ],
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#4ECDC4"
+    },
     "experiments": {
       "typedRoutes": true
     }

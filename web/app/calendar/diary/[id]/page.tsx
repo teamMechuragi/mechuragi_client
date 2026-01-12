@@ -1,184 +1,290 @@
 'use client';
 
-import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-
-interface DiaryData {
-  id: string;
-  date: string;
-  images: string[];
-  title: string;
-  content: string;
-  satisfaction: number;
-  tags: string[];
-}
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Header from '@/app/common/Header';
 
 export default function DiaryDetailPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const params = useParams();
-  const diaryId = params.id as string;
   
-  const [diary, setDiary] = useState<DiaryData | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // 상태 관리: 로컬 스토리지에서 불러온 일기 데이터
+  const [diary, setDiary] = useState<any>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [showUI, setShowUI] = useState(true);
 
+  // --- 추가된 모달 상태 ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // 인디케이터 및 슬라이더 제어를 위한 상태와 Ref
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const viewerScrollRef = useRef<HTMLDivElement>(null);
+
+  // 1. 페이지 로드 시 로컬 스토리지에서 해당 ID의 데이터 불러오기
   useEffect(() => {
-    // localStorage에서 일기 데이터 불러오기
-    const loadDiary = () => {
-      try {
-        const diaries = JSON.parse(localStorage.getItem('diaries') || '[]');
-        const foundDiary = diaries.find((d: DiaryData) => d.id === diaryId);
-        
-        if (foundDiary) {
-          setDiary(foundDiary);
-        } else {
-          // TODO: API에서 불러오기
-          console.error('일기를 찾을 수 없습니다.');
+    /* // [BACKEND API] 일기 상세 정보 불러오기
+      const fetchDiary = async () => {
+        try {
+          const response = await fetch(`/api/diaries/${id}`);
+          const data = await response.json();
+          setDiary(data);
+        } catch (error) {
+          console.error("Failed to fetch diary:", error);
         }
-      } catch (error) {
-        console.error('일기 불러오기 실패:', error);
+      };
+      fetchDiary();
+    */
+
+    const saved = localStorage.getItem('myDiaries');
+    if (saved) {
+      const diaries = JSON.parse(saved);
+      const found = diaries.find((d: any) => d.id === id);
+      if (found) {
+        setDiary(found);
       }
-    };
+    }
+  }, [id]);
 
-    loadDiary();
-  }, [diaryId]);
+  // 2. 전체화면 뷰어 오픈 시 클릭한 사진 위치로 스크롤 이동
+  useEffect(() => {
+    if (isViewerOpen && viewerScrollRef.current) {
+      const viewerWidth = viewerScrollRef.current.clientWidth;
+      viewerScrollRef.current.scrollTo({
+        left: viewerWidth * currentIdx,
+        behavior: 'auto'
+      });
+    }
+  }, [isViewerOpen, currentIdx]);
 
-  const handleDelete = () => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    
-    try {
-      const diaries = JSON.parse(localStorage.getItem('diaries') || '[]');
-      const updatedDiaries = diaries.filter((d: DiaryData) => d.id !== diaryId);
-      localStorage.setItem('diaries', JSON.stringify(updatedDiaries));
-      
-      // TODO: API 삭제 호출
-      
-      router.push('/calendar');
-    } catch (error) {
-      console.error('삭제 실패:', error);
-      alert('삭제에 실패했습니다.');
+  // 메인 슬라이더 스크롤 시 현재 인덱스 계산
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const index = Math.round(scrollLeft / clientWidth);
+      setCurrentIdx(index);
     }
   };
 
+  // 라이트박스 닫기
+  const closeViewer = () => {
+    setIsViewerOpen(false);
+    setShowUI(true);
+  };
+
+  // 사진 클릭 시 UI 토글
+  const toggleUI = () => {
+    if (isViewerOpen) setShowUI(!showUI);
+  };
+
+  // --- 추가된 수정 및 삭제 로직 시작 ---
+
+  // 삭제 로직 (팝업 내 '삭제' 버튼 클릭 시 실행)
+  const handleDelete = async () => {
+    /* // [BACKEND API] 일기 삭제 요청
+      try {
+        const response = await fetch(`/api/diaries/${id}`, { method: 'DELETE' });
+        if (response.ok) router.push('/calendar');
+      } catch (error) {
+        console.error("Delete failed:", error);
+      }
+    */
+
+    // 로컬 스토리지 삭제 처리
+    const saved = localStorage.getItem('myDiaries');
+    if (saved) {
+      const diaries = JSON.parse(saved);
+      const filtered = diaries.filter((d: any) => d.id !== id);
+      localStorage.setItem('myDiaries', JSON.stringify(filtered));
+      router.push('/calendar');
+    }
+  };
+
+  // 수정 로직 (기존 작성 페이지로 바로 이동하도록 수정)
+  const handleEdit = () => {
+    // 갤러리가 아닌 작성이 이루어지는 'new' 페이지로 이동해야 기존 데이터가 채워집니다.
+    router.push(`/calendar/diary/new?editId=${id}`); 
+  };
+
+  // --- 추가된 수정 및 삭제 로직 끝 ---
+
+  // 데이터가 없을 때 노출
   if (!diary) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-400">로딩중...</div>
+      <div className="min-h-screen bg-white">
+        <Header title="먹방 일기" />
+        <div className="pt-20 text-center text-gray-400">일기를 불러오는 중입니다...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      {/* 헤더 */}
-      <div className="sticky top-0 bg-white z-10 px-6 py-4 flex items-center justify-between border-b">
-        <button onClick={() => router.back()}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-lg font-bold">먹방 일기</h1>
-        <div className="flex gap-3">
-          {/* 삭제 아이콘 */}
-          <button onClick={handleDelete}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-          {/* 수정 아이콘 */}
-          <button onClick={() => router.push(`/calendar/diary/edit?id=${diary.id}`)}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white relative max-w-sm mx-auto">
+      {/* 뒤로가기 시 캘린더 화면으로 이동하도록 backLink 설정 */}
+      <Header 
+        title="먹방 일기" 
+        isDetail={true}
+        backLink="/calendar"
+        onDelete={() => setIsDeleteModalOpen(true)} // 브라우저 confirm 대신 모달 오픈
+        onEdit={handleEdit}
+      />
+      
+      <main className="pt-14 pb-10">
+        <p className="text-center text-gray-400 text-sm mb-4">{diary.date}</p>
 
-      <div className="px-6 py-4 space-y-6">
-        {/* 날짜 */}
-        <div className="text-center text-gray-500 text-sm">
-          {diary.date}
-        </div>
-
-        {/* 이미지 슬라이더 */}
-        <div className="relative">
-          <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100">
-            <img
-              src={diary.images[currentImageIndex]}
-              alt={`음식 사진 ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover"
-            />
+        {/* 1. 이미지 슬라이더 영역 */}
+        <div className="px-6 mb-8">
+          <div 
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide rounded-3xl relative"
+          >
+            {diary.images && diary.images.length > 0 ? (
+              diary.images.map((img: string, idx: number) => (
+                <div key={idx} className="relative w-full aspect-square snap-center flex-shrink-0">
+                  <img
+                    src={img}
+                    alt="food"
+                    className="w-full h-full object-cover cursor-pointer"
+                    onClick={() => {
+                      setCurrentIdx(idx); 
+                      setIsViewerOpen(true);
+                    }}
+                  />
+                  {/* --- 수정 포인트: 앞 4장에만 썸네일 표시 뱃지 추가 --- */}
+                  {idx < 4 && (
+                    <div className="absolute top-4 left-4 bg-[#3CDCBA] text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm z-10">
+                      썸네일 {idx + 1}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="w-full aspect-square bg-gray-50 rounded-3xl flex items-center justify-center text-gray-300">
+                등록된 사진이 없습니다.
+              </div>
+            )}
           </div>
           
-          {/* 이미지 인디케이터 */}
-          {diary.images.length > 1 && (
-            <div className="flex justify-center gap-2 mt-3">
-              {diary.images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentImageIndex ? 'bg-[#3CDCBA]' : 'bg-gray-300'
-                  }`}
+          {/* 인디케이터 */}
+          {diary.images && diary.images.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-4">
+              {diary.images.map((_: any, i: number) => (
+                <div 
+                  key={i} 
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i === currentIdx ? 'bg-[#3CDCBA] w-4' : 'bg-gray-200'
+                  }`} 
                 />
               ))}
             </div>
           )}
         </div>
 
-        {/* 제목 */}
-        <h2 className="text-2xl font-bold text-gray-900">
-          {diary.title}
-        </h2>
+        {/* 2. 텍스트 영역 */}
+        <div className="px-6 space-y-4">
+          {diary.title && (
+            <h1 className="text-2xl font-bold text-gray-900">{diary.title}</h1>
+          )}
+          
+          <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {diary.content}
+          </p>
 
-        {/* 본문 */}
-        <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {diary.content}
-        </p>
-
-        {/* 태그 */}
-        {diary.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {diary.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="text-[#3CDCBA] text-sm font-medium"
-              >
-                {tag}
-              </span>
+            {diary.tags && diary.tags.map((tag: string) => (
+              <span key={tag} className="text-[#3CDCBA] font-medium">{tag}</span>
             ))}
           </div>
-        )}
+        </div>
 
-        {/* 만족도 */}
-        <div>
-          <h3 className="text-base font-bold text-gray-800 mb-2">메뉴 만족도</h3>
+        {/* 3. 만족도 영역 */}
+        <div className="px-6 mt-8">
+          <p className="font-bold text-gray-800 mb-2 font-lg">메뉴 만족도</p>
           <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => {
-              const fillPercentage = diary.satisfaction >= star ? 100 : diary.satisfaction >= star - 0.5 ? 50 : 0;
-              
-              return (
-                <div key={star} className="w-8 h-8">
-                  <svg viewBox="0 0 24 24" className="w-full h-full">
-                    <defs>
-                      <linearGradient id={`detail-star-${star}`}>
-                        <stop offset={`${fillPercentage}%`} stopColor="#3CDCBA" />
-                        <stop offset={`${fillPercentage}%`} stopColor="#E5E7EB" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                      fill={`url(#detail-star-${star})`}
-                      stroke="#3CDCBA"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </div>
-              );
-            })}
+            {[1, 2, 3, 4, 5].map((star) => (
+              <StarIcon 
+                key={star} 
+                fill={diary.satisfaction >= star ? 100 : diary.satisfaction >= star - 0.5 ? 50 : 0} 
+              />
+            ))}
           </div>
         </div>
-      </div>
+      </main>
+
+      {/* --- 커스텀 삭제 확인 모달 --- */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsDeleteModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-[280px] text-center shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">일기 삭제</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              정말로 이 일기를 삭제하시겠습니까?<br/>삭제된 내용은 복구할 수 없습니다.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-sm"
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 py-3 bg-[#FF4B4B] text-white rounded-xl font-bold text-sm"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. 이미지 전체화면 뷰어 */}
+      {isViewerOpen && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center overflow-hidden">
+          {showUI && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); closeViewer(); }}
+              className="absolute top-12 right-6 z-[110] w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white"
+            >
+              <span className="text-2xl">✕</span>
+            </button>
+          )}
+
+          <div 
+            ref={viewerScrollRef}
+            className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+            onClick={toggleUI}
+          >
+            {diary.images.map((img: string, idx: number) => (
+              <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center snap-center">
+                <img 
+                  src={img} 
+                  className="max-w-full max-h-full object-contain" 
+                  alt="full view"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StarIcon({ fill }: { fill: number }) {
+  const id = `detail-star-${fill}-${Math.random()}`;
+  return (
+    <div className="w-6 h-6">
+      <svg viewBox="0 0 24 24" className="w-full h-full">
+        <defs>
+          <linearGradient id={id}>
+            <stop offset={`${fill}%`} stopColor="#3CDCBA" />
+            <stop offset={`${fill}%`} stopColor="#E5E7EB" />
+          </linearGradient>
+        </defs>
+        <path fill={`url(#${id})`} d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+      </svg>
     </div>
   );
 }

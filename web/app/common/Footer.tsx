@@ -13,74 +13,73 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
   const router = useRouter();
   const pathname = usePathname();
 
-  // 로그인/회원가입/온보딩/약관 등에서는 푸터 숨김
   const hideFooterPaths = ["/login", "/signup", "/onboarding", "/terms"];
   
-  // type이 "button"일 때는 hideFooterPaths 체크 안 함 (버튼은 무조건 표시)
   if (type === "nav" && hideFooterPaths.includes(pathname)) return null;
 
-  // 현재 경로 체크 함수
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm px-6 py-4 bg-white">
+    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-50">
       {/* 버튼 푸터 */}
       {type === "button" && (
-        <button
-          className={`w-full py-3 rounded-[50px] font-bold transition-all ${
-            disabled ? "bg-[#CCCCCC] text-white cursor-not-allowed" : "bg-[#3CDCBA] text-white"
-          }`}
-          onClick={onButtonClick}
-          disabled={disabled}
-        >
-          {buttonText}
-        </button>
+        <div className="px-6 py-4">
+          <button
+            className={`w-full py-4 rounded-[16px] font-bold transition-all active:scale-[0.98] ${
+              disabled ? "bg-[#CCCCCC] text-white cursor-not-allowed" : "bg-[#3CDCBA] text-white"
+            }`}
+            onClick={onButtonClick}
+            disabled={disabled}
+          >
+            {buttonText}
+          </button>
+        </div>
       )}
 
-      {/* 네비게이션 푸터 */}
+      {/* 네비게이션 푸터 - 아이콘 확대 및 텍스트 제거 */}
       {type === "nav" && (
-        <div className="flex justify-center gap-10 bg-white py-2">
+        <div className="flex justify-around items-center bg-white h-16 px-2 border-t border-gray-50">
           <button 
             onClick={() => router.push("/Home")} 
-            className="flex items-center justify-center w-16"
+            className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
               src={isActive("/Home") ? "/icon/home-active.png" : "/icon/home.png"} 
               alt="홈" 
-              className="w-10 object-contain" 
+              className="w-10 h-10 object-contain" 
             />
           </button>
           
           <button 
             onClick={() => router.push("/calendar")} 
-            className="flex items-center justify-center w-16"
+            className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
               src={isActive("/calendar") ? "/icon/calender-active.png" : "/icon/calender.png"} 
               alt="캘린더" 
-              className="w-10 object-contain" 
+              className="w-10 h-10 object-contain" 
             />
           </button>
           
           <button 
             onClick={() => router.push("/community")} 
-            className="flex items-center justify-center w-16"
+            className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
               src={isActive("/community") ? "/icon/community-active.png" : "/icon/community.png"} 
               alt="커뮤니티" 
-              className="w-10 object-contain" 
+              className="w-10 h-10 object-contain" 
             />
           </button>
           
           <button 
             onClick={() => router.push("/mypage")} 
-            className="flex items-center justify-center w-16"
+            className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
               src={isActive("/mypage") ? "/icon/mypage-active.png" : "/icon/mypage.png"} 
               alt="마이페이지" 
-              className="w-10 object-contain" 
+              className="w-10 h-10 object-contain" 
             />
           </button>
         </div>
