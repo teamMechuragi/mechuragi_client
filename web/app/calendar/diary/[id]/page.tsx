@@ -1,4 +1,6 @@
-"use client";
+export async function generateStaticParams() {
+  return []; // 빌드 에러 방지용
+}
 
 import DiaryDetailClient from './DiaryDetailClient';
 import { useParams } from "next/navigation";
