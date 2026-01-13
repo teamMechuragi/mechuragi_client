@@ -73,7 +73,7 @@ async function recommendRequest<T>(data: RecommendRequest | ChatRecommendRequest
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${RECOMMEND_BASE_URL}/recommend`, {
+  const response = await fetch(`${RECOMMEND_BASE_URL}`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),

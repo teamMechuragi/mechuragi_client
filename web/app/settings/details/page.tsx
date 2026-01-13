@@ -6,7 +6,14 @@ import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { createPreference } from "@/app/api/preferenceApi";
+import {
+  createPreference,
+  type DietStatus,
+  type VeganOption,
+  type SpiceLevel,
+  type FoodType,
+  type TasteType
+} from "@/app/api/preferenceApi";
 
 // 내부 컴포넌트: 섹션 제목
 const SectionTitle = ({ title, required = false, sub = "" }: { title: string; required?: boolean; sub?: string }) => (
@@ -22,8 +29,8 @@ export default function DetailsSettingsPage() {
   const { refreshPreferences } = useUser();
 
   const [nickname, setNickname] = useState("");
-  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
-  const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
+  const [selectedPreferences, setSelectedPreferences] = useState<FoodType[]>([]);
+  const [selectedHabits, setSelectedHabits] = useState<TasteType[]>([]);
   const [servings, setServings] = useState(2);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [newAllergy, setNewAllergy] = useState("");
@@ -31,17 +38,30 @@ export default function DetailsSettingsPage() {
   const [dislikedFoods, setDislikedFoods] = useState<string[]>([]);
   const [newDislikedFood, setNewDislikedFood] = useState("");
   const [showDislikedFoodModal, setShowDislikedFoodModal] = useState(false);
-  const [selectedVegan, setSelectedVegan] = useState<string>("");
-  const [selectedDiet, setSelectedDiet] = useState<string>("");
-  const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<string>("");
+  const [selectedVegan, setSelectedVegan] = useState<VeganOption | "">("");
+  const [selectedDiet, setSelectedDiet] = useState<DietStatus | "">("");
+  const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<SpiceLevel | "">("");
 
-  const preferences = ["한식", "중식", "일식", "양식", "아시안", "디저트", "기타"];
-  const habits = ["단맛", "짠맛", "신맛", "쓴맛", "감칠맛", "고소한맛"];
-  const veganOptions = ["해당없음", "비건", "락토", "오보", "페스코", "폴로", "플렉시"];
-  const dietOptions = ["다이어트_중", "해당_없음"];
-  const spiceLevelOptions = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
+  const preferences: FoodType[] = ["한식", "중식", "일식", "양식", "아시안", "디저트", "기타"];
+  const habits: TasteType[] = ["단맛", "짠맛", "신맛", "쓴맛", "감칠맛", "고소한맛"];
 
-  const toggleSelection = (item: string, list: string[], setList: (list: string[]) => void) => {
+  // VeganOption UI 표시를 위한 매핑 (UI 라벨: 백엔드 값)
+  const veganOptionMap: { label: string; value: VeganOption }[] = [
+    { label: "해당없음", value: "해당없음" },
+    { label: "비건", value: "비건" },
+    { label: "락토", value: "락토_베지테리언" },
+    { label: "오보", value: "오보_베지테리언" },
+    { label: "락토오보", value: "락토_오보_베지테리언" },
+    { label: "페스코", value: "페스코_베지테리언" },
+    { label: "폴로", value: "폴로_베지테리언" },
+    { label: "프루테리언", value: "프루테리언" },
+    { label: "플렉시", value: "플렉시테리언" },
+  ];
+
+  const dietOptions: DietStatus[] = ["다이어트_중", "해당_없음"];
+  const spiceLevelOptions: SpiceLevel[] = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
+
+  const toggleSelection = <T,>(item: T, list: T[], setList: (list: T[]) => void) => {
     if (list.includes(item)) {
       setList(list.filter((i) => i !== item));
     } else {
@@ -181,12 +201,12 @@ export default function DetailsSettingsPage() {
             <div>
               <p className="text-[13px] text-gray-400 mb-3 ml-1">비건/다이어트 여부</p>
               <div className="flex flex-wrap gap-2 mb-3">
-                {veganOptions.map((v) => (
+                {veganOptionMap.map((v) => (
                   <button
-                    key={v}
-                    onClick={() => setSelectedVegan(v)}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold ${selectedVegan === v ? "bg-[#1A1A1A] text-white" : "bg-[#F2F2F4] text-[#888]"}`}
-                  > {v} </button>
+                    key={v.value}
+                    onClick={() => setSelectedVegan(v.value)}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold ${selectedVegan === v.value ? "bg-[#1A1A1A] text-white" : "bg-[#F2F2F4] text-[#888]"}`}
+                  > {v.label} </button>
                 ))}
               </div>
               <div className="flex gap-2">

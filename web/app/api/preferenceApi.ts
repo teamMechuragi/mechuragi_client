@@ -13,28 +13,38 @@ export interface PreferenceItem {
   isActive: boolean;
 }
 
+// 백엔드 Enum 타입들
+export type DietStatus = '다이어트_중' | '해당_없음';
+export type VeganOption = '락토_베지테리언' | '락토_오보_베지테리언' | '비건' | '오보_베지테리언' |
+                          '페스코_베지테리언' | '폴로_베지테리언' | '프루테리언' | '플렉시테리언' | '해당없음';
+export type SpiceLevel = '맵찔이' | '순한맛' | '신라면' | '불닭' | '핵불닭';
+export type FoodType = '한식' | '중식' | '일식' | '양식' | '아시안' | '디저트' | '기타';
+export type TasteType = '단맛' | '짠맛' | '신맛' | '쓴맛' | '감칠맛' | '고소한맛';
+
 export interface PreferenceDetail {
   id: number;
   preferenceName: string;
   numberOfDiners: number;
   allergyInfo: string | null;
-  isOnDiet: string;
-  veganOption: string;
-  spiceLevel: string;
-  preferredFoodTypes: string[];
-  preferredTastes: string[];
+  isOnDiet: DietStatus;
+  veganOption: VeganOption;
+  spiceLevel: SpiceLevel;
+  preferredFoodTypes: FoodType[];
+  preferredTastes: TasteType[];
   dislikedFoods: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreatePreferenceRequest {
   preferenceName: string;
   numberOfDiners: number;
   allergyInfo?: string;
-  isOnDiet: string;
-  veganOption: string;
-  spiceLevel: string;
-  preferredFoodTypes: string[];
-  preferredTastes: string[];
+  isOnDiet: DietStatus;
+  veganOption: VeganOption;
+  spiceLevel: SpiceLevel;
+  preferredFoodTypes: FoodType[];
+  preferredTastes: TasteType[];
   dislikedFoods?: string[];
 }
 
@@ -42,11 +52,11 @@ export interface UpdatePreferenceRequest {
   preferenceName: string;
   numberOfDiners: number;
   allergyInfo?: string;
-  isOnDiet: string;
-  veganOption: string;
-  spiceLevel: string;
-  preferredFoodTypes: string[];
-  preferredTastes: string[];
+  isOnDiet: DietStatus;
+  veganOption: VeganOption;
+  spiceLevel: SpiceLevel;
+  preferredFoodTypes: FoodType[];
+  preferredTastes: TasteType[];
   dislikedFoods?: string[];
 }
 

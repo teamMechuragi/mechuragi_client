@@ -55,7 +55,18 @@ export async function apiRequest<T>(
     return {} as T;
   }
 
-  return response.json();
+  // 응답 본문이 비어있는지 확인
+  const text = await response.text();
+  if (!text || text.trim() === '') {
+    return {} as T;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('[API Error] Failed to parse JSON:', text);
+    throw new Error('Invalid JSON response from server');
+  }
 }
 
 /**
