@@ -1,3 +1,8 @@
+export async function generateStaticParams() {
+  // 최소한 빈 배열이라도 반환
+  return [];
+}
+
 'use client';
 
 import { useState, useEffect } from 'react';
