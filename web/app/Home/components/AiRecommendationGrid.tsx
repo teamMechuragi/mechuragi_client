@@ -17,11 +17,11 @@ export default function AiRecommendationGrid() {
 
   const cards: Card[] = [
     { title: "상세정보 설정", description: "알레르기 여부, 선호 음식 등 상세정보 설정하기", bg: "#F2F2F4", link: "/settings/details/new" },
-    { title: "재료", description: "냉장고 속 재료로 메뉴 추천받기", bg: "#DAFFB7", image: "/icon/ingre.png", link: "/recommend/ingredients" },
-    { title: "기분", description: "오늘의 기분으로 메뉴 추천받기", bg: "#FFFFB5", image: "/icon/feel.png", link: "/recommend/mood" },
-    { title: "날씨", description: "오늘의 날씨로 메뉴 추천받기", bg: "#C0EBFF", image: "/icon/weather.png", link: "/recommend/weather" },
-    { title: "시간대", description: "현재 시간대로 메뉴 추천받기", bg: "#FFEAF5", image: "/icon/time.png", link: "/recommend/time" },
-    { title: "AI 대화", description: "AI 대화를 통해 메뉴 추천받기", bg: "#DCE8FF", image: "/icon/talk.png", link: "/recommend/Aichat" },
+    { title: "재료", description: "냉장고 속 재료로 메뉴 추천받기", bg: "#DAFFB7", image: "/icon/ingre.png", link: "/menu-select/ingredients" },
+    { title: "기분", description: "오늘의 기분으로 메뉴 추천받기", bg: "#FFFFB5", image: "/icon/feel.png", link: "/menu-select/mood" },
+    { title: "날씨", description: "오늘의 날씨로 메뉴 추천받기", bg: "#C0EBFF", image: "/icon/weather.png", link: "/menu-select/weather" },
+    { title: "시간대", description: "현재 시간대로 메뉴 추천받기", bg: "#FFEAF5", image: "/icon/time.png", link: "/menu-select/time" },
+    { title: "AI 대화", description: "AI 대화를 통해 메뉴 추천받기", bg: "#DCE8FF", image: "/icon/talk.png", link: "/menu-select/Aichat" },
   ];
 
   // 전체 리스트 등장 애니메이션

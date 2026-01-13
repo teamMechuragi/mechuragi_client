@@ -64,7 +64,7 @@ export default function WeatherPage() {
       });
 
       // 추천 결과 페이지로 이동
-      router.push(`/result?data=${encodeURIComponent(JSON.stringify(data))}`);
+      router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {
       console.error("API 호출 실패:", error);
       alert("추천을 가져오는데 실패했습니다.");

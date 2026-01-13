@@ -207,7 +207,7 @@ export default function AIChatPage() {
   const handleExitConfirm = () => {
     // 추천 결과 페이지로 이동
     if (lastRecommendations) {
-      router.push(`/recommend/result?data=${encodeURIComponent(JSON.stringify(lastRecommendations))}`);
+      router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(lastRecommendations))}`);
     } else {
       router.back();
     }
