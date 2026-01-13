@@ -4,13 +4,22 @@
 
 ### 1. API URL 분리
 
+#### .env
+```env
+# API 베이스 URL (일반 API)
+NEXT_PUBLIC_API_URL=http://mechuragi.kro.kr:8080/api
+
+# 추천 API 베이스 URL (별도 서버)
+NEXT_PUBLIC_RECOMMEND_URL=http://mechuragi.kro.kr:8082/recommend
+```
+
 #### .env.local
 ```env
-# 일반 API (백엔드 서버)
-NEXT_PUBLIC_API_URL=https://mechuragi.kro.kr/api
+# API 베이스 URL (일반 API)
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
-# 추천 API (별도 추천 서버)
-NEXT_PUBLIC_RECOMMEND_URL=https://recommend.mechuragi.kro.kr
+# 추천 API 베이스 URL (별도 서버)
+NEXT_PUBLIC_RECOMMEND_URL=http://localhost:8082/recommend
 ```
 
 - **이유**: 추천 API는 별도의 오리진에서 실행됨
