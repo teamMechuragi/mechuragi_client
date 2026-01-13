@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import CommentItem from './CommentItem';
 import CommentInput from './CommentInput';
-import { getComments, getCommentCount, updateComment, deleteComment } from '@/lib/api/voteApi';
+import { getComments, getCommentCount, updateComment, deleteComment } from '@/app/api/voteApi';
 import type { VoteCommentResponse, PageResponse } from '@/types/vote';
 import { useUser } from '@/app/context/UserContext';
 

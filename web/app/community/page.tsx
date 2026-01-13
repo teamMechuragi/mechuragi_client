@@ -6,7 +6,7 @@ import Footer from '../common/Footer';
 import HotPostsCarousel from './components/HotPostsCarousel';
 import PostCard from './components/PostCard';
 import FloatingWriteButton from './components/FloatingWriteButton';
-import { getHotVotes, getActiveVotes } from '@/lib/api/voteApi';
+import { getHotVotes, getActiveVotes } from '@/app/api/voteApi';
 import type { VoteResponse } from '@/types/vote';
 
 export default function CommunityPage() {

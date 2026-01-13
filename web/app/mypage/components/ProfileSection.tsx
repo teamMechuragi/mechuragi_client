@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ToggleItem from './ToggleItem';
 import { useUser } from '@/app/context/UserContext';
 import { useState, useEffect } from 'react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+import { getMember } from '@/app/api/memberApi';
+import { activatePreference } from '@/app/api/preferenceApi';
 
 export default function ProfileSection() {
   const router = useRouter();
@@ -15,16 +15,14 @@ export default function ProfileSection() {
 
   useEffect(() => {
     fetchUserProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ 사용자 정보 및 입맛 리스트 초기 로드
+  // 사용자 정보 조회
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
       const userStr = localStorage.getItem('user');
-      
-      if (!token || !userStr) {
+
+      if (!userStr) {
         setLoading(false);
         return;
       }
@@ -32,132 +30,149 @@ export default function ProfileSection() {
       const currentUser = JSON.parse(userStr);
       const memberId = currentUser.id;
 
-      // 1. 회원 정보 상세 조회 (최신 닉네임/이미지 반영)
-      const userRes = await fetch(`${API_URL}/api/members/${memberId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // API를 통한 회원 정보 조회
+      const data = await getMember(memberId);
 
-      if (userRes.ok) {
-        const data = await userRes.json();
-        const userData = {
-          id: data.id,
-          username: data.nickname,
-          email: data.email,
-          profileImage: data.profileImageUrl,
-        };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
-      }
+      // 사용자 정보 업데이트
+      const userData = {
+        id: data.id,
+        username: data.nickname,
+        email: data.email,
+        profileImage: data.profileImageUrl,
+        emailVerified: data.emailVerified,
+        provider: data.provider,
+        role: data.role,
+        status: data.status,
+      };
 
-      // 2. Context를 통해 입맛 리스트 새로고침
-      await refreshPreferences();
+      // Context와 localStorage 업데이트
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
 
     } catch (error) {
-      console.error("데이터 로드 실패:", error);
+      console.error("사용자 정보 조회 실패:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ [API 연결] 활성화 토글 (라디오 버튼처럼 하나만 활성화하거나 개별 토글)
-  const handleToggle = async (id: number) => {
+  // 상세정보 활성화 토글
+  const handleToggleActive = async (preferenceId: number) => {
     try {
       const token = localStorage.getItem("accessToken");
-      if (!token) return alert("로그인이 필요합니다.");
+      if (!token) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
 
-      const response = await fetch(`${API_URL}/api/preferences/${id}/toggle-active`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+      // API를 통한 선호도 활성화 토글
+      await activatePreference(preferenceId);
 
-      if (!response.ok) throw new Error("활성화 상태 변경 실패");
-
-      // 서버 반영 후 Context 데이터 갱신
+      // Context의 preferences 새로고침
       await refreshPreferences();
+
     } catch (error) {
-      console.error(error);
-      alert("상태 변경에 실패했습니다.");
+      console.error("활성화 변경 실패:", error);
+      alert("활성화 변경에 실패했습니다.");
     }
   };
 
   if (loading) {
-    return <div className="p-6 bg-white animate-pulse text-gray-400 font-medium">데이터를 불러오는 중...</div>;
+    return (
+      <div className="px-6 pt-6 pb-6 bg-white">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="flex flex-col gap-2">
+              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-3 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div className="w-20 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <>
+      {/* 헤더 영역 */}
       <div className="px-6 pt-6 pb-6 bg-white">
-        {/* 프로필 영역 */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-16 h-16 bg-[#F7F8F9] rounded-full overflow-hidden flex-shrink-0 relative border border-gray-100">
-              <Image 
-                src={user?.profileImage || "/profile/default-profile.png"} 
-                alt="프로필" 
-                fill
-                className="object-cover"
+            {/* 프로필 이미지 */}
+            <div className="w-16 h-16 bg-[#3CDCBA] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+              <Image
+                src={user?.profileImage || "/profile/default-profile.png"}
+                alt="프로필"
+                width={64}
+                height={64}
+                className="object-cover w-full h-full"
               />
             </div>
+
             <div className="flex flex-col">
-              <h2 className="text-base font-black text-[#1A1A1A] mb-0.5">{user?.username || '사용자'}</h2>
-              <p className="text-xs text-gray-400 font-medium">{user?.email || 'email@example.com'}</p>
+              <h2 className="text-base font-bold mb-0.5">{user?.username || '아이디'}</h2>
+              <p className="text-xs text-gray-500">{user?.email || 'email@example.com'}</p>
             </div>
           </div>
-          <button 
+
+          <button
             onClick={() => router.push('/mypage/profile')}
-            className="px-3 py-2 bg-[#F7F8F9] text-[#1A1A1A] rounded-xl text-[12px] font-bold"
+            className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium whitespace-nowrap hover:bg-gray-50"
           >
             프로필 설정
           </button>
         </div>
 
-        {/* 입맛 관리 영역 */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[16px] font-black text-[#1A1A1A]">나의 입맛 관리</h3>
+        {/* 상세정보 설정 */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-bold">상세정보 설정</h3>
             <button
-              onClick={() => router.push('/settings/details/new')}
-              className="px-3 py-1.5 text-[#3CDCBA] text-[12px] font-bold bg-[#EFFFFB] rounded-lg transition-colors"
+              onClick={() => router.push('/settings/details?from=mypage')}
+              className="px-3 py-1 text-xs text-[#00D9A0] border border-[#00D9A0] rounded-lg hover:bg-[#00D9A0] hover:text-white transition-colors"
             >
-              + 추가하기
+              + 추가
             </button>
           </div>
-
-          <div className="space-y-3">
-            {preferences && preferences.length > 0 ? (
-              preferences.map((pref) => (
-                <ToggleItem 
-                  key={pref.id}
-                  id={pref.id.toString()}
-                  label={pref.preferenceName} 
-                  isChecked={pref.isActive}
-                  onToggle={() => handleToggle(pref.id)}
-                  // 수정 페이지로 이동할 때 쿼리 파라미터로 ID 전달
-                  onEdit={(id) => router.push(`/settings/details/edit?id=${id}`)}
-                />
+          <div className="space-y-2">
+            {preferences.length > 0 ? (
+              preferences.map((preference) => (
+                <div
+                  key={preference.id}
+                  className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {/* 라디오 버튼 */}
+                  <input
+                    type="radio"
+                    name="activePreference"
+                    checked={preference.isActive}
+                    onChange={() => handleToggleActive(preference.id)}
+                    className="w-4 h-4 text-[#00D9A0] focus:ring-[#00D9A0] cursor-pointer"
+                  />
+                  {/* 별칭 (클릭 시 수정 페이지로 이동) */}
+                  <button
+                    onClick={() => router.push(`/settings/details/${preference.id}?from=mypage`)}
+                    className="flex-1 text-left text-sm font-medium text-gray-700"
+                  >
+                    {preference.preferenceName}
+                  </button>
+                </div>
               ))
             ) : (
               <button
-                onClick={() => router.push('/settings/details/new')}
-                className="w-full py-10 bg-[#F7F8F9] rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-2"
+                onClick={() => router.push('/settings/details?from=mypage')}
+                className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg text-sm text-gray-500 hover:bg-gray-100"
               >
-                <span className="text-2xl">😋</span>
-                <p className="text-sm text-gray-400 font-bold text-center">
-                  아직 등록된 입맛이 없어요.<br/>
-                  상세 정보를 추가하고 추천받아보세요!
-                </p>
+                상세정보를 추가해보세요
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* 구분선 */}
       <div className="h-2 bg-gray-50"></div>
     </>
   );

@@ -6,6 +6,8 @@ import Header from "../common/Header";
 import Footer from "../common/Footer";
 import SignupForm from "./components/SignupForm";
 import { ToastProvider, useToast } from "./components/ToastContainer";
+import { generateNickname, signup } from "@/app/api/authApi";
+import { checkEmail, checkNickname } from "@/app/api/memberApi";
 
 function SignupPageContent() {
   const router = useRouter();
@@ -28,25 +30,16 @@ function SignupPageContent() {
     if (storedTerms) {
       setTerms(JSON.parse(storedTerms));
     }
-    
+
     // 닉네임 자동 생성
-    generateNickname();
+    generateNicknameAuto();
   }, []);
   
-  // 닉네임 자동생성 - API 수정
-  const generateNickname = async () => {
+  // 닉네임 자동생성
+  const generateNicknameAuto = async () => {
     try {
-      const response = await fetch("https://mechuragi.kro.kr/api/auth/nickname/generate", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setForm(prev => ({ ...prev, username: data.nickname || "" }));
-      }
+      const data = await generateNickname();
+      setForm(prev => ({ ...prev, username: data.nickname || "" }));
     } catch (error) {
       console.error("닉네임 생성 실패:", error);
     } finally {
@@ -114,26 +107,21 @@ function SignupPageContent() {
     setErrors(newErrors);
   };
 
-  // 이메일 중복확인 - API 수정
+  // 이메일 중복확인
   const handleEmailCheck = async () => {
     if (!form.email.trim()) {
       showToast('이메일을 입력해주세요.', 'error');
       return;
     }
-    
+
     if (!isValidEmail(form.email)) {
       showToast('유효한 이메일을 입력해주세요.', 'error');
       return;
     }
 
     try {
-      const response = await fetch(`https://mechuragi.kro.kr/api/members/check/email?email=${encodeURIComponent(form.email)}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      const isExist = await response.json(); // true: 중복, false: 사용가능
-      
+      const isExist = await checkEmail(form.email); // true: 중복, false: 사용가능
+
       if (!isExist) {
         setEmailChecked(true);
         showToast('사용 가능한 이메일입니다.', 'success');
@@ -145,7 +133,7 @@ function SignupPageContent() {
     }
   };
 
-  // 닉네임 중복확인 - API 수정
+  // 닉네임 중복확인
   const handleUsernameCheck = async () => {
     if (!form.username.trim()) {
       showToast('닉네임을 입력해주세요.', 'error');
@@ -153,13 +141,8 @@ function SignupPageContent() {
     }
 
     try {
-      const response = await fetch(`https://mechuragi.kro.kr/api/members/check/nickname?nickname=${encodeURIComponent(form.username)}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      const isExist = await response.json(); // true: 중복, false: 사용가능
-      
+      const isExist = await checkNickname(form.username); // true: 중복, false: 사용가능
+
       if (!isExist) {
         setUsernameChecked(true);
         showToast('사용 가능한 닉네임입니다.', 'success');
@@ -171,21 +154,21 @@ function SignupPageContent() {
     }
   };
 
-  // 회원가입 - API 수정
+  // 회원가입
   const handleSignup = async () => {
     if (loading) return;
-    
+
     // 중복확인 체크
     if (!emailChecked) {
       showToast('이메일 중복확인을 해주세요.', 'error');
       return;
     }
-    
+
     if (!usernameChecked) {
       showToast('닉네임 중복확인을 해주세요.', 'error');
       return;
     }
-    
+
     setLoading(true);
     setServerError(null);
 
@@ -221,27 +204,17 @@ function SignupPageContent() {
     }
 
     try {
-      const response = await fetch("https://mechuragi.kro.kr/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          nickname: form.username,
-          password: form.password,
-        }),
+      await signup({
+        email: form.email,
+        nickname: form.username,
+        password: form.password,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        showToast("회원가입 성공!", "success");
-        setTimeout(() => router.push("/login"), 1000);
-      } else {
-        setServerError(data.message || "서버 오류가 발생했습니다. 다시 시도해주세요.");
-      }
-    } catch (error) {
+      showToast("회원가입 성공!", "success");
+      setTimeout(() => router.push("/login"), 1000);
+    } catch (error: any) {
       console.error("회원가입 요청 실패:", error);
-      setServerError("서버와 연결할 수 없습니다. 인터넷 연결을 확인해주세요.");
+      setServerError(error.message || "서버와 연결할 수 없습니다. 인터넷 연결을 확인해주세요.");
     } finally {
       setLoading(false);
     }

@@ -6,7 +6,7 @@ import Header from '@/app/common/Header';
 import VoteTypeSelect from './components/VoteTypeSelect';
 import VoteOptionInput from './components/VoteOptionInput';
 import TimeSelector from './components/TimeSelector';
-import { createVote, uploadVoteImage } from '@/lib/api/voteApi';
+import { createVote, uploadVoteImage } from '@/app/api/voteApi';
 import type { VoteOptionRequest } from '@/types/vote';
 
 type VoteType = '사진' | '일반' | null;

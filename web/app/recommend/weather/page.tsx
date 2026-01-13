@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+import { getRecommendation } from "@/app/api/recommendApi";
 
 export default function WeatherPage() {
   const router = useRouter();
@@ -52,36 +51,23 @@ export default function WeatherPage() {
 
     setLoading(true);
     try {
-      // 취향 데이터를 포함하여 AI 추천 요청
-      const response = await fetch(`${API_URL}/recommend`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({
-          type: "WEATHER",
-          weatherConditions: selectedWeather,
-          // 사용자 취향 데이터 추가
-          dietStatus: activePreferenceDetail.isOnDiet,
-          veganOption: activePreferenceDetail.veganOption,
-          spiceLevel: activePreferenceDetail.spiceLevel,
-          foodTypes: activePreferenceDetail.preferredFoodTypes,
-          tastes: activePreferenceDetail.preferredTastes,
-          dislikedFoods: activePreferenceDetail.dislikedFoods,
-        }),
+      // API로 추천 요청
+      const data = await getRecommendation({
+        type: "WEATHER",
+        weatherConditions: selectedWeather,
+        dietStatus: activePreferenceDetail.isOnDiet,
+        veganOption: activePreferenceDetail.veganOption,
+        spiceLevel: activePreferenceDetail.spiceLevel,
+        foodTypes: activePreferenceDetail.preferredFoodTypes,
+        tastes: activePreferenceDetail.preferredTastes,
+        dislikedFoods: activePreferenceDetail.dislikedFoods,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // 추천 결과 페이지로 이동
-        router.push(`/recommend/result?data=${encodeURIComponent(JSON.stringify(data))}`);
-      } else {
-        alert("추천을 가져오는데 실패했습니다.");
-      }
+      // 추천 결과 페이지로 이동
+      router.push(`/result?data=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {
       console.error("API 호출 실패:", error);
-      alert("서버와 연결할 수 없습니다.");
+      alert("추천을 가져오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }

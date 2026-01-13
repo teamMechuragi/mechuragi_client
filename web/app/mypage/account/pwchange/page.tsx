@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import PasswordChangeForm from "./PasswordChangeForm";
+import { changePassword } from "@/app/api/memberApi";
 
 export default function PasswordChangePage() {
   const router = useRouter();
@@ -104,48 +105,17 @@ export default function PasswordChangePage() {
     }
 
     try {
-      // ✅ 수정: localStorage에서 사용자 정보 가져오기
-      const token = localStorage.getItem('accessToken');
-      const userStr = localStorage.getItem('user');
-      
-      if (!userStr) {
-        setServerError('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
-        setLoading(false);
-        return;
-      }
-      
-      const user = JSON.parse(userStr);
-      const memberId = user.id;
-
-      // ✅ 수정: 엔드포인트 경로 변경
-      const response = await fetch(`https://mechuragi.kro.kr/api/members/${memberId}/password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
-        }),
+      // API를 통한 비밀번호 변경
+      await changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
       });
 
-      // ✅ 수정: 200 OK는 응답 본문이 없을 수 있음
-      if (response.ok) {
-        alert('비밀번호가 변경되었습니다.');
-        router.push('/mypage/account');
-      } else {
-        // 에러 응답 처리
-        try {
-          const data = await response.json();
-          setServerError(data.message || '현재 비밀번호가 일치하지 않습니다.');
-        } catch {
-          setServerError('현재 비밀번호가 일치하지 않습니다.');
-        }
-      }
-    } catch (error) {
+      alert('비밀번호가 변경되었습니다.');
+      router.push('/mypage/account');
+    } catch (error: any) {
       console.error('비밀번호 변경 요청 실패:', error);
-      setServerError('서버와 연결할 수 없습니다. 인터넷 연결을 확인해주세요.');
+      setServerError(error.message || '현재 비밀번호가 일치하지 않습니다.');
     } finally {
       setLoading(false);
     }

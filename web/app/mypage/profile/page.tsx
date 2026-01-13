@@ -7,6 +7,7 @@ import { Camera } from "lucide-react";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
+import { checkNickname, updateProfile } from "@/app/api/memberApi";
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -31,35 +32,25 @@ export default function ProfileEditPage() {
   // 저장하기
   const handleSave = async () => {
     if (loading) return;
-    
+
     setLoading(true);
 
     try {
-      // ✅ localStorage에서 사용자 정보 가져오기
-      const token = localStorage.getItem('accessToken');
       const userStr = localStorage.getItem('user');
-      
+
       if (!userStr) {
         alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
         setLoading(false);
         return;
       }
-      
+
       const currentUser = JSON.parse(userStr);
       const memberId = currentUser.id;
 
-      // ✅ 닉네임 중복 체크 (기존 닉네임과 다를 때만)
+      // 닉네임 중복 체크 (기존 닉네임과 다를 때만)
       if (nickname !== currentUser.username) {
-        const checkResponse = await fetch(
-          `https://mechuragi.kro.kr/api/members/check/nickname?nickname=${encodeURIComponent(nickname)}`,
-          {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          }
-        );
-        
-        const isExist = await checkResponse.json();
-        
+        const isExist = await checkNickname(nickname);
+
         if (isExist) {
           alert('이미 사용중인 닉네임입니다.');
           setLoading(false);
@@ -69,30 +60,17 @@ export default function ProfileEditPage() {
 
       // TODO: 이미지 파일 업로드가 필요하면 여기서 S3 등에 업로드하고 URL 받기
       // const uploadedImageUrl = await uploadImageToS3(file);
-      
-      // ✅ 수정: 올바른 엔드포인트로 요청
-      const response = await fetch(
-        `https://mechuragi.kro.kr/api/members/${memberId}`,
+
+      // API를 통한 프로필 수정
+      const data = await updateProfile(
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            nickname: nickname,
-            profileImageUrl: profileImage, // 실제로는 업로드된 이미지 URL
-          }),
-        }
+          nickname: nickname,
+          profileImageUrl: profileImage, // 실제로는 업로드된 이미지 URL
+        },
+        memberId
       );
 
-      if (!response.ok) {
-        throw new Error("프로필 업데이트 실패");
-      }
-
-      const data = await response.json();
-      
-      // ✅ 수정: API 명세서 응답 구조에 맞게
+      // 사용자 정보 업데이트
       const userData = {
         id: data.id,
         username: data.nickname,
@@ -103,7 +81,7 @@ export default function ProfileEditPage() {
         role: data.role,
         status: data.status,
       };
-      
+
       // Context와 localStorage에 저장
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));

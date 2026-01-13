@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { getMember } from "@/app/api/memberApi";
+import { getPreferences, getPreference } from "@/app/api/preferenceApi";
 
 export interface User {
   id: number;
@@ -61,23 +63,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr';
-      const response = await fetch(
-        `${apiUrl}/api/preferences`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("상세정보 조회 실패");
-      }
-
-      const data: PreferenceItem[] = await response.json();
+      // API로 preferences 조회
+      const data = await getPreferences();
       setPreferences(data);
 
       // localStorage에도 저장 (오프라인 대비)
@@ -86,22 +73,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // 활성화된 preference의 상세정보 조회
       const activeItem = data.find(p => p.isActive);
       if (activeItem) {
-        const detailResponse = await fetch(
-          `${apiUrl}/api/preferences/${activeItem.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (detailResponse.ok) {
-          const detailData: PreferenceDetail = await detailResponse.json();
-          setActivePreferenceDetail(detailData);
-          localStorage.setItem("activePreferenceDetail", JSON.stringify(detailData));
-        }
+        const detailData = await getPreference(activeItem.id);
+        setActivePreferenceDetail(detailData);
+        localStorage.setItem("activePreferenceDetail", JSON.stringify(detailData));
       } else {
         setActivePreferenceDetail(null);
         localStorage.removeItem("activePreferenceDetail");
@@ -127,9 +101,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      
+
       if (!token) {
-        // 토큰이 없으면 localStorage에서 가져오기 (오프라인용)
+        // 토큰이 없으면 localStorage에서만 가져오기 (로그인 전)
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           setUser(JSON.parse(storedUser));
@@ -137,8 +111,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // localStorage에서 memberId 가져오기
+      // localStorage에서 사용자 정보 확인
       const storedUser = localStorage.getItem("user");
+
+      // localStorage에도 없으면 로그인 전 상태이므로 API 호출하지 않음
       if (!storedUser) {
         return;
       }
@@ -151,34 +127,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // ✅ 수정: 올바른 엔드포인트로 사용자 정보 조회
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
-      const response = await fetch(
-        `${apiUrl}/members/${memberId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        }
-      );
+      // API 호출로 최신 사용자 정보 조회
+      const data = await getMember(memberId);
 
-      if (!response.ok) {
-        // 401 에러면 토큰 만료 → 로그아웃 처리
-        if (response.status === 401) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          setUser(null);
-          return;
-        }
-        throw new Error("사용자 정보 조회 실패");
-      }
-
-      const data = await response.json();
-
-      // ✅ API 명세서 응답 구조에 맞게 매핑
+      // 사용자 정보 매핑
       const userData: User = {
         id: data.id,
         username: data.nickname,

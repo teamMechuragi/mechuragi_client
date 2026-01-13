@@ -6,8 +6,16 @@ import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+import {
+  getPreference,
+  createPreference,
+  updatePreference,
+  type DietStatus,
+  type VeganOption,
+  type SpiceLevel,
+  type FoodType,
+  type TasteType
+} from "@/app/api/preferenceApi";
 
 // 섹션 타이틀 컴포넌트
 const SectionTitle = ({ title, isDone = false, required = false, sub = "" }: { title: string; isDone?: boolean; required?: boolean; sub?: string }) => (
@@ -33,8 +41,8 @@ export default function EditDetailsClient({ id }: { id: string }) {
 
   // 상태 관리
   const [nickname, setNickname] = useState("");
-  const [selectedPreferences, setSelectedPreferences] = useState<string[]>([]);
-  const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
+  const [selectedPreferences, setSelectedPreferences] = useState<FoodType[]>([]);
+  const [selectedHabits, setSelectedHabits] = useState<TasteType[]>([]);
   const [servings, setServings] = useState(2);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [newAllergy, setNewAllergy] = useState("");
@@ -42,50 +50,58 @@ export default function EditDetailsClient({ id }: { id: string }) {
   const [dislikedFoods, setDislikedFoods] = useState<string[]>([]);
   const [newDislikedFood, setNewDislikedFood] = useState("");
   const [showDislikedFoodModal, setShowDislikedFoodModal] = useState(false);
-  const [selectedVegan, setSelectedVegan] = useState<string>("");
-  const [selectedDiet, setSelectedDiet] = useState<string>("");
-  const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<string>("");
+  const [selectedVegan, setSelectedVegan] = useState<VeganOption | "">("");
+  const [selectedDiet, setSelectedDiet] = useState<DietStatus | "">("");
+  const [selectedSpiceLevel, setSelectedSpiceLevel] = useState<SpiceLevel | "">("");
 
   const [isSaved, setIsSaved] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const preferences = ["한식", "중식", "일식", "양식", "아시안", "디저트", "기타"];
-  const habits = ["단맛", "짠맛", "신맛", "쓴맛", "감칠맛", "고소한맛"];
-  const veganOptions = ["해당없음", "비건", "락토", "오보", "페스코", "폴로", "플렉시"];
-  const dietOptions = ["다이어트_중", "해당_없음"];
-  const spiceLevelOptions = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
+  const preferences: FoodType[] = ["한식", "중식", "일식", "양식", "아시안", "디저트", "기타"];
+  const habits: TasteType[] = ["단맛", "짠맛", "신맛", "쓴맛", "감칠맛", "고소한맛"];
+
+  // VeganOption UI 표시를 위한 매핑 (UI 라벨: 백엔드 값)
+  const veganOptionMap: { label: string; value: VeganOption }[] = [
+    { label: "해당없음", value: "해당없음" },
+    { label: "비건", value: "비건" },
+    { label: "락토", value: "락토_베지테리언" },
+    { label: "오보", value: "오보_베지테리언" },
+    { label: "락토오보", value: "락토_오보_베지테리언" },
+    { label: "페스코", value: "페스코_베지테리언" },
+    { label: "폴로", value: "폴로_베지테리언" },
+    { label: "프루테리언", value: "프루테리언" },
+    { label: "플렉시", value: "플렉시테리언" },
+  ];
+
+  const dietOptions: DietStatus[] = ["다이어트_중", "해당_없음"];
+  const spiceLevelOptions: SpiceLevel[] = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
 
   // ✅ 데이터 불러오기 (수정 모드)
   useEffect(() => {
     if (editId) {
       const fetchDetail = async () => {
         try {
-          const token = localStorage.getItem("accessToken");
-          const response = await fetch(`${API_URL}/api/preferences/${editId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            // 백엔드 필드명에 맞춰 매핑 (API 명세에 따라 조정 필요)
-            setNickname(data.preferenceName);
-            setServings(data.numberOfDiners);
-            setAllergies(data.allergyInfo ? data.allergyInfo.split(", ") : []);
-            setSelectedDiet(data.isOnDiet);
-            setSelectedVegan(data.veganOption);
-            setSelectedSpiceLevel(data.spiceLevel);
-            setSelectedPreferences(data.preferredFoodTypes || []);
-            setSelectedHabits(data.preferredTastes || []);
-            setDislikedFoods(data.dislikedFoods || []);
-          }
+          const data = await getPreference(parseInt(editId));
+          // 백엔드 필드명에 맞춰 매핑 (API 명세에 따라 조정 필요)
+          setNickname(data.preferenceName);
+          setServings(data.numberOfDiners);
+          setAllergies(data.allergyInfo ? data.allergyInfo.split(", ") : []);
+          setSelectedDiet(data.isOnDiet);
+          setSelectedVegan(data.veganOption);
+          setSelectedSpiceLevel(data.spiceLevel);
+          setSelectedPreferences(data.preferredFoodTypes || []);
+          setSelectedHabits(data.preferredTastes || []);
+          setDislikedFoods(data.dislikedFoods || []);
         } catch (error) {
           console.error("데이터 로드 실패:", error);
+          alert("데이터를 불러오는데 실패했습니다.");
         }
       };
       fetchDetail();
     }
   }, [editId]);
 
-  const toggleSelection = (item: string, list: string[], setList: (list: string[]) => void) => {
+  const toggleSelection = <T,>(item: T, list: T[], setList: (list: T[]) => void) => {
     if (list.includes(item)) {
       setList(list.filter((i) => i !== item));
     } else {
@@ -102,7 +118,6 @@ export default function EditDetailsClient({ id }: { id: string }) {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("accessToken");
       const payload = {
         preferenceName: nickname.trim(),
         numberOfDiners: servings,
@@ -115,26 +130,18 @@ export default function EditDetailsClient({ id }: { id: string }) {
         dislikedFoods: dislikedFoods.length > 0 ? dislikedFoods : undefined,
       };
 
-      const method = editId ? "PUT" : "POST";
-      const url = editId ? `${API_URL}/api/preferences/${editId}` : `${API_URL}/api/preferences`;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error("저장 실패");
+      if (editId) {
+        await updatePreference(parseInt(editId), payload);
+      } else {
+        await createPreference(payload);
+      }
 
       await refreshPreferences(); // Context 동기화
       setIsSaved(true); // 성공 애니메이션 트리거
 
     } catch (error) {
       console.error("API 저장 에러:", error);
-      alert("저장 중 오류가 발생했습니다.");
+      alert(`저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -240,14 +247,14 @@ export default function EditDetailsClient({ id }: { id: string }) {
         <section>
           <SectionTitle title="비건 & 식단" isDone={selectedVegan !== "" && selectedDiet !== ""} required />
           <div className="flex flex-wrap gap-2 mb-3">
-            {veganOptions.map((v) => (
+            {veganOptionMap.map((v) => (
               <button
-                key={v}
-                onClick={() => setSelectedVegan(v)}
+                key={v.value}
+                onClick={() => setSelectedVegan(v.value)}
                 className={`px-3 py-1.5 rounded-lg text-[12px] font-bold border transition-all ${
-                  selectedVegan === v ? "bg-[#1A1A1A] text-white border-[#1A1A1A]" : "bg-white border-gray-100 text-gray-400"
+                  selectedVegan === v.value ? "bg-[#1A1A1A] text-white border-[#1A1A1A]" : "bg-white border-gray-100 text-gray-400"
                 }`}
-              > {v} </button>
+              > {v.label} </button>
             ))}
           </div>
           <div className="flex gap-2">
@@ -344,7 +351,7 @@ export default function EditDetailsClient({ id }: { id: string }) {
               transition={{ delay: 1.6 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => router.push("/Home")}
-              className="w-full py-5 bg-[#3CDCBA] text-white rounded-[20px] font-black text-[17px] shadow-xl shadow-[#3CDCBA]/20 flex items-center justify-center gap-2"
+              className="w-full max-w-sm py-5 bg-[#3CDCBA] text-white rounded-[20px] font-black text-[17px] shadow-xl shadow-[#3CDCBA]/20 flex items-center justify-center gap-2 mb-24"
             >
               <span>AI와 메뉴 고르러 가기</span>
               <span className="text-xl">✨</span>
