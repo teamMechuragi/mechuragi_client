@@ -20,6 +20,7 @@ app/api/
 ├── preferenceApi.ts    # 사용자 선호도 설정
 ├── recommendApi.ts     # 메뉴 추천
 ├── voteApi.ts          # 투표/커뮤니티
+├── imageApi.ts         # 이미지 업로드
 ├── notificationApi.ts  # 알림
 └── index.ts            # 통합 export
 ```
@@ -108,6 +109,12 @@ const user = await getMember(123);
 - `createComment()`, `getComments()`, `updateComment()`, `deleteComment()` - 댓글
 - `toggleLike()`, `isLiked()`, `getLikeCount()` - 좋아요
 - `getPopularMenus()` - 인기 메뉴
+
+### imageApi.ts - 이미지 업로드
+
+- `uploadImages()` - 여러 이미지 업로드
+- `uploadImage()` - 단일 이미지 업로드
+- `uploadProfileImage()` - 프로필 이미지 업로드
 
 ## ⚙️ 환경 변수
 

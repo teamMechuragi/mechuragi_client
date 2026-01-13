@@ -77,30 +77,8 @@ export async function withdrawal(memberId?: number): Promise<void> {
   });
 }
 
-/**
- * 프로필 이미지 업로드
- */
-export async function uploadProfileImage(file: File): Promise<{ imageUrl: string }> {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const token = localStorage.getItem('accessToken');
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
-
-  const response = await fetch(`${API_BASE_URL}/members/upload-image`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error('이미지 업로드 실패');
-  }
-
-  return response.json();
-}
+// 프로필 이미지 업로드는 imageApi.ts로 이동
+export { uploadProfileImage } from './imageApi';
 
 /**
  * 이메일 중복 확인

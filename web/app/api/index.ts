@@ -21,5 +21,8 @@ export * from './recommendApi';
 // 투표 API
 export * from './voteApi';
 
+// 이미지 API
+export * from './imageApi';
+
 // 알림 API (이미 존재하는 파일)
 // export * from './notificationApi';
