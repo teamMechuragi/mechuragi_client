@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
@@ -34,10 +34,19 @@ const SectionTitle = ({ title, isDone = false, required = false, sub = "" }: { t
   </div>
 );
 
-export default function EditDetailsClient({ id }: { id: string }) {
+export default function EditDetailsClient({ id: propId }: { id: string }) {
   const router = useRouter();
-  const editId = id !== "new" ? id : null; // id가 'new'가 아니면 수정 모드
+  const pathname = usePathname();
   const { refreshPreferences } = useUser();
+
+  // Static Export에서 params가 제대로 전달되지 않을 수 있으므로 pathname에서 직접 추출
+  const pathSegments = pathname.split('/');
+  const idFromPath = pathSegments[pathSegments.length - 1];
+  const id = propId || idFromPath;
+
+  const editId = id !== "new" ? id : null; // id가 'new'가 아니면 수정 모드
+
+  console.log("[EditDetailsClient] Init - propId:", propId, "pathname:", pathname, "extracted id:", id, "editId:", editId);
 
   // 상태 관리
   const [nickname, setNickname] = useState("");
@@ -81,7 +90,28 @@ export default function EditDetailsClient({ id }: { id: string }) {
     if (editId) {
       const fetchDetail = async () => {
         try {
+          console.log("[EditDetails] 데이터 로드 시작, ID:", editId);
+
+          // localStorage 상태 확인
+          const token = localStorage.getItem('accessToken');
+          const user = localStorage.getItem('user');
+          console.log("[EditDetails] localStorage 상태:", {
+            hasToken: !!token,
+            tokenLength: token ? token.length : 0,
+            hasUser: !!user,
+            userPreview: user ? JSON.parse(user).email : 'null'
+          });
+
           const data = await getPreference(parseInt(editId));
+          console.log("[EditDetails] 데이터 로드 성공:", data);
+
+          // 데이터 유효성 검증
+          if (!data || !data.preferenceName) {
+            console.error("[EditDetails] 유효하지 않은 응답 데이터:", data);
+            alert("데이터를 불러오는데 실패했습니다. (빈 응답)");
+            return;
+          }
+
           // 백엔드 필드명에 맞춰 매핑 (API 명세에 따라 조정 필요)
           setNickname(data.preferenceName);
           setServings(data.numberOfDiners);
@@ -92,9 +122,11 @@ export default function EditDetailsClient({ id }: { id: string }) {
           setSelectedPreferences(data.preferredFoodTypes || []);
           setSelectedHabits(data.preferredTastes || []);
           setDislikedFoods(data.dislikedFoods || []);
+
+          console.log("[EditDetails] 상태 업데이트 완료");
         } catch (error) {
-          console.error("데이터 로드 실패:", error);
-          alert("데이터를 불러오는데 실패했습니다.");
+          console.error("[EditDetails] 데이터 로드 실패:", error);
+          alert(`데이터를 불러오는데 실패했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
         }
       };
       fetchDetail();

@@ -1,11 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import Header from "./common/Header";
 import Footer from "./common/Footer";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    console.log("[ClientLayout] Pathname changed:", pathname);
+    console.log("[ClientLayout] Current URL:", window.location.href);
+  }, [pathname]);
   
   // 커뮤니티 상세 페이지 여부
   const isCommunityDetail = pathname.startsWith("/community/") && pathname !== "/community";

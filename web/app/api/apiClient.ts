@@ -17,6 +17,13 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
+  console.log(`[API Request] Token check:`, {
+    hasWindow: typeof window !== 'undefined',
+    tokenExists: !!token,
+    tokenLength: token ? token.length : 0,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'null'
+  });
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -24,9 +31,13 @@ export async function apiRequest<T>(
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
+    console.log('[API Request] ✅ Authorization header added');
+  } else {
+    console.warn('[API Request] ⚠️ No token found - Authorization header NOT added');
   }
 
   console.log(`[API Request] ${options.method || 'GET'} ${API_BASE_URL}${endpoint}`);
+  console.log(`[API Request] Headers:`, headers);
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
@@ -34,6 +45,7 @@ export async function apiRequest<T>(
   });
 
   console.log(`[API Response] ${response.status} ${response.statusText}`);
+  console.log(`[API Response] Headers:`, Object.fromEntries(response.headers.entries()));
 
   if (!response.ok) {
     // 401 에러 시 토큰 만료로 간주
@@ -57,12 +69,18 @@ export async function apiRequest<T>(
 
   // 응답 본문이 비어있는지 확인
   const text = await response.text();
+  console.log(`[API Response] Body length:`, text.length);
+  console.log(`[API Response] Body preview:`, text.substring(0, 200));
+
   if (!text || text.trim() === '') {
+    console.log('[API Response] Empty body, returning empty object');
     return {} as T;
   }
 
   try {
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    console.log('[API Response] Parsed successfully:', parsed);
+    return parsed;
   } catch (error) {
     console.error('[API Error] Failed to parse JSON:', text);
     throw new Error('Invalid JSON response from server');
