@@ -1,10 +1,6 @@
 export async function generateStaticParams() {
-  // 최소한 빈 배열이라도 반환
-  return [];
+  return []; // 빌드 에러 방지용
 }
-
-
-"use client";
 
 import EditDetailsClient from "./EditDetailsClient";
 import { useParams } from "next/navigation";
