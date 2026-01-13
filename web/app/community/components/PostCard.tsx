@@ -31,7 +31,7 @@ export default function PostCard({ vote }: PostCardProps) {
 
   return (
     <div
-      onClick={() => router.push(`/community/${vote.id}`)}
+      onClick={() => router.push(`/community/detail?id=${vote.id}`)}
       className="px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
     >
       <h3 className="font-bold text-base mb-2">{vote.title}</h3>

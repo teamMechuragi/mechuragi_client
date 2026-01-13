@@ -161,7 +161,7 @@ export default function ProfileSection() {
                         hasToken: !!token,
                         tokenLength: token ? token.length : 0
                       });
-                      router.push(`/settings/details/${preference.id}?from=mypage`);
+                      router.push(`/settings/details/edit?id=${preference.id}&from=mypage`);
                     }}
                     className="flex-1 text-left text-sm font-medium text-gray-700"
                   >

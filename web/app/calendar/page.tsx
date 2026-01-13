@@ -89,7 +89,7 @@ export default function CalendarPage() {
 
     if (entry) {
       // 일기가 있다면 상세 페이지로 이동
-      router.push(`/calendar/diary/${entry.id}`);
+      router.push(`/calendar/diary/detail?id=${entry.id}`);
     } else {
       // 일기가 없다면 갤러리/작성 페이지로 이동
       router.push(`/calendar/gallery?date=${date}`);

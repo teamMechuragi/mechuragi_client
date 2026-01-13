@@ -1,5 +1,5 @@
-import EditDetailsClient from '../[id]/EditDetailsClient';
+import EditDetailsClient from '../EditDetailsClient';
 
 export default function NewDetailsPage() {
-  return <EditDetailsClient id="new" />;
+  return <EditDetailsClient />;
 }

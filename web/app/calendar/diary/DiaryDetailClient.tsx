@@ -1,12 +1,21 @@
-// calendar/diary/[id]/DiaryDetailClient.tsx
+// calendar/diary/DiaryDetailClient.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/app/common/Header';
 
-export default function DiaryDetailClient({ id }: { id: string }) {
+export default function DiaryDetailClient() {
   const router = useRouter();
+  const [id, setId] = useState<string>('');
+
+  // URL 파라미터에서 ID 가져오기
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setId(params.get('id') || '');
+    }
+  }, []);
   
   // 상태 관리: 로컬 스토리지에서 불러온 일기 데이터
   const [diary, setDiary] = useState<any>(null);

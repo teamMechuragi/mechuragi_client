@@ -117,7 +117,7 @@ export default function CommunityWritePage() {
       console.log('투표 생성 성공:', newVote);
 
       // 생성된 투표 페이지로 이동
-      router.push(`/community/${newVote.id}`);
+      router.push(`/community/detail?id=${newVote.id}`);
     } catch (error) {
       console.error('투표 생성 실패:', error);
       alert('투표 생성에 실패했습니다. 다시 시도해주세요.');
