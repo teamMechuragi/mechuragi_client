@@ -1,14 +1,14 @@
+"use client";
+
 import DiaryDetailClient from './DiaryDetailClient';
+import { useParams } from "next/navigation";
 
-// ✅ 빌드 시점에 더미 페이지만 생성
-export async function generateStaticParams() {
-  return [{ id: '1' }];
-}
+export default function Page() {
+  const params = useParams();
+  const id = params.id as string;
 
-// ✅ 정의되지 않은 ID로 접속해도 클라이언트 사이드 렌더링 허용
-export const dynamicParams = true;
+  console.log("[DiaryDetailPage - Client] Rendering with id:", id);
 
-export default function Page({ params }: { params: { id: string } }) {
   // 실제 데이터는 DiaryDetailClient의 useEffect에서 로컬 스토리지로부터 로드됨
-  return <DiaryDetailClient id={params.id} />;
+  return <DiaryDetailClient id={id} />;
 }
