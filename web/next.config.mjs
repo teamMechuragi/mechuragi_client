@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export', // - 서버 런타임이 필요 없고, 결과물은 CDN에 올려서 정적 사이트처럼 서빙
+  trailingSlash: true, // CloudFront + S3에서 /mypage -> /mypage/index.html 자동 매핑
 
   images: {
     unoptimized: true,
