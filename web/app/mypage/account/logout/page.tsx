@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/app/context/UserContext';
+import { logout } from '@/app/api/authApi';
 
 export default function LogoutPage() {
   const router = useRouter();
@@ -11,39 +12,23 @@ export default function LogoutPage() {
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
-    
+
     setIsLoggingOut(true);
 
     try {
-      // ✅ 추가: 백엔드 로그아웃 API 호출
-      const accessToken = localStorage.getItem('accessToken');
-      
-      if (accessToken) {
-        const response = await fetch('https://mechuragi.kro.kr/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-
-        // 204 No Content는 response.ok가 true
-        if (response.ok) {
-          console.log('서버 로그아웃 성공');
-        } else {
-          console.warn('서버 로그아웃 실패, 로컬 로그아웃 진행');
-        }
-      }
+      // API를 통한 로그아웃
+      await logout();
+      console.log('서버 로그아웃 성공');
     } catch (error) {
       console.error('로그아웃 API 호출 실패:', error);
       // 에러가 나도 로컬 로그아웃은 진행
     } finally {
-      // ✅ 로컬 데이터 삭제 (기존 코드)
+      // 로컬 데이터 삭제
       setUser(null);
       localStorage.removeItem('user');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      
+
       // 로그인 페이지로 이동
       router.replace('/login');
     }

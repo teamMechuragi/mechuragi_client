@@ -5,22 +5,12 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import ExitModal from "./components/ExitModal";
 import { useUser } from "@/app/context/UserContext";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+import { chatRecommend, type RecommendResponse } from "@/app/api/recommendApi";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-}
-
-interface FoodRecommendation {
-  name: string;
-  description: string;
-  reason: string;
-  ingredients: string;
-  cookingTime: string;
-  difficulty: string;
 }
 
 export default function AIChatPage() {
@@ -150,59 +140,41 @@ export default function AIChatPage() {
         return;
       }
 
-      // 취향 데이터를 포함하여 AI 추천 요청
-      const response = await fetch(`${API_URL}/recommend`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({
-          type: "CONVERSATION",
-          userMessage: inputValue,
-          // 사용자 취향 데이터 추가
-          dietStatus: activePreferenceDetail.isOnDiet,
-          veganOption: activePreferenceDetail.veganOption,
-          spiceLevel: activePreferenceDetail.spiceLevel,
-          foodTypes: activePreferenceDetail.preferredFoodTypes,
-          tastes: activePreferenceDetail.preferredTastes,
-          dislikedFoods: activePreferenceDetail.dislikedFoods,
-        }),
+      // API로 채팅 추천 요청
+      const data = await chatRecommend({
+        chatMessage: userMessage.content,
+        dietStatus: activePreferenceDetail.isOnDiet,
+        veganOption: activePreferenceDetail.veganOption,
+        spiceLevel: activePreferenceDetail.spiceLevel,
+        foodTypes: activePreferenceDetail.preferredFoodTypes,
+        tastes: activePreferenceDetail.preferredTastes,
+        dislikedFoods: activePreferenceDetail.dislikedFoods,
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      // 추천 결과 저장
+      setLastRecommendations(data);
 
-        // 추천 결과 저장
-        setLastRecommendations(data);
+      // AI 응답 조합: 메시지 + 추천 결과
+      let responseText = data.reply || "";
 
-        // AI 응답 조합: 메시지 + 추천 결과
-        let responseText = data.message || "";
-
-        if (data.recommendations && data.recommendations.length > 0) {
-          // 추천 결과를 텍스트로 변환
-          data.recommendations.forEach((food: FoodRecommendation, index: number) => {
-            responseText += `\n\n${food.name}\n${food.description}\n\n${food.reason}\n\n재료: ${food.ingredients}\n⏱️ ${food.cookingTime} | 👨‍🍳 난이도: ${food.difficulty}`;
-            if (index < data.recommendations.length - 1) {
-              responseText += "\n\n─────────────";
-            }
-          });
-        }
-
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: responseText,
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      } else {
-        const errorMessage: Message = {
-          role: "assistant",
-          content: "죄송합니다. 추천을 가져오는데 실패했습니다. 다시 시도해주세요.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
+      const recommendations = data.recommendations || [];
+      if (recommendations.length > 0) {
+        // 추천 결과를 텍스트로 변환
+        recommendations.forEach((food: RecommendResponse, index: number) => {
+          const menuName = food.name || food.menuName || "메뉴";
+          responseText += `\n\n${menuName}\n${food.description}\n\n${food.reason || ""}\n\n재료: ${food.ingredients || "정보 없음"}\n⏱️ ${food.cookingTime || "-"} | 👨‍🍳 난이도: ${food.difficulty || "-"}`;
+          if (index < recommendations.length - 1) {
+            responseText += "\n\n─────────────";
+          }
+        });
       }
+
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: responseText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("API 호출 실패:", error);
       const errorMessage: Message = {

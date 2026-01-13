@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/app/context/UserContext';
-import { createComment } from '@/lib/api/voteApi';
+import { createComment } from '@/app/api/voteApi';
 
 interface CommentInputProps {
   voteId: number;

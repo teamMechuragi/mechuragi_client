@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import SocialLogin from "./SocialLogin";
 import Link from "next/link";
 import { useUser } from "@/app/context/UserContext";
+import { login } from "@/app/api/authApi";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -28,28 +29,16 @@ export default function LoginForm() {
     }
 
     try {
-      // ✅ 수정: /api/auth/login으로 변경
-      const response = await fetch("https://mechuragi.kro.kr/api/auth/login", { 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        setError("아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.");
-        return;
-      }
-
-      const data = await response.json();
+      // API로 로그인 요청
+      const data = await login({ email, password });
       console.log("로그인 성공:", data);
-      console.log("member 데이터:", data.member);
 
-      // ✅ 수정: tokens 객체에서 접근
+      // 토큰 저장
       localStorage.setItem("accessToken", data.tokens.accessToken);
       localStorage.setItem("refreshToken", data.tokens.refreshToken);
       console.log("토큰 저장 완료");
 
-      // ✅ 수정: member 객체에서 사용자 정보 가져오기
+      // 사용자 정보 저장
       const userData = {
         id: data.member.id,
         username: data.member.nickname,
@@ -71,8 +60,7 @@ export default function LoginForm() {
       router.push("/Home");
     } catch (err) {
       console.error("로그인 에러:", err);
-      alert("에러 발생: " + err);
-      setError("서버 오류가 발생했습니다. 다시 시도해주세요.");
+      setError("아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.");
     }
   };
 

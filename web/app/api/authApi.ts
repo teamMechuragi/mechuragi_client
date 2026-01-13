@@ -1,0 +1,91 @@
+/**
+ * 인증 관련 API
+ */
+import { apiRequestPublic } from './apiClient';
+
+// ============================================
+// 타입 정의
+// ============================================
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+  member: {
+    id: number;
+    nickname: string;
+    email: string;
+    emailVerified: boolean;
+    provider: string;
+    role: string;
+    status: string;
+  };
+}
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface SignupResponse {
+  id: number;
+  email: string;
+  nickname: string;
+}
+
+// ============================================
+// API 함수들
+// ============================================
+
+/**
+ * 로그인
+ */
+export async function login(data: LoginRequest): Promise<LoginResponse> {
+  return apiRequestPublic<LoginResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * 회원가입
+ */
+export async function signup(data: SignupRequest): Promise<SignupResponse> {
+  return apiRequestPublic<SignupResponse>('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * 로그아웃
+ */
+export async function logout(): Promise<void> {
+  return apiRequestPublic<void>('/auth/logout', {
+    method: 'POST',
+  });
+}
+
+/**
+ * 토큰 갱신
+ */
+export async function refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
+  return apiRequestPublic<{ accessToken: string }>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+  });
+}
+
+/**
+ * 닉네임 자동 생성
+ */
+export async function generateNickname(): Promise<{ nickname: string }> {
+  return apiRequestPublic<{ nickname: string }>('/auth/nickname/generate');
+}

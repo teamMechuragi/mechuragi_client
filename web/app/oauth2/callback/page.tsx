@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/UserContext";
+import { getMyInfo } from "@/app/api/memberApi";
 
 export default function OAuthSuccess() {
   const router = useRouter();
@@ -26,26 +27,8 @@ export default function OAuthSuccess() {
 
         try {
           // 2. 토큰으로 사용자 정보 가져오기
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
-          console.log("사용자 정보 조회 시도:", `${apiUrl}/members/me`);
-
-          const response = await fetch(`${apiUrl}/members/me`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          });
-
-          console.log("사용자 정보 조회 응답:", response.status, response.statusText);
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("API 에러 응답:", errorText);
-            throw new Error(`사용자 정보 조회 실패: ${response.status} ${errorText}`);
-          }
-
-          const data = await response.json();
+          console.log("사용자 정보 조회 시도");
+          const data = await getMyInfo();
           console.log("사용자 정보 조회 성공:", data);
 
           // 3. 사용자 정보 저장
@@ -53,6 +36,7 @@ export default function OAuthSuccess() {
             id: data.id,
             username: data.nickname,
             email: data.email,
+            profileImage: data.profileImageUrl,
             emailVerified: data.emailVerified,
             provider: data.provider,
             role: data.role,

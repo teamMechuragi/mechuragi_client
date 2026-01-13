@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/app/context/UserContext';
-import { toggleLike, isLiked, getLikeCount } from '@/lib/api/voteApi';
+import { toggleLike, isLiked, getLikeCount } from '@/app/api/voteApi';
 
 interface LikeButtonProps {
   voteId: number;

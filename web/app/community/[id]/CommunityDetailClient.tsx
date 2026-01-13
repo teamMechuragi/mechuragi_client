@@ -6,7 +6,7 @@ import Header from '@/app/common/Header';
 import Footer from '@/app/common/Footer';
 import Image from 'next/image';
 import type { VoteResponse } from '@/types/vote';
-import { getVote, participateVote, getMyParticipation, cancelParticipation } from '@/lib/api/voteApi';
+import { getVote, participateVote, getMyParticipation, cancelParticipation } from '@/app/api/voteApi';
 import LikeButton from '../components/LikeButton';
 import CommentSection from '../components/CommentSection';
 import { getRelativeTime } from '@/lib/utils/dateFormat';
