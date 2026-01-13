@@ -15,6 +15,8 @@ export async function generateStaticParams() {
 export const dynamicParams = true;
 
 export default function EditDetailsPage({ params }: PageProps) {
+  console.log("[EditDetailsPage - Server] Rendering with params:", params);
+
   // 실제 데이터는 EditDetailsClient의 useEffect에서 API를 통해 로드됨
   return <EditDetailsClient id={params.id} />;
 }

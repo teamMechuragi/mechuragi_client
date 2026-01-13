@@ -153,7 +153,16 @@ export default function ProfileSection() {
                   />
                   {/* 별칭 (클릭 시 수정 페이지로 이동) */}
                   <button
-                    onClick={() => router.push(`/settings/details/${preference.id}?from=mypage`)}
+                    onClick={() => {
+                      const token = localStorage.getItem('accessToken');
+                      console.log('[ProfileSection] 수정 버튼 클릭:', {
+                        preferenceId: preference.id,
+                        preferenceName: preference.preferenceName,
+                        hasToken: !!token,
+                        tokenLength: token ? token.length : 0
+                      });
+                      router.push(`/settings/details/${preference.id}?from=mypage`);
+                    }}
                     className="flex-1 text-left text-sm font-medium text-gray-700"
                   >
                     {preference.preferenceName}
