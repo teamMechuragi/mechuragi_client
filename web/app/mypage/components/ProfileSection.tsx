@@ -139,8 +139,8 @@ export default function ProfileSection() {
                   label={pref.preferenceName} 
                   isChecked={pref.isActive}
                   onToggle={() => handleToggle(pref.id)}
-                  // 수정 페이지로 이동할 때 id를 포함한 경로로 이동
-                  onEdit={(id) => router.push(`/settings/details/${id}`)}
+                  // 수정 페이지로 이동할 때 쿼리 파라미터로 ID 전달
+                  onEdit={(id) => router.push(`/settings/details/edit?id=${id}`)}
                 />
               ))
             ) : (

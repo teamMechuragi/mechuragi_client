@@ -15,7 +15,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/signup",         // 회원가입
     "/onboarding",     // 온보딩
     "/recommend/result",
-    "/settings/details/[id]",
+    "/settings/details/new",
+    "/settings/details/edit",
     "/mypage",
     "/recommend/ingredients",
     "/recommend/ingredients/seasoning"
@@ -26,7 +27,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/",                   // 로그인
     "/terms",              // 약관
     "/signup",             // 회원가입
-    "/settings/details/[id]",   // 상세 설정
+    "/settings/details/new",   // 상세 설정 (새로 만들기)
+    "/settings/details/edit",  // 상세 설정 (수정)
     "/notifications",
     "/mypage/profile",
     "/mypage/account",
