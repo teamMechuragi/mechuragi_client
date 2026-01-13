@@ -63,7 +63,7 @@ export default function HotPostsCarousel({ votes }: HotPostsCarouselProps) {
   return (
     <div className="px-6">
       <div
-        onClick={() => router.push(`/community/${currentVote.id}`)}
+        onClick={() => router.push(`/community/detail?id=${currentVote.id}`)}
         className="relative bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
       >
         <div className="p-4">

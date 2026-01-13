@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
@@ -34,19 +34,20 @@ const SectionTitle = ({ title, isDone = false, required = false, sub = "" }: { t
   </div>
 );
 
-export default function EditDetailsClient({ id: propId }: { id: string }) {
+export default function EditDetailsClient() {
   const router = useRouter();
-  const pathname = usePathname();
   const { refreshPreferences } = useUser();
+  const [editId, setEditId] = useState<string | null>(null);
 
-  // Static Export에서 params가 제대로 전달되지 않을 수 있으므로 pathname에서 직접 추출
-  const pathSegments = pathname.split('/');
-  const idFromPath = pathSegments[pathSegments.length - 1];
-  const id = propId || idFromPath;
-
-  const editId = id !== "new" ? id : null; // id가 'new'가 아니면 수정 모드
-
-  console.log("[EditDetailsClient] Init - propId:", propId, "pathname:", pathname, "extracted id:", id, "editId:", editId);
+  // 쿼리 파라미터에서 id 가져오기 (클라이언트에서만 실행)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      setEditId(id && id !== "new" ? id : null);
+      console.log("[EditDetailsClient] Init - URL params id:", id, "editId:", id && id !== "new" ? id : null);
+    }
+  }, []);
 
   // 상태 관리
   const [nickname, setNickname] = useState("");

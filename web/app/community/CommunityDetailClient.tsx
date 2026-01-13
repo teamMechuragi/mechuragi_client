@@ -7,23 +7,41 @@ import Footer from '@/app/common/Footer';
 import Image from 'next/image';
 import type { VoteResponse } from '@/types/vote';
 import { getVote, participateVote, getMyParticipation, cancelParticipation } from '@/app/api/voteApi';
-import LikeButton from '../components/LikeButton';
-import CommentSection from '../components/CommentSection';
+import LikeButton from './components/LikeButton';
+import CommentSection from './components/CommentSection';
 import { getRelativeTime } from '@/lib/utils/dateFormat';
 
-export default function CommunityDetailClient({ id }: { id: string }) {
+export default function CommunityDetailClient() {
   const router = useRouter();
   const [vote, setVote] = useState<VoteResponse | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [voteId, setVoteId] = useState<number | null>(null);
 
-  const voteId = Number(id);
+  // URL 파라미터에서 ID 가져오기
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      setVoteId(id ? Number(id) : null);
+    }
+  }, []);
 
   // 투표 데이터 로드
   useEffect(() => {
     const fetchVoteData = async () => {
+      if (!voteId) {
+        if (voteId === null) {
+          // 아직 로딩 중
+          return;
+        }
+        setError('잘못된 투표 ID입니다.');
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError(null);
@@ -83,7 +101,7 @@ export default function CommunityDetailClient({ id }: { id: string }) {
       });
 
       // 투표 후 최신 데이터 다시 가져오기
-      const updatedVote = await getVote(voteId);
+      const updatedVote = await getVote(vote.id);
       setVote(updatedVote);
       setHasVoted(true);
     } catch (err) {
@@ -94,13 +112,15 @@ export default function CommunityDetailClient({ id }: { id: string }) {
 
   // 재투표 핸들러
   const handleRevote = async () => {
+    if (!vote) return;
+
     try {
-      await cancelParticipation(voteId);
+      await cancelParticipation(vote.id);
       setHasVoted(false);
       setSelectedOptions([]);
 
       // 최신 데이터 다시 가져오기
-      const updatedVote = await getVote(voteId);
+      const updatedVote = await getVote(vote.id);
       setVote(updatedVote);
     } catch (err) {
       console.error('투표 취소 실패:', err);
