@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,11 +9,11 @@ import { useUser } from "@/app/context/UserContext";
 import { login } from "@/app/api/authApi";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [focusedField, setFocusedField] = useState("");
-  const [error, setError] = useState("");
+  const [focusedField, setFocusedField] = useState('');
+  const [error, setError] = useState('');
   const router = useRouter();
   const { setUser, refreshPreferences } = useUser();
 
@@ -21,10 +21,10 @@ export default function LoginForm() {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async () => {
-    setError("");
+    setError('');
 
     if (!isValidEmail(email) || password.length < 1) {
-      setError("아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.");
+      setError('아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.');
       return;
     }
 
@@ -51,7 +51,7 @@ export default function LoginForm() {
 
       console.log("사용자 정보 저장 완료:", userData);
       setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem('user', JSON.stringify(userData));
 
       // 로그인 후 preferences 로드
       await refreshPreferences();
@@ -70,11 +70,11 @@ export default function LoginForm() {
 
       <div className="border border-[#BDBDBD] rounded-2xl overflow-hidden w-full relative">
         <div className="flex items-center px-3 py-3 border-b border-gray-300">
-          <img 
-            src="/icon/user.png" 
-            alt="이메일 아이콘" 
+          <img
+            src="/icon/user.png"
+            alt="이메일 아이콘"
             className={`w-5 h-5 transition-all ${
-              focusedField === "email" ? "brightness-0" : ""
+              focusedField === 'email' ? 'brightness-0' : ''
             }`}
           />
           <input
@@ -82,27 +82,27 @@ export default function LoginForm() {
             placeholder="이메일을 입력해 주세요"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onFocus={() => setFocusedField("email")}
-            onBlur={() => setFocusedField("")}
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => setFocusedField('')}
             className="w-full ml-2 text-gray-600 placeholder-gray-400 focus:outline-none text-base"
           />
         </div>
 
         <div className="flex items-center px-3 py-3 relative">
-          <img 
-            src="/icon/lock.png" 
-            alt="비밀번호 아이콘" 
+          <img
+            src="/icon/lock.png"
+            alt="비밀번호 아이콘"
             className={`w-5 h-5 transition-all ${
-              focusedField === "password" ? "brightness-0" : ""
+              focusedField === 'password' ? 'brightness-0' : ''
             }`}
           />
           <input
-            type={showPassword ? "text" : "password"}
+            type={showPassword ? 'text' : 'password'}
             placeholder="비밀번호를 입력해 주세요"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            onFocus={() => setFocusedField("password")}
-            onBlur={() => setFocusedField("")}
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField('')}
             className="w-full ml-2 text-gray-600 placeholder-gray-400 focus:outline-none text-base"
           />
           <button
@@ -110,23 +110,25 @@ export default function LoginForm() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-4 text-gray-500 hover:text-[#3CDCBA] transition-all"
           >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
       </div>
 
       {error && (
-        <p className="text-red-500 text-xs mt-2 text-center">
-          {error}
-        </p>
+        <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
       )}
 
       <button
         disabled={!isValidEmail(email) || !password}
         className={`w-full py-3 rounded-[50px] font-bold mt-6 text-base transition-all ${
           isValidEmail(email) && password
-            ? "bg-[#3CDCBA] text-white cursor-pointer"
-            : "bg-[#CCCCCC] text-white cursor-not-allowed"
+            ? 'bg-[#3CDCBA] text-white cursor-pointer'
+            : 'bg-[#CCCCCC] text-white cursor-not-allowed'
         }`}
         onClick={handleLogin}
       >
@@ -134,11 +136,17 @@ export default function LoginForm() {
       </button>
 
       <div className="flex justify-center items-center text-sm text-gray-500 mt-4 gap-4">
-        <a href="#" className="px-2">이메일 찾기</a>
+        <a href="#" className="px-2">
+          이메일 찾기
+        </a>
         <span className="text-gray-300">|</span>
-        <a href="#" className="px-2">비밀번호 찾기</a>
+        <a href="#" className="px-2">
+          비밀번호 찾기
+        </a>
         <span className="text-gray-300">|</span>
-        <Link href="/terms" className="text-[#3CDCBA] px-2">회원가입</Link>
+        <Link href="/terms" className="text-[#3CDCBA] px-2">
+          회원가입
+        </Link>
       </div>
 
       <div className="relative w-full flex items-center justify-center py-4 mt-16">

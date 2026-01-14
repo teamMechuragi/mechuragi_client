@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/app/common/Header';
+import { getDiaryDetail, deleteDiary, DiaryResponse } from '@/app/api/diaryApi';
 
 export default function DiaryDetailClient() {
   const router = useRouter();
@@ -16,9 +17,9 @@ export default function DiaryDetailClient() {
       setId(params.get('id') || '');
     }
   }, []);
-  
-  // 상태 관리: 로컬 스토리지에서 불러온 일기 데이터
-  const [diary, setDiary] = useState<any>(null);
+
+  // 상태 관리: API에서 불러온 일기 데이터
+  const [diary, setDiary] = useState<DiaryResponse | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [showUI, setShowUI] = useState(true);
 
@@ -30,17 +31,22 @@ export default function DiaryDetailClient() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const viewerScrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. 페이지 로드 시 로컬 스토리지에서 해당 ID의 데이터 불러오기
+  // 1. 페이지 로드 시 API에서 일기 데이터 불러오기
   useEffect(() => {
-    const saved = localStorage.getItem('myDiaries');
-    if (saved) {
-      const diaries = JSON.parse(saved);
-      const found = diaries.find((d: any) => String(d.id) === String(id));
-      if (found) {
-        setDiary(found);
+    if (!id) return; // id가 없으면 실행하지 않음
+
+    const loadDiary = async () => {
+      try {
+        const data = await getDiaryDetail(Number(id));
+        setDiary(data);
+      } catch (error) {
+        console.error('일기 불러오기 실패:', error);
+        alert('일기를 불러오는데 실패했습니다.');
+        router.push('/calendar');
       }
-    }
-  }, [id]);
+    };
+    loadDiary();
+  }, [id, router]);
 
   // 2. 전체화면 뷰어 오픈 시 클릭한 사진 위치로 스크롤 이동
   useEffect(() => {
@@ -71,12 +77,12 @@ export default function DiaryDetailClient() {
   };
 
   const handleDelete = async () => {
-    const saved = localStorage.getItem('myDiaries');
-    if (saved) {
-      const diaries = JSON.parse(saved);
-      const filtered = diaries.filter((d: any) => String(d.id) !== String(id));
-      localStorage.setItem('myDiaries', JSON.stringify(filtered));
+    try {
+      await deleteDiary(Number(id));
       router.push('/calendar');
+    } catch (error) {
+      console.error('일기 삭제 실패:', error);
+      alert('일기 삭제에 실패했습니다.');
     }
   };
 
@@ -104,23 +110,23 @@ export default function DiaryDetailClient() {
       />
       
       <main className="pt-14 pb-10">
-        <p className="text-center text-gray-400 text-sm mb-4">{diary.date}</p>
+        <p className="text-center text-gray-400 text-sm mb-4">{diary.diaryDate}</p>
 
         <div className="px-6 mb-8">
-          <div 
+          <div
             ref={scrollRef}
             onScroll={handleScroll}
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide rounded-3xl relative"
           >
             {diary.images && diary.images.length > 0 ? (
-              diary.images.map((img: string, idx: number) => (
+              diary.images.map((img, idx: number) => (
                 <div key={idx} className="relative w-full aspect-square snap-center flex-shrink-0">
                   <img
-                    src={img}
+                    src={img.imageUrl}
                     alt="food"
                     className="w-full h-full object-cover cursor-pointer"
                     onClick={() => {
-                      setCurrentIdx(idx); 
+                      setCurrentIdx(idx);
                       setIsViewerOpen(true);
                     }}
                   />
@@ -162,8 +168,8 @@ export default function DiaryDetailClient() {
           </p>
 
           <div className="flex flex-wrap gap-2">
-            {diary.tags && diary.tags.map((tag: string) => (
-              <span key={tag} className="text-[#3CDCBA] font-medium">{tag}</span>
+            {diary.tags && diary.tags.map((tag: string, idx: number) => (
+              <span key={idx} className="text-[#3CDCBA] font-medium">{tag.startsWith('#') ? tag : `#${tag}`}</span>
             ))}
           </div>
         </div>
@@ -172,9 +178,9 @@ export default function DiaryDetailClient() {
           <p className="font-bold text-gray-800 mb-2 font-lg">메뉴 만족도</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
-              <StarIcon 
-                key={star} 
-                fill={diary.satisfaction >= star ? 100 : diary.satisfaction >= star - 0.5 ? 50 : 0} 
+              <StarIcon
+                key={star}
+                fill={Number(diary.rating) >= star ? 100 : Number(diary.rating) >= star - 0.5 ? 50 : 0}
               />
             ))}
           </div>
@@ -223,11 +229,11 @@ export default function DiaryDetailClient() {
             className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
             onClick={toggleUI}
           >
-            {diary.images?.map((img: string, idx: number) => (
+            {diary.images?.map((img, idx: number) => (
               <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center snap-center">
-                <img 
-                  src={img} 
-                  className="max-w-full max-h-full object-contain" 
+                <img
+                  src={img.imageUrl}
+                  className="max-w-full max-h-full object-contain"
                   alt="full view"
                 />
               </div>

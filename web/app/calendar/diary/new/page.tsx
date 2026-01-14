@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/common/Header';
+import { getDiaryDetail, createDiary, updateDiary, uploadImage } from '@/app/api/diaryApi';
 
 interface ImageFile {
   url: string;
@@ -14,11 +15,12 @@ function DiaryFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
+  const selectedDate = searchParams.get('date'); // 캘린더/갤러리에서 선택한 날짜
 
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
-  const [satisfaction, setSatisfaction] = useState<number>(0);
+  const [rating, setRating] = useState<number>(0);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>('');
   const [showTitleInput, setShowTitleInput] = useState<boolean>(false);
@@ -32,19 +34,22 @@ function DiaryFormContent() {
 
   useEffect(() => {
     if (editId) {
-      const saved = localStorage.getItem('myDiaries');
-      if (saved) {
-        const diaries = JSON.parse(saved);
-        const target = diaries.find((d: any) => d.id === editId);
-        if (target) {
-          setTitle(target.title || '');
-          setContent(target.content || '');
-          setSatisfaction(target.satisfaction || 0);
-          setTags(target.tags || []);
-          setSelectedImages(target.images.map((url: string) => ({ url })));
-          if (target.title) setShowTitleInput(true);
+      // 수정 모드: API에서 일기 불러오기
+      const loadDiary = async () => {
+        try {
+          const diary = await getDiaryDetail(Number(editId));
+          setTitle(diary.title || '');
+          setContent(diary.content || '');
+          setRating(diary.rating || 0);
+          setTags(diary.tags || []);
+          setSelectedImages(diary.images.map(img => ({ url: img.imageUrl })));
+          if (diary.title) setShowTitleInput(true);
+        } catch (error) {
+          console.error('일기 불러오기 실패:', error);
+          alert('일기를 불러오는데 실패했습니다.');
         }
-      }
+      };
+      loadDiary();
     } else {
       const savedPhotos = localStorage.getItem('selectedPhotos');
       if (savedPhotos) {
@@ -102,41 +107,74 @@ function DiaryFormContent() {
     const x = clientX - rect.left;
     const width = rect.width;
     let score = Math.max(0.5, Math.min(5, Math.ceil(((x / width) * 5) * 2) / 2));
-    setSatisfaction(score);
+    setRating(score);
   };
 
-  const handleSave = () => {
-    const saved = localStorage.getItem('myDiaries');
-    const existingDiaries = saved ? JSON.parse(saved) : [];
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
 
-    if (editId) {
-      const updatedDiaries = existingDiaries.map((d: any) => 
-        d.id === editId 
-          ? { 
-              ...d, 
-              title: title.trim(), 
-              content: content.trim(), 
-              tags, 
-              satisfaction, 
-              images: selectedImages.map(img => img.url) 
-            } 
-          : d
-      );
-      localStorage.setItem('myDiaries', JSON.stringify(updatedDiaries));
-      router.push(`/calendar/diary/${editId}`);
-    } else {
-      const newId = Date.now().toString(); 
-      const newDiary = {
-        id: newId,
-        date: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.'),
-        title: title.trim(),
-        content: content.trim(),
-        tags: tags,
-        satisfaction: satisfaction,
-        images: selectedImages.map(img => img.url) 
-      };
-      localStorage.setItem('myDiaries', JSON.stringify([newDiary, ...existingDiaries]));
-      router.push(`/calendar/diary/${newId}`);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // 파일 크기 검증 (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`${file.name}은(는) 10MB를 초과합니다.`);
+        continue;
+      }
+
+      // 이미지 타입 검증
+      if (!file.type.startsWith('image/')) {
+        alert(`${file.name}은(는) 이미지 파일이 아닙니다.`);
+        continue;
+      }
+
+      try {
+        const data = await uploadImage(file);
+        setSelectedImages(prev => [...prev, { url: data.imageUrl, file }]);
+      } catch (error) {
+        console.error('이미지 업로드 오류:', error);
+        alert(`${file.name} 업로드에 실패했습니다.`);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    // 날짜 검증
+    const today = new Date().toISOString().split('T')[0];
+    const diaryDate = selectedDate || new Date().toISOString().split('T')[0]; // 선택된 날짜 또는 현재 날짜
+
+    if (diaryDate > today) {
+      alert('미래 날짜는 선택할 수 없습니다.');
+      return;
+    }
+
+    try {
+      if (editId) {
+        // 일기 수정
+        const response = await updateDiary(Number(editId), {
+          title: title.trim(),
+          content: content.trim(),
+          rating,
+          imageUrls: selectedImages.map(img => img.url),
+          tags,
+        });
+        router.push(`/calendar/diary/detail?id=${response.id}`);
+      } else {
+        // 일기 등록
+        const response = await createDiary({
+          title: title.trim(),
+          content: content.trim(),
+          rating,
+          diaryDate,
+          imageUrls: selectedImages.map(img => img.url),
+          tags,
+        });
+        router.push(`/calendar/diary/detail?id=${response.id}`);
+      }
+    } catch (error: any) {
+      console.error('일기 저장 오류:', error);
+      alert(error.message || '일기 저장에 실패했습니다.');
     }
   };
 
@@ -167,7 +205,7 @@ function DiaryFormContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span className="text-[12px] text-[#3CDCBA] font-bold mt-1">사진 추가</span>
-              <input type="file" multiple accept="image/*" className="hidden" />
+              <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} />
             </label>
 
             {selectedImages.map((img, i) => (
@@ -265,10 +303,10 @@ function DiaryFormContent() {
             onMouseMove={(e) => e.buttons === 1 && handleStarInteraction(e)}
           >
             {[1, 2, 3, 4, 5].map((star) => (
-              <StarIcon key={star} fill={satisfaction >= star ? 100 : satisfaction >= star - 0.5 ? 50 : 0} />
+              <StarIcon key={star} fill={rating >= star ? 100 : rating >= star - 0.5 ? 50 : 0} />
             ))}
           </div>
-          <p className="text-[10px] text-gray-400 mt-2 font-medium">별점: 터치, 드래그로 조절 ({satisfaction}점)</p>
+          <p className="text-[10px] text-gray-400 mt-2 font-medium">별점: 터치, 드래그로 조절 ({rating}점)</p>
         </div>
       </main>
     </div>
