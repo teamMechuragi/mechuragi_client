@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Header from '@/app/common/Header'; // 공통 헤더 임포트
+import Header from '@/app/common/Header';
 import CalendarGrid from './components/CalendarGrid';
 import Footer from '@/app/common/Footer';
+import { getMonthlyDiaries } from '@/app/api/diaryApi';
 
 interface DiaryEntry {
   id: string;
@@ -23,42 +24,26 @@ export default function CalendarPage() {
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
-  // --- 데이터 페칭 및 로컬 테스트 영역 ---
+  // 데이터 페칭: 백엔드 API 연동
   useEffect(() => {
-    /**
-     * [백엔드 API 연동 시 사용할 코드 (주석)]
-     * const fetchDiaryEntries = async () => {
-     * try {
-     * const response = await fetch(`/api/diaries?year=${year}&month=${month + 1}`);
-     * const data = await response.json();
-     * setDiaryEntries(data);
-     * } catch (error) {
-     * console.error("데이터 로드 실패:", error);
-     * }
-     * };
-     * fetchDiaryEntries();
-     */
-
-    // [로컬 스토리지 테스트용 실무 코드]
-    const loadLocalData = () => {
-      const saved = localStorage.getItem('myDiaries');
-      if (saved) {
-        try {
-          const allDiaries: DiaryEntry[] = JSON.parse(saved);
-          // 현재 달력의 연/월에 해당하는 데이터만 필터링 (선택 사항)
-          setDiaryEntries(allDiaries);
-        } catch (e) {
-          console.error("로컬 데이터 파싱 실패", e);
-          setDiaryEntries([]);
-        }
-      } else {
+    const fetchDiaryEntries = async () => {
+      try {
+        const data = await getMonthlyDiaries(year, month + 1);
+        // API 응답을 프론트엔드 형식에 맞게 변환
+        const entries: DiaryEntry[] = data.diaries.map(d => ({
+          id: String(d.diaryId),
+          date: d.diaryDate,
+          images: d.thumbnails.slice(0, 4), // 썸네일은 앞 4장만
+        }));
+        setDiaryEntries(entries);
+      } catch (error) {
+        console.error('캘린더 데이터 로드 실패:', error);
         setDiaryEntries([]);
       }
     };
 
-    loadLocalData();
+    fetchDiaryEntries();
   }, [year, month]);
-  // ------------------------------------
 
   const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -12,21 +12,31 @@ import { checkEmail, checkNickname } from "@/app/api/memberApi";
 function SignupPageContent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [form, setForm] = useState({ email: "", username: "", password: "", confirmPassword: "" });
-  const [errors, setErrors] = useState<{ email?: string; username?: string; password?: string; confirmPassword?: string }>({});
+  const [form, setForm] = useState({
+    email: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState<{
+    email?: string;
+    username?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [terms, setTerms] = useState(null);
-  
+
   // 중복확인 상태
   const [emailChecked, setEmailChecked] = useState(false);
   const [usernameChecked, setUsernameChecked] = useState(false);
-  
+
   // 닉네임 자동생성 로딩
   const [isLoadingNickname, setIsLoadingNickname] = useState(true);
 
   useEffect(() => {
-    const storedTerms = localStorage.getItem("termsAgreement");
+    const storedTerms = localStorage.getItem('termsAgreement');
     if (storedTerms) {
       setTerms(JSON.parse(storedTerms));
     }
@@ -34,76 +44,81 @@ function SignupPageContent() {
     // 닉네임 자동 생성
     generateNicknameAuto();
   }, []);
-  
+
   // 닉네임 자동생성
   const generateNicknameAuto = async () => {
     try {
       const data = await generateNickname();
       setForm(prev => ({ ...prev, username: data.nickname || "" }));
     } catch (error) {
-      console.error("닉네임 생성 실패:", error);
+      console.error('닉네임 생성 실패:', error);
     } finally {
       setIsLoadingNickname(false);
     }
   };
 
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isValidPassword = (password: string) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(password); // 8~20자로 수정
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidPassword = (password: string) =>
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(
+      password
+    ); // 8~20자로 수정
 
   // 실시간 검증
   const handleChange = (name: string, value: string) => {
     setForm({ ...form, [name]: value });
-    
+
     // 입력값이 변경되면 중복확인 초기화
-    if (name === "email") setEmailChecked(false);
-    if (name === "username") setUsernameChecked(false);
-    
+    if (name === 'email') setEmailChecked(false);
+    if (name === 'username') setUsernameChecked(false);
+
     let newErrors = { ...errors };
-    
-    if (name === "email") {
+
+    if (name === 'email') {
       if (!value.trim()) {
-        newErrors.email = "이메일을 입력해주세요.";
+        newErrors.email = '이메일을 입력해주세요.';
       } else if (!isValidEmail(value)) {
-        newErrors.email = "유효한 이메일을 입력해주세요.";
+        newErrors.email = '유효한 이메일을 입력해주세요.';
       } else {
         delete newErrors.email;
       }
     }
-    
-    if (name === "username") {
+
+    if (name === 'username') {
       if (!value.trim()) {
-        newErrors.username = "닉네임을 입력해주세요.";
+        newErrors.username = '닉네임을 입력해주세요.';
       } else {
         delete newErrors.username;
       }
     }
-    
-    if (name === "password") {
+
+    if (name === 'password') {
       if (!value.trim()) {
-        newErrors.password = "비밀번호를 입력해주세요.";
+        newErrors.password = '비밀번호를 입력해주세요.';
       } else if (!isValidPassword(value)) {
-        newErrors.password = "비밀번호는 8~20자, 영문/숫자/특수문자를 포함해야 합니다.";
+        newErrors.password =
+          '비밀번호는 8~20자, 영문/숫자/특수문자를 포함해야 합니다.';
       } else {
         delete newErrors.password;
       }
-      
+
       if (form.confirmPassword && value !== form.confirmPassword) {
-        newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+        newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
       } else if (form.confirmPassword && value === form.confirmPassword) {
         delete newErrors.confirmPassword;
       }
     }
-    
-    if (name === "confirmPassword") {
+
+    if (name === 'confirmPassword') {
       if (!value.trim()) {
-        newErrors.confirmPassword = "비밀번호를 다시 입력해주세요.";
+        newErrors.confirmPassword = '비밀번호를 다시 입력해주세요.';
       } else if (form.password !== value) {
-        newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+        newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
       } else {
         delete newErrors.confirmPassword;
       }
     }
-    
+
     setErrors(newErrors);
   };
 
@@ -173,28 +188,34 @@ function SignupPageContent() {
     setServerError(null);
 
     // 최종 검증
-    let newErrors: { email?: string; username?: string; password?: string; confirmPassword?: string } = {};
+    let newErrors: {
+      email?: string;
+      username?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
 
     if (!form.email.trim()) {
-      newErrors.email = "이메일을 입력해주세요.";
+      newErrors.email = '이메일을 입력해주세요.';
     } else if (!isValidEmail(form.email)) {
-      newErrors.email = "유효한 이메일을 입력해주세요.";
+      newErrors.email = '유효한 이메일을 입력해주세요.';
     }
 
     if (!form.username.trim()) {
-      newErrors.username = "닉네임을 입력해주세요.";
+      newErrors.username = '닉네임을 입력해주세요.';
     }
 
     if (!form.password.trim()) {
-      newErrors.password = "비밀번호를 입력해주세요.";
+      newErrors.password = '비밀번호를 입력해주세요.';
     } else if (!isValidPassword(form.password)) {
-      newErrors.password = "비밀번호는 8~20자, 영문/숫자/특수문자를 포함해야 합니다.";
+      newErrors.password =
+        '비밀번호는 8~20자, 영문/숫자/특수문자를 포함해야 합니다.';
     }
 
     if (!form.confirmPassword.trim()) {
-      newErrors.confirmPassword = "비밀번호를 다시 입력해주세요.";
+      newErrors.confirmPassword = '비밀번호를 다시 입력해주세요.';
     } else if (form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -221,11 +242,11 @@ function SignupPageContent() {
   };
 
   // 버튼 활성화 조건
-  const isFormValid = 
-    form.email.trim() !== "" &&
-    form.username.trim() !== "" &&
-    form.password.trim() !== "" &&
-    form.confirmPassword.trim() !== "" &&
+  const isFormValid =
+    form.email.trim() !== '' &&
+    form.username.trim() !== '' &&
+    form.password.trim() !== '' &&
+    form.confirmPassword.trim() !== '' &&
     emailChecked &&
     usernameChecked &&
     Object.keys(errors).length === 0;
@@ -237,9 +258,9 @@ function SignupPageContent() {
       </div>
 
       <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-6">
-        <SignupForm 
-          form={form} 
-          onFormChange={handleChange} 
+        <SignupForm
+          form={form}
+          onFormChange={handleChange}
           errors={errors}
           emailChecked={emailChecked}
           usernameChecked={usernameChecked}
@@ -247,12 +268,14 @@ function SignupPageContent() {
           onUsernameCheck={handleUsernameCheck}
           isLoadingNickname={isLoadingNickname}
         />
-        {serverError && <p className="text-red-500 text-sm mt-4 text-center">{serverError}</p>}
+        {serverError && (
+          <p className="text-red-500 text-sm mt-4 text-center">{serverError}</p>
+        )}
       </div>
 
       <Footer
         type="button"
-        buttonText={loading ? "가입 중..." : "완료"}
+        buttonText={loading ? '가입 중...' : '완료'}
         onButtonClick={handleSignup}
         disabled={!isFormValid || loading}
       />

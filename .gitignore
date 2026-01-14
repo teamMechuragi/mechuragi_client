@@ -3,6 +3,9 @@
 tmpclaude-*
 nul
 
+# Assets (README images)
+assets/
+
 # Node modules
 node_modules/
 
