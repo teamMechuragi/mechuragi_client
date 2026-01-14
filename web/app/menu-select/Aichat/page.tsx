@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import ExitModal from "./components/ExitModal";
 import { useUser } from "@/app/context/UserContext";
-import { chatRecommend, type RecommendResponse } from "@/app/api/recommendApi";
+import { getChatRecommendation, type FoodRecommendationResponse } from "@/app/api/recommendApi";
 
 interface Message {
   role: "user" | "assistant";
@@ -141,7 +141,7 @@ export default function AIChatPage() {
       }
 
       // API로 채팅 추천 요청
-      const data = await chatRecommend({
+      const data = await getChatRecommendation({
         chatMessage: userMessage.content,
         dietStatus: activePreferenceDetail.isOnDiet,
         veganOption: activePreferenceDetail.veganOption,
