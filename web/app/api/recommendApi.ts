@@ -7,13 +7,11 @@ import { RECOMMEND_BASE_URL } from './apiClient';
 // 타입 정의
 // ============================================
 
+export type RecommendationType = 'FEELING' | 'WEATHER' | 'TIME' | 'INGREDIENTS' | 'CONVERSATION';
+
 export interface RecommendRequest {
-  type: 'FEELING' | 'WEATHER' | 'TIME' | 'INGREDIENTS' | 'CHAT';
-  feeling?: string;
-  weatherConditions?: string[];
-  mealTime?: string;
-  ingredients?: string[];
-  chatMessage?: string;
+  type: RecommendationType;
+  context: string[];  // type에 따라 다른 값 (WEATHER: ["맑음", "더움"], TIME: ["아침"], etc.)
   // 사용자 취향 데이터
   dietStatus?: string;
   veganOption?: string;
@@ -23,36 +21,73 @@ export interface RecommendRequest {
   dislikedFoods?: string[];
 }
 
-export interface RecommendResponse {
-  restaurantName?: string;
-  menuName?: string;
-  name?: string;  // AI 채팅 추천 시 사용
+// AI가 생성한 개별 추천 항목
+export interface BedrockRecommendation {
+  recommendationType: RecommendationType;
+  name: string;
   description: string;
-  imageUrl?: string;
-  rating?: number;
-  distance?: number;
-  reason?: string;
-  // AI 채팅 추천 시 추가 필드
-  ingredients?: string;
-  cookingTime?: string;
-  difficulty?: string;
+  reason: string;
+  ingredients: string;
+  cookingTime: string;
+  difficulty: string;
+}
+
+// API 응답 (여러 추천 항목 포함)
+export interface FoodRecommendationResponse {
+  message: string;
+  recommendations: BedrockRecommendation[];
+  model: string;
+}
+
+// 편의를 위한 간소화된 요청 인터페이스들
+export interface WeatherRecommendRequest {
+  weatherConditions: string[];
+  dietStatus?: string;
+  veganOption?: string;
+  spiceLevel?: string;
+  foodTypes?: string[];
+  tastes?: string[];
+  dislikedFoods?: string[];
+}
+
+export interface TimeRecommendRequest {
+  mealTime: string;
+  dietStatus?: string;
+  veganOption?: string;
+  spiceLevel?: string;
+  foodTypes?: string[];
+  tastes?: string[];
+  dislikedFoods?: string[];
+}
+
+export interface FeelingRecommendRequest {
+  feeling: string;
+  dietStatus?: string;
+  veganOption?: string;
+  spiceLevel?: string;
+  foodTypes?: string[];
+  tastes?: string[];
+  dislikedFoods?: string[];
+}
+
+export interface IngredientsRecommendRequest {
+  ingredients: string[];
+  dietStatus?: string;
+  veganOption?: string;
+  spiceLevel?: string;
+  foodTypes?: string[];
+  tastes?: string[];
+  dislikedFoods?: string[];
 }
 
 export interface ChatRecommendRequest {
   chatMessage: string;
-  // 사용자 취향 데이터
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
   dislikedFoods?: string[];
-}
-
-export interface ChatRecommendResponse {
-  reply: string;
-  recommendations?: RecommendResponse[];
-  suggestions?: string[];
 }
 
 // ============================================
@@ -62,7 +97,7 @@ export interface ChatRecommendResponse {
 /**
  * 추천 API 요청 (RECOMMEND_BASE_URL 사용)
  */
-async function recommendRequest<T>(data: RecommendRequest | ChatRecommendRequest): Promise<T> {
+async function recommendRequest(data: RecommendRequest): Promise<FoodRecommendationResponse> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   const headers: Record<string, string> = {
@@ -88,19 +123,12 @@ async function recommendRequest<T>(data: RecommendRequest | ChatRecommendRequest
 }
 
 /**
- * 통합 추천 API (모든 타입 처리)
+ * 날씨 기반 추천
  */
-export async function getRecommendation(data: RecommendRequest): Promise<RecommendResponse> {
-  return recommendRequest<RecommendResponse>(data);
-}
-
-/**
- * AI 채팅으로 추천받기
- */
-export async function chatRecommend(data: ChatRecommendRequest): Promise<ChatRecommendResponse> {
+export async function getWeatherRecommendation(data: WeatherRecommendRequest): Promise<FoodRecommendationResponse> {
   const requestData: RecommendRequest = {
-    type: 'CHAT',
-    chatMessage: data.chatMessage,
+    type: 'WEATHER',
+    context: data.weatherConditions,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
@@ -109,5 +137,85 @@ export async function chatRecommend(data: ChatRecommendRequest): Promise<ChatRec
     dislikedFoods: data.dislikedFoods,
   };
 
-  return recommendRequest<ChatRecommendResponse>(requestData);
+  return recommendRequest(requestData);
+}
+
+/**
+ * 시간 기반 추천
+ */
+export async function getTimeRecommendation(data: TimeRecommendRequest): Promise<FoodRecommendationResponse> {
+  const requestData: RecommendRequest = {
+    type: 'TIME',
+    context: [data.mealTime],
+    dietStatus: data.dietStatus,
+    veganOption: data.veganOption,
+    spiceLevel: data.spiceLevel,
+    foodTypes: data.foodTypes,
+    tastes: data.tastes,
+    dislikedFoods: data.dislikedFoods,
+  };
+
+  return recommendRequest(requestData);
+}
+
+/**
+ * 기분 기반 추천
+ */
+export async function getFeelingRecommendation(data: FeelingRecommendRequest): Promise<FoodRecommendationResponse> {
+  const requestData: RecommendRequest = {
+    type: 'FEELING',
+    context: [data.feeling],
+    dietStatus: data.dietStatus,
+    veganOption: data.veganOption,
+    spiceLevel: data.spiceLevel,
+    foodTypes: data.foodTypes,
+    tastes: data.tastes,
+    dislikedFoods: data.dislikedFoods,
+  };
+
+  return recommendRequest(requestData);
+}
+
+/**
+ * 재료 기반 추천
+ */
+export async function getIngredientsRecommendation(data: IngredientsRecommendRequest): Promise<FoodRecommendationResponse> {
+  const requestData: RecommendRequest = {
+    type: 'INGREDIENTS',
+    context: data.ingredients,
+    dietStatus: data.dietStatus,
+    veganOption: data.veganOption,
+    spiceLevel: data.spiceLevel,
+    foodTypes: data.foodTypes,
+    tastes: data.tastes,
+    dislikedFoods: data.dislikedFoods,
+  };
+
+  return recommendRequest(requestData);
+}
+
+/**
+ * AI 채팅으로 추천받기
+ */
+export async function getChatRecommendation(data: ChatRecommendRequest): Promise<FoodRecommendationResponse> {
+  const requestData: RecommendRequest = {
+    type: 'CONVERSATION',
+    context: [data.chatMessage],
+    dietStatus: data.dietStatus,
+    veganOption: data.veganOption,
+    spiceLevel: data.spiceLevel,
+    foodTypes: data.foodTypes,
+    tastes: data.tastes,
+    dislikedFoods: data.dislikedFoods,
+  };
+
+  return recommendRequest(requestData);
+}
+
+/**
+ * 통합 추천 API (직접 RecommendRequest 사용)
+ * 레거시 지원 - 새로운 코드는 위의 타입별 함수 사용 권장
+ */
+export async function getRecommendation(data: RecommendRequest): Promise<FoodRecommendationResponse> {
+  return recommendRequest(data);
 }

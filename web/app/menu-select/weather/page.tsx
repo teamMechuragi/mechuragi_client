@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
-import { getRecommendation } from "@/app/api/recommendApi";
+import { getWeatherRecommendation } from "@/app/api/recommendApi";
 
 export default function WeatherPage() {
   const router = useRouter();
@@ -52,8 +52,7 @@ export default function WeatherPage() {
     setLoading(true);
     try {
       // API로 추천 요청
-      const data = await getRecommendation({
-        type: "WEATHER",
+      const data = await getWeatherRecommendation({
         weatherConditions: selectedWeather,
         dietStatus: activePreferenceDetail.isOnDiet,
         veganOption: activePreferenceDetail.veganOption,

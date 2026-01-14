@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
-import { getRecommendation } from "@/app/api/recommendApi";
+import { getIngredientsRecommendation } from "@/app/api/recommendApi";
 
 export default function IngredientPage() {
   const router = useRouter();
@@ -55,8 +55,7 @@ export default function IngredientPage() {
     setLoading(true);
     try {
       // API로 추천 요청
-      const data = await getRecommendation({
-        type: "INGREDIENTS",
+      const data = await getIngredientsRecommendation({
         ingredients: selectedIngredients,
         dietStatus: activePreferenceDetail.isOnDiet,
         veganOption: activePreferenceDetail.veganOption,

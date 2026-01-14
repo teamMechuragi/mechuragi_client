@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
-import { getRecommendation } from "@/app/api/recommendApi";
+import { getFeelingRecommendation } from "@/app/api/recommendApi";
 
 export default function MoodPage() {
   const router = useRouter();
@@ -37,8 +37,7 @@ export default function MoodPage() {
     setLoading(true);
     try {
       // API로 추천 요청
-      const data = await getRecommendation({
-        type: "FEELING",
+      const data = await getFeelingRecommendation({
         feeling: selectedOption.message,
         dietStatus: activePreferenceDetail.isOnDiet,
         veganOption: activePreferenceDetail.veganOption,

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
-import { getRecommendation } from "@/app/api/recommendApi";
+import { getTimeRecommendation } from "@/app/api/recommendApi";
 
 export default function TimePage() {
   const router = useRouter();
@@ -32,8 +32,7 @@ export default function TimePage() {
     setLoading(true);
     try {
       // API로 추천 요청
-      const data = await getRecommendation({
-        type: "TIME",
+      const data = await getTimeRecommendation({
         mealTime: selectedTime,
         dietStatus: activePreferenceDetail.isOnDiet,
         veganOption: activePreferenceDetail.veganOption,
