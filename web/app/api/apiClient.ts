@@ -8,6 +8,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.k
 // 추천 API URL (추천 서버)
 const RECOMMEND_BASE_URL = process.env.NEXT_PUBLIC_RECOMMEND_URL || 'https://mechuragi.kro.kr/recommend';
 
+// 디버깅: 환경 변수 확인
+console.log('🔧 [API Config] API_BASE_URL:', API_BASE_URL);
+console.log('🔧 [API Config] RECOMMEND_BASE_URL:', RECOMMEND_BASE_URL);
+
 /**
  * API 요청을 위한 공통 fetch 함수
  */
