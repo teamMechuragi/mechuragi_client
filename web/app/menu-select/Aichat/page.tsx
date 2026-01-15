@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import ExitModal from "./components/ExitModal";
 import { useUser } from "@/app/context/UserContext";
-import { getChatRecommendation, type FoodRecommendationResponse } from "@/app/api/recommendApi";
+import { getChatRecommendation, type FoodRecommendationResponse, type BedrockRecommendation } from "@/app/api/recommendApi";
 
 interface Message {
   role: "user" | "assistant";
@@ -155,13 +155,13 @@ export default function AIChatPage() {
       setLastRecommendations(data);
 
       // AI 응답 조합: 메시지 + 추천 결과
-      let responseText = data.reply || "";
+      let responseText = data.message || "";
 
       const recommendations = data.recommendations || [];
       if (recommendations.length > 0) {
         // 추천 결과를 텍스트로 변환
-        recommendations.forEach((food: RecommendResponse, index: number) => {
-          const menuName = food.name || food.menuName || "메뉴";
+        recommendations.forEach((food: BedrockRecommendation, index: number) => {
+          const menuName = food.name || "메뉴";
           responseText += `\n\n${menuName}\n${food.description}\n\n${food.reason || ""}\n\n재료: ${food.ingredients || "정보 없음"}\n⏱️ ${food.cookingTime || "-"} | 👨‍🍳 난이도: ${food.difficulty || "-"}`;
           if (index < recommendations.length - 1) {
             responseText += "\n\n─────────────";
