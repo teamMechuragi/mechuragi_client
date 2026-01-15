@@ -6,8 +6,7 @@ import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext"; // 취향 데이터 사용
 import { motion, AnimatePresence } from "framer-motion";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://mechuragi.kro.kr";
+import { getIngredientsRecommendation } from "@/app/api/recommendApi";
 
 const CATEGORIZED_INGREDIENTS = {
   전체: ["감자", "양파", "당근", "대파", "마늘", "계란", "두부", "김치", "돼지고기", "소고기", "닭고기", "새우"],
@@ -49,51 +48,28 @@ export default function IngredientPage() {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      const urgentItems = selectedIngredients.filter(i => i.isUrgent).map(i => i.name);
+      const urgentItems = selectedIngredients.filter(i => i.isUrgent).map(i => `${i.name}(유통기한 임박)`);
       const normalItems = selectedIngredients.filter(i => !i.isUrgent).map(i => i.name);
-      
+
       const mySeasonings = localStorage.getItem("my_seasonings") || "기본 양념 위주";
 
-      // ✅ AI에게 보낼 데이터 구조 (취향 정보 상세 포함)
-      const promptData = {
-        type: "INGREDIENTS",
-        ingredients: {
-          urgent: urgentItems,
-          normal: normalItems,
-        },
-        seasonings: mySeasonings,
-        // 활성화된 상세 취향이 있으면 해당 데이터를, 없으면 일반 취향임을 명시
-        userPreference: activePreferenceDetail ? {
-          name: activePreferenceDetail.preferenceName,
-          diet: activePreferenceDetail.isOnDiet,
-          vegan: activePreferenceDetail.veganOption,
-          spice: activePreferenceDetail.spiceLevel,
-          disliked: activePreferenceDetail.dislikedFoods,
-          preferredFoodTypes: activePreferenceDetail.preferredFoodTypes,
-          preferredTastes: activePreferenceDetail.preferredTastes,
-          allergy: activePreferenceDetail.allergyInfo
-        } : "일반적인 취향"
-      };
+      // 재료 목록에 양념 정보도 포함
+      const allIngredients = [...urgentItems, ...normalItems, `양념: ${mySeasonings}`];
 
-      const response = await fetch(`${API_URL}/recommend`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(promptData),
+      const data = await getIngredientsRecommendation({
+        ingredients: allIngredients,
+        dietStatus: activePreferenceDetail?.isOnDiet,
+        veganOption: activePreferenceDetail?.veganOption,
+        spiceLevel: activePreferenceDetail?.spiceLevel,
+        foodTypes: activePreferenceDetail?.preferredFoodTypes,
+        tastes: activePreferenceDetail?.preferredTastes,
+        dislikedFoods: activePreferenceDetail?.dislikedFoods,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);
-      } else {
-        alert("레시피 추천에 실패했습니다. 다시 시도해주세요.");
-      }
+      router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {
       console.error("추천 요청 에러:", error);
-      alert("서버 통신 중 오류가 발생했습니다.");
+      alert("레시피 추천에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
