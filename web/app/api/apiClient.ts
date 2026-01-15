@@ -3,10 +3,10 @@
  */
 
 // 일반 API URL (백엔드 서버)
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // 추천 API URL (추천 서버)
-const RECOMMEND_BASE_URL = process.env.NEXT_PUBLIC_RECOMMEND_URL || 'https://mechuragi.kro.kr/recommend';
+const RECOMMEND_BASE_URL = process.env.NEXT_PUBLIC_RECOMMEND_URL;
 
 // 디버깅: 환경 변수 확인
 console.log('🔧 [API Config] API_BASE_URL:', API_BASE_URL);
