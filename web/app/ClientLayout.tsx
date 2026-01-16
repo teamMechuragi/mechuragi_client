@@ -8,6 +8,11 @@ import Footer from "./common/Footer";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+    // 🔴 OAuth 콜백 경로는 프론트가 절대 관여하면 안 됨 (백엔드로 보내기)
+  if (pathname.startsWith("/login/oauth2")) {
+    return <>{children}</>;
+  }
+
   useEffect(() => {
     console.log("[ClientLayout] Pathname changed:", pathname);
     console.log("[ClientLayout] Current URL:", window.location.href);
