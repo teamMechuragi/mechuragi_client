@@ -34,6 +34,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_RECOMMEND_URL: ${{ secrets.NEXT_PUBLIC_RECOMMEND_URL }}
+          NEXT_PUBLIC_DOMAIN_URL: ${{ secrets.NEXT_PUBLIC_DOMAIN_URL }}
         run: npm run build
 
       - name: Configure AWS credentials
