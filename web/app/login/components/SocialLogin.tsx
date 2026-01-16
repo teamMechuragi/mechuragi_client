@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 export default function SocialLogin() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ||
+  const apiUrl = process.env.NEXT_PUBLIC_DOMAIN_URL ||
     (typeof window !== 'undefined' && window.location.origin.includes('localhost')
       ? 'http://localhost:8080'
       : '');
