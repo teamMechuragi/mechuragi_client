@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 interface SignupFormProps {
   form: { email: string; username: string; password: string; confirmPassword: string };
@@ -11,7 +11,7 @@ interface SignupFormProps {
   usernameChecked: boolean;
   onEmailCheck: () => Promise<void>;
   onUsernameCheck: () => Promise<void>;
-  isLoadingNickname?: boolean; // 추가
+  isLoadingNickname?: boolean;
 }
 
 export default function SignupForm({ 
@@ -22,164 +22,138 @@ export default function SignupForm({
   usernameChecked,
   onEmailCheck,
   onUsernameCheck,
-  isLoadingNickname = false // 추가
+  isLoadingNickname = false 
 }: SignupFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    onFormChange(name, value);
-  };
+  const getInputStyle = (name: keyof SignupFormProps["form"], isChecked: boolean) => `
+    w-full bg-transparent border-b-2 py-3 transition-all outline-none text-[17px] font-semibold
+    ${errors[name] 
+      ? "border-red-400 text-red-500" 
+      : isChecked 
+        ? "border-[#3CDCBA]" 
+        : "border-gray-200 focus:border-gray-400 text-gray-800"}
+  `;
 
   return (
-    <div className="w-full max-w-sm space-y-8">
-      {/* 이메일 입력 필드 */}
+    <div className="w-full space-y-10">
+      
+      {/* 이메일 */}
       <div>
-        <label className={`text-sm font-bold block mb-2 ${errors.email ? "text-red-500" : "text-gray-600"}`}>
-          이메일
-        </label>
-        <div className="flex gap-2">
+        <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Email</label>
+        <div className="flex items-end gap-3">
           <div className="flex-1">
             <input
               name="email"
               type="email"
               placeholder="이메일을 입력해주세요"
-              className={`w-full border-b py-2 focus:outline-none transition-all ${
-                errors.email ? "border-red-500" : emailChecked ? "border-[#3CDCBA]" : "border-gray-300"
-              }`}
+              className={getInputStyle('email', emailChecked)}
               value={form.email}
-              onChange={handleChange}
+              onChange={(e) => onFormChange(e.target.name, e.target.value)}
             />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            {emailChecked && !errors.email && (
-              <p className="text-[#3CDCBA] text-xs mt-1">✓ 사용 가능한 이메일입니다.</p>
-            )}
           </div>
           <button
             type="button"
             onClick={onEmailCheck}
             disabled={emailChecked || !form.email.trim()}
-            className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap h-fit transition-all ${
+            className={`px-5 py-2.5 text-[12px] font-black rounded-2xl transition-all h-fit mb-1 ${
               emailChecked 
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                : "bg-[#3CDCBA] text-white hover:bg-[#35c4a9]"
+                ? "bg-gray-200 text-gray-500" 
+                : "bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20"
             }`}
           >
-            {emailChecked ? '확인완료' : '중복확인'}
+            {emailChecked ? '확인됨' : '중복확인'}
           </button>
         </div>
+        {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.email}</p>}
       </div>
 
-      {/* 닉네임 입력 필드 */}
+      {/* 닉네임 (자동생성 값 노출) */}
       <div>
-        <label className={`text-sm font-bold block mb-2 ${errors.username ? "text-red-500" : "text-gray-600"}`}>
-          닉네임
-        </label>
-        <div className="flex gap-2">
+        <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Nickname</label>
+        <div className="flex items-end gap-3">
           <div className="flex-1">
             <input
               name="username"
               type="text"
               placeholder={isLoadingNickname ? "닉네임 생성 중..." : "닉네임을 입력해주세요"}
               disabled={isLoadingNickname}
-              className={`w-full border-b py-2 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-wait ${
-                errors.username ? "border-red-500" : usernameChecked ? "border-[#3CDCBA]" : "border-gray-300"
-              }`}
+              className={getInputStyle('username', usernameChecked)}
               value={form.username}
-              onChange={handleChange}
+              onChange={(e) => onFormChange(e.target.name, e.target.value)}
             />
-            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
-            {usernameChecked && !errors.username && (
-              <p className="text-[#3CDCBA] text-xs mt-1">✓ 사용 가능한 닉네임입니다.</p>
-            )}
-            {!isLoadingNickname && !usernameChecked && (
-              <p className="text-xs text-gray-500 mt-1">자동 생성된 닉네임을 사용하거나 직접 수정할 수 있어요</p>
-            )}
           </div>
           <button
             type="button"
             onClick={onUsernameCheck}
             disabled={usernameChecked || !form.username.trim() || isLoadingNickname}
-            className={`px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap h-fit transition-all ${
+            className={`px-5 py-2.5 text-[12px] font-black rounded-2xl transition-all h-fit mb-1 ${
               usernameChecked 
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-gray-200 text-gray-500" 
+                : "bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20"
             }`}
           >
-            {usernameChecked ? '확인완료' : '중복확인'}
+            {usernameChecked ? '확인됨' : '중복확인'}
           </button>
         </div>
+        {errors.username && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.username}</p>}
+        {!isLoadingNickname && !usernameChecked && (
+          <p className="text-[11px] text-gray-400 mt-2 ml-1">멋진 닉네임이 생성되었어요. 그대로 쓰거나 바꿀 수 있어요!</p>
+        )}
       </div>
 
-      {/* 비밀번호 입력 필드 */}
+      {/* 비밀번호 */}
       <div>
-        <label className={`text-sm font-bold block mb-2 ${errors.password ? "text-red-500" : "text-gray-600"}`}>
-          비밀번호
-        </label>
+        <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Password</label>
         <div className="relative">
           <input
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="비밀번호를 입력해주세요"
-            className={`w-full border-b py-2 pr-10 focus:outline-none transition-all ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            }`}
+            placeholder="8~20자 영문, 숫자, 특수문자"
+            className={getInputStyle('password', false)}
             value={form.password}
-            onChange={handleChange}
+            onChange={(e) => onFormChange(e.target.name, e.target.value)}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-500"
+            className="absolute right-0 bottom-3 text-gray-400 p-1"
           >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
-        <p className={`text-xs mt-1 ${errors.password ? "text-red-500" : "text-gray-500"}`}>
-          영문, 숫자, 특수문자 포함 8자리 이상 입력해주세요.
-        </p>
+        {errors.password && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.password}</p>}
       </div>
 
-      {/* 비밀번호 확인 입력 필드 */}
+      {/* 비밀번호 확인 */}
       <div>
-        <label className={`text-sm font-bold block mb-2 ${
-          errors.confirmPassword 
-            ? "text-red-500" 
-            : form.confirmPassword && form.password === form.confirmPassword 
-              ? "text-[#3CDCBA]" 
-              : "text-gray-600"
-        }`}>
-          비밀번호 확인
-        </label>
+        <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Confirm Password</label>
         <div className="relative">
           <input
             name="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
-            placeholder="비밀번호를 입력해주세요"
-            className={`w-full border-b py-2 pr-10 focus:outline-none transition-all ${
-              errors.confirmPassword 
-                ? "border-red-500" 
-                : form.confirmPassword && form.password === form.confirmPassword
-                  ? "border-[#3CDCBA]"
-                  : "border-gray-300"
-            }`}
+            placeholder="비밀번호 재입력"
+            className={getInputStyle('confirmPassword', form.confirmPassword !== '' && form.password === form.confirmPassword)}
             value={form.confirmPassword}
-            onChange={handleChange}
+            onChange={(e) => onFormChange(e.target.name, e.target.value)}
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-500"
+            className="absolute right-0 bottom-3 text-gray-400 p-1"
           >
-            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+          <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.confirmPassword}</p>
         )}
         {!errors.confirmPassword && form.confirmPassword && form.password === form.confirmPassword && (
-          <p className="text-[#3CDCBA] text-xs mt-1">비밀번호가 일치합니다.</p>
+          <div className="flex items-center gap-1 mt-2 ml-1 text-[#3CDCBA]">
+            <CheckCircle2 size={12} strokeWidth={3} />
+            <span className="text-[11px] font-black">비밀번호가 일치합니다</span>
+          </div>
         )}
       </div>
     </div>

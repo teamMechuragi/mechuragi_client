@@ -26,6 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/",
     "/login",          // 로그인
     "/signup",         // 회원가입
+    "/terms",          // 약관
     "/onboarding",     // 온보딩
     "/recommend/result",
     "/settings/details/new",

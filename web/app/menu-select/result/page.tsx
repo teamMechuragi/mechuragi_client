@@ -47,7 +47,7 @@ function RecommendResultContent() {
   };
 
   const handleComplete = () => {
-    router.push("/"); // 홈으로 이동 (또는 원하는 페이지)
+    router.push("/Home"); // 홈으로 이동
   };
 
   return (

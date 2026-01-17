@@ -8,26 +8,28 @@ interface TermsCheckboxProps {
 
 export default function TermsCheckbox({ label, checked, onChange }: TermsCheckboxProps) {
   return (
-    <div className="flex items-center mb-4">
+    <div className="flex items-center mb-1 cursor-pointer" onClick={onChange}>
       <div className="relative flex items-center">
         <input 
           type="checkbox" 
           checked={checked} 
-          onChange={onChange} 
-          className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:bg-[#3CDCBA] checked:border-[#3CDCBA] cursor-pointer"
+          readOnly
+          className="appearance-none w-6 h-6 border-2 border-gray-200 rounded-full checked:bg-[#3CDCBA] checked:border-[#3CDCBA] transition-all cursor-pointer"
         />
         {checked && (
           <svg 
-            className="absolute w-3 h-3 text-white pointer-events-none left-1"
+            className="absolute w-3.5 h-3.5 text-white pointer-events-none left-[5px]"
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
           </svg>
         )}
       </div>
-      <span className="text-gray-700 ml-2">{label}</span>
+      <span className={`ml-3 text-[17px] font-bold ${checked ? 'text-[#1a1a1a]' : 'text-gray-400'}`}>
+        {label}
+      </span>
     </div>
   );
 }
