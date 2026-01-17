@@ -1,43 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Header from '../common/Header';
-import Footer from '../common/Footer';
 
 const onboardingContent = [
   {
     cardImage: '/images/onboarding/1-card.png',
-    subtitle: '오늘 뭘 먹지 고민될 때?',
-    title: 'AI 메뉴추천',
+    subtitle: 'AI SMART CURATION',
+    title: '나보다 내 취향을 더 잘 아는\n스마트한 AI 메뉴 추천',
+    themeColor: '#3CDCBA',
   },
   {
     cardImage: '/images/onboarding/2-card.png',
-    subtitle: '오늘의 식사 기록',
-    title: '먹방 일기 캘린더',
+    subtitle: 'DAILY FOOD LOG',
+    title: '나만의 맛있는 일상을\n차곡차곡 기록해 보세요',
+    themeColor: '#FF9E2C',
   },
   {
     cardImage: '/images/onboarding/3-card.png',
-    subtitle: '먹고싶은게 너무 많아 메뉴 고르기 어려울 땐',
-    title: '커뮤니티 투표',
+    subtitle: 'COMMUNITY VOTE',
+    title: '고민될 땐 망설이지 말고\n함께 투표로 결정하기',
+    themeColor: '#00BCD4',
   },
   {
     cardImage: '/images/onboarding/4-card.png',
-    subtitle: '상세정보 설정으로',
-    title: '내 취향에 맞는 메뉴\n추천받기',
+    subtitle: 'PERSONALIZED',
+    title: '더 정교한 상세 설정으로\n완벽한 메뉴 추천을 경험하세요',
+    themeColor: '#AB47BC',
   },
 ];
 
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [animationKey, setAnimationKey] = useState(0);
-
-  // 슬라이드 변경 시 애니메이션 키 업데이트
-  useEffect(() => {
-    setAnimationKey(prev => prev + 1);
-  }, [currentSlide]);
 
   const handleNext = () => {
     if (currentSlide < onboardingContent.length - 1) {
@@ -48,67 +44,91 @@ export default function OnboardingPage() {
     }
   };
 
-  const handlePrev = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
-
-  const handleSkip = () => {
-    localStorage.setItem('hasVisited', 'true');
-    router.push('/login');
-  };
-
   const current = onboardingContent[currentSlide];
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-white flex flex-col">
-      {/* 헤더 - Progress Dots 포함 */}
-      <Header 
-        isOnboarding={true}
-        onSkip={handleSkip}
-        showPrev={currentSlide > 0}
-        onPrev={handlePrev}
-        currentSlide={currentSlide}
-        totalSlides={onboardingContent.length}
-      />
-
-      {/* 메인 컨텐츠 */}
-      <div className="flex-1 flex flex-col px-6 pb-24 pt-12 justify-center">
-        {/* 텍스트 영역 - 애니메이션 없음 */}
-        <div className="text-center mb-16">
-          <p className="text-gray-500 text-sm mb-3">
-            {current.subtitle}
-          </p>
-          <h1 className="text-3xl font-bold whitespace-pre-line">
-            {current.title}
-          </h1>
+    <div className="flex justify-center items-center w-full min-h-[100dvh] bg-[#f8f9fa]">
+      <div className="relative flex flex-col w-full max-w-[430px] h-[100dvh] bg-white overflow-hidden shadow-2xl">
+        
+        {/* 배경: 색상만 부드럽게 전환 */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div 
+            className="absolute -top-[10%] left-[-10%] w-[120%] h-[50%] rounded-full blur-[100px] opacity-[0.12] transition-colors duration-700 ease-in-out"
+            style={{ backgroundColor: current.themeColor }}
+          />
         </div>
 
-        {/* 중앙 카드 이미지 - 올라오는 애니메이션만 */}
-        <div className="flex items-center justify-center">
+        {/* 상단바: 고정 */}
+        <div className="relative flex items-center justify-between px-7 pt-16 shrink-0 z-30">
+          <div className="flex gap-1.5 p-1 rounded-full">
+            {onboardingContent.map((_, i) => (
+              <div 
+                key={i}
+                className={`h-1 rounded-full transition-all duration-500 ${
+                  i === currentSlide ? 'w-8 bg-gray-900' : 'w-2 bg-gray-200'
+                }`}
+                style={{ backgroundColor: i === currentSlide ? current.themeColor : undefined }}
+              />
+            ))}
+          </div>
+          <button onClick={() => router.push('/login')} className="text-gray-400 text-[14px] font-bold">Skip</button>
+        </div>
+
+        {/* 메인 슬라이드 영역: 텍스트와 이미지가 한 몸으로 이동 */}
+        <div className="relative flex-1 z-10 overflow-hidden">
           <div 
-            key={`card-${animationKey}`}
-            className="relative w-full max-w-[296px] animate-slide-up"
+            className="flex h-full transition-transform duration-[600ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
           >
-            <Image
-              src={current.cardImage}
-              alt="feature card"
-              width={592}
-              height={1282}
-              className="w-full h-auto"
-              priority
-            />
+            {onboardingContent.map((item, index) => (
+              <div key={index} className="w-full h-full flex-shrink-0 flex flex-col pt-12">
+                
+                {/* 텍스트 영역: 개별 애니메이션 제거 후 슬라이드에 동기화 */}
+                <div className="px-9 shrink-0">
+                  <p className="text-[12px] font-black tracking-[0.25em] mb-4" style={{ color: item.themeColor }}>
+                    {item.subtitle}
+                  </p>
+                  <h1 className="text-[30px] font-black text-[#1a1a1a] leading-[1.3] tracking-[-0.04em] whitespace-pre-line">
+                    {item.title}
+                  </h1>
+                </div>
+
+                {/* 이미지 영역: top-[90px] 고정, 부가적인 딜레이/트랜지션 삭제 */}
+                <div className="relative flex-1 w-full mt-4">
+                  <div className="absolute inset-x-0 top-[90px] h-full flex justify-center items-start">
+                    {/* transform-gpu로 하드웨어 가속만 활성화하여 밀림 현상 방지 */}
+                    <div className="relative w-full h-[120%] transform-gpu scale-110">
+                      <div className="absolute inset-x-0 bottom-0 h-[50%] z-20 pointer-events-none bg-gradient-to-t from-white via-white/70 to-transparent" />
+                      <Image
+                        src={item.cardImage}
+                        alt="onboarding"
+                        fill
+                        className="object-contain object-top"
+                        priority
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* 푸터 */}
-      <Footer 
-        type="button"
-        buttonText={currentSlide === onboardingContent.length - 1 ? '취향 설정하러' : '다음'}
-        onButtonClick={handleNext}
-      />
+        {/* 푸터 버튼 */}
+        <div className="relative z-40 px-6 pb-12 bg-white">
+          <button
+            onClick={handleNext}
+            className="w-full h-[64px] rounded-[22px] text-white font-bold text-[17px] transition-all active:scale-[0.97] duration-200"
+            style={{ 
+              backgroundColor: current.themeColor,
+              boxShadow: `0 12px 30px -10px ${current.themeColor}77`
+            }}
+          >
+            {currentSlide === onboardingContent.length - 1 ? '시작하기' : '다음'}
+          </button>
+        </div>
+        
+      </div>
     </div>
   );
 }

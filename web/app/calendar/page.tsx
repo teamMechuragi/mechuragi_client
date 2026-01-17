@@ -96,8 +96,7 @@ export default function CalendarPage() {
         onCalendarClick={() => setShowMonthPicker(true)} 
       />
 
-      {/* 헤더가 fixed이므로 본문 겹침 방지를 위해 pt-14 추가 */}
-      <main className="pt-14 px-1">
+      <main className="px-1">
         <CalendarGrid
           year={year}
           month={month}

@@ -17,28 +17,20 @@ export default function LoginForm() {
   const router = useRouter();
   const { setUser, refreshPreferences } = useUser();
 
-  const isValidEmail = (email: string): boolean =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async () => {
     setError('');
-
     if (!isValidEmail(email) || password.length < 1) {
-      setError('아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.');
+      setError('아이디 또는 비밀번호가 잘못되었습니다.');
       return;
     }
 
     try {
-      // API로 로그인 요청
       const data = await login({ email, password });
-      console.log("로그인 성공:", data);
-
-      // 토큰 저장
       localStorage.setItem("accessToken", data.tokens.accessToken);
       localStorage.setItem("refreshToken", data.tokens.refreshToken);
-      console.log("토큰 저장 완료");
 
-      // 사용자 정보 저장
       const userData = {
         id: data.member.id,
         username: data.member.nickname,
@@ -49,114 +41,106 @@ export default function LoginForm() {
         status: data.member.status,
       };
 
-      console.log("사용자 정보 저장 완료:", userData);
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
-
-      // 로그인 후 preferences 로드
       await refreshPreferences();
-
-      console.log("메인 페이지로 이동 시도...");
       router.push("/Home");
     } catch (err) {
-      console.error("로그인 에러:", err);
-      setError("아이디 또는 비밀번호가 잘못되었습니다. 정확히 입력해주세요.");
+      setError("아이디 또는 비밀번호가 잘못되었습니다.");
     }
   };
 
+  const isButtonActive = isValidEmail(email) && password;
+
   return (
-    <div className="flex flex-col items-center w-full max-w-sm mt-8 relative">
-      <div className="mt-6"></div>
-
-      <div className="border border-[#BDBDBD] rounded-2xl overflow-hidden w-full relative">
-        <div className="flex items-center px-3 py-3 border-b border-gray-300">
-          <img
-            src="/icon/user.png"
-            alt="이메일 아이콘"
-            className={`w-5 h-5 transition-all ${
-              focusedField === 'email' ? 'brightness-0' : ''
-            }`}
-          />
-          <input
-            type="email"
-            placeholder="이메일을 입력해 주세요"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onFocus={() => setFocusedField('email')}
-            onBlur={() => setFocusedField('')}
-            className="w-full ml-2 text-gray-600 placeholder-gray-400 focus:outline-none text-base"
-          />
-        </div>
-
-        <div className="flex items-center px-3 py-3 relative">
-          <img
-            src="/icon/lock.png"
-            alt="비밀번호 아이콘"
-            className={`w-5 h-5 transition-all ${
-              focusedField === 'password' ? 'brightness-0' : ''
-            }`}
-          />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="비밀번호를 입력해 주세요"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onFocus={() => setFocusedField('password')}
-            onBlur={() => setFocusedField('')}
-            className="w-full ml-2 text-gray-600 placeholder-gray-400 focus:outline-none text-base"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 text-gray-500 hover:text-[#3CDCBA] transition-all"
-          >
-            {showPassword ? (
-              <EyeOff className="w-5 h-5" />
-            ) : (
-              <Eye className="w-5 h-5" />
-            )}
-          </button>
-        </div>
+    <div className="flex flex-col items-center w-full relative">
+      
+      {/* 1. 이메일 입력 칸 */}
+      <div className={`w-full flex items-center px-4 py-4 rounded-2xl border transition-all duration-300 mb-3 ${
+        focusedField === 'email' 
+        ? 'border-[#3CDCBA] bg-white shadow-[0_4px_12px_rgba(60,220,186,0.1)]' 
+        : 'border-[#E0E0E0] bg-[#F9FAFB]'
+      }`}>
+        <img 
+          src="/icon/user.png" 
+          alt="user" 
+          className={`w-5 h-5 transition-all duration-300 ${focusedField === 'email' ? 'brightness-0' : 'opacity-30'}`} 
+        />
+        <input
+          type="email"
+          placeholder="이메일을 입력해 주세요"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onFocus={() => setFocusedField('email')}
+          onBlur={() => setFocusedField('')}
+          className="w-full ml-3 text-gray-700 placeholder-gray-400 focus:outline-none text-base bg-transparent"
+        />
       </div>
 
-      {error && (
-        <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
-      )}
+      {/* 2. 비밀번호 입력 칸 */}
+      <div className={`w-full flex items-center px-4 py-4 rounded-2xl border transition-all duration-300 ${
+        focusedField === 'password' 
+        ? 'border-[#3CDCBA] bg-white shadow-[0_4px_12px_rgba(60,220,186,0.1)]' 
+        : 'border-[#E0E0E0] bg-[#F9FAFB]'
+      }`}>
+        <img 
+          src="/icon/lock.png" 
+          alt="lock" 
+          className={`w-5 h-5 transition-all duration-300 ${focusedField === 'password' ? 'brightness-0' : 'opacity-30'}`} 
+        />
+        <input
+          type={showPassword ? 'text' : 'password'}
+          placeholder="비밀번호를 입력해 주세요"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onFocus={() => setFocusedField('password')}
+          onBlur={() => setFocusedField('')}
+          className="w-full ml-3 text-gray-700 placeholder-gray-400 focus:outline-none text-base bg-transparent"
+        />
+        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 text-gray-400 hover:text-gray-600 transition-colors">
+          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
 
+      {error && <p className="text-red-500 text-[12px] font-bold mt-3 animate-shake">{error}</p>}
+
+      {/* 3. 로그인 버튼 - 메인 컬러 적용 */}
       <button
-        disabled={!isValidEmail(email) || !password}
-        className={`w-full py-3 rounded-[50px] font-bold mt-6 text-base transition-all ${
-          isValidEmail(email) && password
-            ? 'bg-[#3CDCBA] text-white cursor-pointer'
-            : 'bg-[#CCCCCC] text-white cursor-not-allowed'
+        disabled={!isButtonActive}
+        className={`w-full py-4 rounded-2xl font-bold mt-6 text-[17px] transition-all duration-300 active:scale-[0.98] ${
+          isButtonActive 
+          ? 'bg-[#3CDCBA] text-white shadow-[0_8px_20px_-4px_rgba(60,220,186,0.4)] hover:shadow-[0_12px_24px_-4px_rgba(60,220,186,0.5)]' 
+          : 'bg-[#F2F4F7] text-[#BDBDBD] cursor-not-allowed'
         }`}
         onClick={handleLogin}
       >
         로그인
       </button>
 
-      <div className="flex justify-center items-center text-sm text-gray-500 mt-4 gap-4">
-        <a href="#" className="px-2">
-          이메일 찾기
-        </a>
-        <span className="text-gray-300">|</span>
-        <a href="#" className="px-2">
-          비밀번호 찾기
-        </a>
-        <span className="text-gray-300">|</span>
-        <Link href="/terms" className="text-[#3CDCBA] px-2">
-          회원가입
-        </Link>
+      {/* 4. 보조 메뉴 */}
+      <div className="flex justify-center items-center text-[13px] text-gray-400 mt-5 gap-3">
+        <button className="hover:text-gray-700 transition-colors">이메일 찾기</button>
+        <span className="w-[1px] h-3 bg-gray-200" />
+        <button className="hover:text-gray-700 transition-colors">비밀번호 찾기</button>
       </div>
 
-      <div className="relative w-full flex items-center justify-center py-4 mt-16">
-        <div className="absolute w-full border-t border-gray-300"></div>
-        <span className="bg-white px-4 text-gray-500 text-sm relative z-10">
-          간편 로그인
+      {/* 5. 간편 로그인 구분선 */}
+      <div className="relative w-full flex items-center justify-center py-4 mt-12 mb-2">
+        <div className="absolute w-full border-t border-[#F2F4F7]"></div>
+        <span className="bg-white px-4 text-[#ADB5BD] text-[11px] font-black tracking-[0.2em] relative z-10">
+          SNS LOGIN
         </span>
       </div>
 
       <SocialLogin />
+
+      {/* 6. 회원가입 독립 배치 */}
+      <div className="mt-12 text-center pb-6">
+        <span className="text-[14px] text-gray-400">아직 계정이 없으신가요?</span>
+        <Link href="/terms" className="ml-3 text-[14px] font-bold text-[#191F28] border-b-2 border-[#191F28] pb-0.5 hover:text-[#3CDCBA] hover:border-[#3CDCBA] transition-all">
+          회원가입하기
+        </Link>
+      </div>
     </div>
   );
 }

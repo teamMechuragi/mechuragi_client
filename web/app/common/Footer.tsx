@@ -13,9 +13,12 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
   const router = useRouter();
   const pathname = usePathname();
 
-  const hideFooterPaths = ["/login", "/signup", "/onboarding", "/terms"];
+  const hideFooterPaths = ["/login", "/signup", "/onboarding", "/terms", "/"];
   
-  if (type === "nav" && hideFooterPaths.includes(pathname)) return null;
+  // 경로가 hideFooterPaths에 포함되어 있는지 확인 (시작하는지 체크하여 더 안전하게)
+  const shouldHide = hideFooterPaths.some(path => pathname === path || pathname.startsWith(path + "/"));
+  
+  if (type === "nav" && shouldHide) return null;
 
   const isActive = (path: string) => pathname === path;
 

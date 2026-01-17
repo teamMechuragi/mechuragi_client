@@ -23,6 +23,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 1. 헤더를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideHeaderPaths = [
+    "/",
+    "/login",          // 로그인
     "/signup",         // 회원가입
     "/onboarding",     // 온보딩
     "/recommend/result",
@@ -35,7 +37,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideFooterPaths = [
-    "/",                   // 로그인
+    "/",
+    "/login",
     "/terms",              // 약관
     "/signup",             // 회원가입
     "/settings/details/new",   // 상세 설정 (새로 만들기)
@@ -57,9 +60,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/onboarding"
   ];
 
-  // 최종 노출 여부 판단
-  const shouldHideHeader = hideHeaderPaths.includes(pathname);
-  const shouldHideFooter = hideFooterPaths.includes(pathname) || isCommunityDetail;
+  // 최종 노출 여부 판단 (정확히 일치하거나 해당 경로로 시작하는 경우 숨김)
+  const shouldHideHeader = hideHeaderPaths.some(path => pathname === path || (path !== "/" && pathname.startsWith(path + "/")));
+  const shouldHideFooter = hideFooterPaths.some(path => pathname === path || (path !== "/" && pathname.startsWith(path + "/"))) || isCommunityDetail;
 
   const isHome = pathname === "/Home";
 
