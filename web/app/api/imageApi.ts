@@ -2,7 +2,7 @@
  * 이미지 업로드 관련 API
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // ============================================
 // 타입 정의
