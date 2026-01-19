@@ -28,8 +28,9 @@ export async function apiRequest<T>(
     tokenPreview: token ? `${token.substring(0, 20)}...` : 'null'
   });
 
+  // FormData면 Content-Type 생략 (브라우저가 알아서 설정)
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
 
