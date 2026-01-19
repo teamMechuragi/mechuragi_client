@@ -85,22 +85,11 @@ export async function deleteDiary(diaryId: number): Promise<void> {
  * 이미지 업로드
  */
 export async function uploadImage(file: File): Promise<{ imageUrl: string }> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/diaries/upload-image`, {
+  return apiRequest<{ imageUrl: string }>('/diaries/upload-image', {
     method: 'POST',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
     body: formData,
   });
-
-  if (!response.ok) {
-    throw new Error('이미지 업로드에 실패했습니다.');
-  }
-
-  return await response.json();
 }
