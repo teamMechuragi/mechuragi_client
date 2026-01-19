@@ -1,6 +1,6 @@
 // TODO: 백엔드 API 연동 시 이 파일 사용
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const notificationApi = {
   // TODO: 백엔드 API - 알림 목록 가져오기

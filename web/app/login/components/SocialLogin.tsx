@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 export default function SocialLogin() {
-  const apiUrl = process.env.NEXT_PUBLIC_DOMAIN_URL ||
+  const domainUrl = process.env.NEXT_PUBLIC_DOMAIN_URL ||
     (typeof window !== 'undefined' && window.location.origin.includes('localhost')
       ? 'http://localhost:8080'
       : '');
@@ -12,7 +12,7 @@ export default function SocialLogin() {
     {
       name: "카카오",
       src: "/icon/kakao.png",
-      loginUrl: `${apiUrl}/oauth2/authorization/kakao`,  // 이렇게 수정
+      loginUrl: `${domainUrl}/oauth2/authorization/kakao`,  // 이렇게 수정
     },
   ]
 

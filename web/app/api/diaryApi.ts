@@ -90,7 +90,7 @@ export async function uploadImage(file: File): Promise<{ imageUrl: string }> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://mechuragi.kro.kr/api'}/diaries/upload-image`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/diaries/upload-image`, {
     method: 'POST',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

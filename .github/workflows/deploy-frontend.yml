@@ -67,4 +67,4 @@ jobs:
         run: |
           echo "✅ 프론트엔드 배포 완료!"
           echo "📦 S3 버킷: mechuragi-dev-frontend"
-          echo "🌐 CloudFront: https://mechuragi.kro.kr"
+          echo "🌐 CloudFront: ${{ secrets.NEXT_PUBLIC_API_URL }}"
