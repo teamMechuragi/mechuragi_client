@@ -7,7 +7,7 @@ import { getMyInfo } from "@/app/api/memberApi";
 
 export default function OAuthSuccess() {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser, refreshPreferences } = useUser();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
@@ -48,7 +48,10 @@ export default function OAuthSuccess() {
 
           console.log("OAuth 로그인 성공:", userData);
 
-          // 4. 홈으로 이동
+          // 4. preferences 로드
+          await refreshPreferences();
+
+          // 5. 홈으로 이동
           window.location.href = "/Home";
         } catch (error) {
           console.error("사용자 정보 조회 실패:", error);
