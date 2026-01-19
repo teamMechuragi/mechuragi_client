@@ -3,6 +3,7 @@
 import { useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/common/Header';
+import { uploadImage } from '@/app/api/diaryApi';
 
 interface Photo {
   id: string;
@@ -42,25 +43,43 @@ function GalleryContent() {
     });
   };
 
-  const handleNext = () => {
-    if (selectedPhotos.length === 0) return;
-    
-    const selectedData = selectedPhotos.map(id => {
-      const p = photos.find(photo => photo.id === id);
-      return { id: p?.id, url: p?.url };
-    });
+  const [isUploading, setIsUploading] = useState(false);
 
-    localStorage.setItem('selectedPhotos', JSON.stringify(selectedData));
-    router.push(`/calendar/diary/new?date=${date}`);
+  const handleNext = async () => {
+    if (selectedPhotos.length === 0) return;
+
+    setIsUploading(true);
+
+    try {
+      // 선택된 사진들을 서버에 업로드
+      const uploadPromises = selectedPhotos.map(async (id) => {
+        const photo = photos.find(p => p.id === id);
+        if (!photo) return null;
+
+        const data = await uploadImage(photo.file);
+        return { url: data.imageUrl };
+      });
+
+      const uploadedPhotos = await Promise.all(uploadPromises);
+      const validPhotos = uploadedPhotos.filter(p => p !== null);
+
+      localStorage.setItem('selectedPhotos', JSON.stringify(validPhotos));
+      router.push(`/calendar/diary/new?date=${date}`);
+    } catch (error) {
+      console.error('이미지 업로드 실패:', error);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white font-sans max-w-sm mx-auto">
-      <Header 
-        isWrite 
-        title="갤러리" 
-        submitText="다음"
-        submitDisabled={selectedPhotos.length === 0}
+      <Header
+        isWrite
+        title="갤러리"
+        submitText={isUploading ? "업로드 중..." : "다음"}
+        submitDisabled={selectedPhotos.length === 0 || isUploading}
         onSubmit={handleNext}
       />
 
