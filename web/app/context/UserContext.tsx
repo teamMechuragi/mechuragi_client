@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { getMember } from "@/app/api/memberApi";
 import { getPreferences, getPreference } from "@/app/api/preferenceApi";
 
@@ -51,6 +51,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<PreferenceItem[]>([]);
   const [activePreferenceDetail, setActivePreferenceDetail] = useState<PreferenceDetail | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const isInitializing = useRef(false); // React Strict Mode 중복 실행 방지
 
   // 활성화된 preference 계산
   const activePreference = preferences.find(p => p.isActive) || null;
@@ -173,6 +174,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   // 초기 로드 시 사용자 정보 가져오기
   useEffect(() => {
+    // React Strict Mode 중복 실행 방지
+    if (isInitializing.current) return;
+    isInitializing.current = true;
+
     const initUser = async () => {
       await fetchUserProfile();
       setIsInitialized(true);
