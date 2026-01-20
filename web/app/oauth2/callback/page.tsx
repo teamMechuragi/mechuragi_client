@@ -38,6 +38,10 @@ export default function OAuthSuccess() {
         localStorage.setItem("refreshToken", refreshToken);
         console.log("🔴 [OAuth] 토큰 저장 완료");
 
+        // 2. URL에서 토큰 즉시 제거 (브라우저 히스토리에 토큰 노출 방지)
+        window.history.replaceState({}, "", window.location.pathname);
+        console.log("🔴 [OAuth] URL에서 토큰 제거 완료");
+
         try {
           // 2. 토큰으로 사용자 정보 가져오기
           console.log("🔴 [OAuth] getMyInfo 호출 시작");
