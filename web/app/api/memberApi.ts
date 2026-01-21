@@ -96,7 +96,7 @@ export { uploadProfileImage } from './imageApi';
  * 회원가입
  */
 export async function signup(data: SignupRequest): Promise<SignupResponse> {
-  return apiRequestPublic<SignupResponse>('/auth/signup', {
+  return apiRequestPublic<SignupResponse>('/members/signup', {
     method: 'POST',
     body: JSON.stringify(data),
   });
