@@ -45,7 +45,6 @@ export default function ProfileEditPage() {
       }
 
       const currentUser = JSON.parse(userStr);
-      const memberId = currentUser.id;
 
       // 닉네임 중복 체크 (기존 닉네임과 다를 때만)
       if (nickname !== currentUser.username) {
@@ -62,13 +61,10 @@ export default function ProfileEditPage() {
       // const uploadedImageUrl = await uploadImageToS3(file);
 
       // API를 통한 프로필 수정
-      const data = await updateProfile(
-        {
-          nickname: nickname,
-          profileImageUrl: profileImage, // 실제로는 업로드된 이미지 URL
-        },
-        memberId
-      );
+      const data = await updateProfile({
+        nickname: nickname,
+        profileImageUrl: profileImage, // 실제로는 업로드된 이미지 URL
+      });
 
       // 사용자 정보 업데이트
       const userData = {

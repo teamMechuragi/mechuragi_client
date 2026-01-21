@@ -59,11 +59,10 @@ export async function getMember(memberId: number): Promise<MemberResponse> {
 }
 
 /**
- * 프로필 수정
+ * 내 프로필 수정 (인증 필요)
  */
-export async function updateProfile(data: UpdateProfileRequest, memberId?: number): Promise<MemberResponse> {
-  const endpoint = memberId ? `/members/${memberId}` : '/members/me/profile';
-  return apiRequest<MemberResponse>(endpoint, {
+export async function updateProfile(data: UpdateProfileRequest): Promise<MemberResponse> {
+  return apiRequest<MemberResponse>('/members/me/profile', {
     method: 'PUT',
     body: JSON.stringify(data),
   });
