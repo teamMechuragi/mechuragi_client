@@ -6,8 +6,7 @@ import Header from "../common/Header";
 import Footer from "../common/Footer";
 import SignupForm from "./components/SignupForm";
 import { ToastProvider, useToast } from "./components/ToastContainer";
-import { generateNickname, signup } from "@/app/api/authApi";
-import { checkEmail, checkNickname } from "@/app/api/memberApi";
+import { signup, checkEmail, checkNickname } from "@/app/api/memberApi";
 
 function SignupPageContent() {
   const router = useRouter();
@@ -29,22 +28,6 @@ function SignupPageContent() {
 
   const [emailChecked, setEmailChecked] = useState(false);
   const [usernameChecked, setUsernameChecked] = useState(false);
-  const [isLoadingNickname, setIsLoadingNickname] = useState(true);
-
-  useEffect(() => {
-    generateNicknameAuto();
-  }, []);
-
-  const generateNicknameAuto = async () => {
-    try {
-      const data = await generateNickname();
-      setForm(prev => ({ ...prev, username: data.nickname || "" }));
-    } catch (error) {
-      console.error('닉네임 생성 실패:', error);
-    } finally {
-      setIsLoadingNickname(false);
-    }
-  };
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPassword = (password: string) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(password);
@@ -158,7 +141,6 @@ function SignupPageContent() {
             usernameChecked={usernameChecked}
             onEmailCheck={handleEmailCheck}
             onUsernameCheck={handleUsernameCheck}
-            isLoadingNickname={isLoadingNickname}
           />
           {serverError && <p className="text-red-500 text-sm mt-6 text-center font-bold">{serverError}</p>}
         </div>

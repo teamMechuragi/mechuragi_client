@@ -1,26 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import PasswordChangeForm from "./PasswordChangeForm";
 import { changePassword } from "@/app/api/memberApi";
+import { useUser } from "@/app/context/UserContext";
+import { ToastProvider, useToast } from "@/app/signup/components/ToastContainer";
 
-export default function PasswordChangePage() {
+function PasswordChangeContent() {
   const router = useRouter();
-  const [form, setForm] = useState({ 
-    currentPassword: "", 
-    newPassword: "", 
-    confirmPassword: "" 
+  const { user } = useUser();
+  const { showToast } = useToast();
+  const [form, setForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
   });
-  const [errors, setErrors] = useState<{ 
-    currentPassword?: string; 
-    newPassword?: string; 
+  const [errors, setErrors] = useState<{
+    currentPassword?: string;
+    newPassword?: string;
     confirmPassword?: string;
   }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // 카카오 로그인 사용자 체크
+  const isKakaoUser = user?.provider === "KAKAO";
+  const hasShownToast = useRef(false);
+
+  useEffect(() => {
+    if (isKakaoUser && !hasShownToast.current) {
+      hasShownToast.current = true;
+      showToast("카카오 소셜로그인 사용자는 비밀번호 변경이 불가합니다.", "error");
+    }
+  }, [isKakaoUser]);
 
   const isValidPassword = (password: string) => 
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(password);
@@ -135,10 +150,11 @@ export default function PasswordChangePage() {
       </div>
 
       <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-6">
-        <PasswordChangeForm 
-          form={form} 
-          onFormChange={handleChange} 
+        <PasswordChangeForm
+          form={form}
+          onFormChange={handleChange}
           errors={errors}
+          disabled={isKakaoUser}
         />
         {serverError && <p className="text-red-500 text-sm mt-4 text-center">{serverError}</p>}
       </div>
@@ -147,8 +163,16 @@ export default function PasswordChangePage() {
         type="button"
         buttonText={loading ? "변경 중..." : "완료"}
         onButtonClick={handlePasswordChange}
-        disabled={!isFormValid || loading}
+        disabled={!isFormValid || loading || isKakaoUser}
       />
     </div>
+  );
+}
+
+export default function PasswordChangePage() {
+  return (
+    <ToastProvider>
+      <PasswordChangeContent />
+    </ToastProvider>
   );
 }

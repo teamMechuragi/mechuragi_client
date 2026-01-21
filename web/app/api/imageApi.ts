@@ -62,38 +62,3 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   const results = await uploadImages([file]);
   return results[0];
 }
-
-/**
- * 프로필 이미지 업로드
- */
-export async function uploadProfileImage(file: File): Promise<{ imageUrl: string }> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const headers: Record<string, string> = {};
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  console.log(`[API Request] POST ${API_BASE_URL}/members/upload-image`);
-
-  const response = await fetch(`${API_BASE_URL}/members/upload-image`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-
-  console.log(`[API Response] ${response.status} ${response.statusText}`);
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.message || '이미지 업로드 실패';
-    console.error(`[API Error] ${errorMessage}`, errorData);
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
-}

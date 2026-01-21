@@ -26,19 +26,8 @@ export default function WithdrawalPage() {
     setIsWithdrawing(true);
 
     try {
-      const userStr = localStorage.getItem('user');
-
-      if (!userStr) {
-        alert('로그인 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
-        setIsWithdrawing(false);
-        return;
-      }
-
-      const user = JSON.parse(userStr);
-      const memberId = user.id;
-
       // API를 통한 회원 탈퇴
-      await withdrawal(memberId);
+      await withdrawal();
 
       // 회원 탈퇴 성공
       setUser(null);

@@ -138,7 +138,7 @@ export default function CommunityWritePage() {
         submitDisabled={!isFormValid || isSubmitting}
       />
 
-      <div className="flex-1 px-6 pt-6 pb-6 overflow-y-auto">
+      <div className="flex-1 px-6 pt-20 pb-6 overflow-y-auto">
         {/* 투표 제목 */}
         <div className="mb-2">
           <input

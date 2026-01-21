@@ -1,7 +1,7 @@
 /**
  * 인증 관련 API
  */
-import { apiRequestPublic } from './apiClient';
+import { apiRequest, apiRequestPublic } from './apiClient';
 
 // ============================================
 // 타입 정의
@@ -28,18 +28,6 @@ export interface LoginResponse {
   };
 }
 
-export interface SignupRequest {
-  email: string;
-  password: string;
-  nickname: string;
-}
-
-export interface SignupResponse {
-  id: number;
-  email: string;
-  nickname: string;
-}
-
 // ============================================
 // API 함수들
 // ============================================
@@ -55,20 +43,10 @@ export async function login(data: LoginRequest): Promise<LoginResponse> {
 }
 
 /**
- * 회원가입
- */
-export async function signup(data: SignupRequest): Promise<SignupResponse> {
-  return apiRequestPublic<SignupResponse>('/auth/signup', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-/**
- * 로그아웃
+ * 로그아웃 (인증 필요)
  */
 export async function logout(): Promise<void> {
-  return apiRequestPublic<void>('/auth/logout', {
+  return apiRequest<void>('/auth/logout', {
     method: 'POST',
   });
 }
@@ -81,11 +59,4 @@ export async function refreshToken(refreshToken: string): Promise<{ accessToken:
     method: 'POST',
     body: JSON.stringify({ refreshToken }),
   });
-}
-
-/**
- * 닉네임 자동 생성
- */
-export async function generateNickname(): Promise<{ nickname: string }> {
-  return apiRequestPublic<{ nickname: string }>('/auth/nickname/generate');
 }

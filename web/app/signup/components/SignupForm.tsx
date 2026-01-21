@@ -11,18 +11,16 @@ interface SignupFormProps {
   usernameChecked: boolean;
   onEmailCheck: () => Promise<void>;
   onUsernameCheck: () => Promise<void>;
-  isLoadingNickname?: boolean;
 }
 
-export default function SignupForm({ 
-  form, 
-  onFormChange, 
+export default function SignupForm({
+  form,
+  onFormChange,
   errors,
   emailChecked,
   usernameChecked,
   onEmailCheck,
   onUsernameCheck,
-  isLoadingNickname = false 
 }: SignupFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -69,7 +67,7 @@ export default function SignupForm({
         {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.email}</p>}
       </div>
 
-      {/* 닉네임 (자동생성 값 노출) */}
+      {/* 닉네임 */}
       <div>
         <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Nickname</label>
         <div className="flex items-end gap-3">
@@ -77,8 +75,7 @@ export default function SignupForm({
             <input
               name="username"
               type="text"
-              placeholder={isLoadingNickname ? "닉네임 생성 중..." : "닉네임을 입력해주세요"}
-              disabled={isLoadingNickname}
+              placeholder="닉네임을 입력해주세요"
               className={getInputStyle('username', usernameChecked)}
               value={form.username}
               onChange={(e) => onFormChange(e.target.name, e.target.value)}
@@ -87,10 +84,10 @@ export default function SignupForm({
           <button
             type="button"
             onClick={onUsernameCheck}
-            disabled={usernameChecked || !form.username.trim() || isLoadingNickname}
+            disabled={usernameChecked || !form.username.trim()}
             className={`px-5 py-2.5 text-[12px] font-black rounded-2xl transition-all h-fit mb-1 ${
-              usernameChecked 
-                ? "bg-gray-200 text-gray-500" 
+              usernameChecked
+                ? "bg-gray-200 text-gray-500"
                 : "bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20"
             }`}
           >
@@ -98,9 +95,6 @@ export default function SignupForm({
           </button>
         </div>
         {errors.username && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.username}</p>}
-        {!isLoadingNickname && !usernameChecked && (
-          <p className="text-[11px] text-gray-400 mt-2 ml-1">멋진 닉네임이 생성되었어요. 그대로 쓰거나 바꿀 수 있어요!</p>
-        )}
       </div>
 
       {/* 비밀번호 */}

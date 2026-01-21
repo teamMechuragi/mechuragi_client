@@ -18,9 +18,8 @@ export interface MemberResponse {
   status: string;
 }
 
-export interface UpdateProfileRequest {
-  nickname?: string;
-  profileImageUrl?: string;
+export interface UpdateNicknameRequest {
+  nickname: string;
 }
 
 export interface ChangePasswordRequest {
@@ -28,34 +27,55 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface SignupRequest {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface SignupResponse {
+  id: number;
+  email: string;
+  nickname: string;
+}
+
 // ============================================
 // API 함수들
 // ============================================
 
 /**
- * 내 정보 조회
+ * 내 정보 조회 (인증 필요)
  */
 export async function getMyInfo(): Promise<MemberResponse> {
   return apiRequest<MemberResponse>('/members/me');
 }
 
 /**
- * 특정 회원 정보 조회
+ * 내 닉네임 변경 (인증 필요)
  */
-export async function getMember(memberId: number): Promise<MemberResponse> {
-  return apiRequest<MemberResponse>(`/members/${memberId}`);
-}
-
-/**
- * 프로필 수정
- */
-export async function updateProfile(data: UpdateProfileRequest, memberId?: number): Promise<MemberResponse> {
-  const endpoint = memberId ? `/members/${memberId}` : '/members/me';
-  return apiRequest<MemberResponse>(endpoint, {
+export async function updateNickname(data: UpdateNicknameRequest): Promise<MemberResponse> {
+  return apiRequest<MemberResponse>('/members/me/nickname', {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
+
+/**
+ * 내 프로필 이미지 변경 (인증 필요)
+ */
+export async function updateProfileImage(
+  file: File
+): Promise<void> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return apiRequest<void>('/members/me/profile-image', {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
+
 
 /**
  * 비밀번호 변경
@@ -68,17 +88,23 @@ export async function changePassword(data: ChangePasswordRequest): Promise<void>
 }
 
 /**
- * 회원 탈퇴
+ * 회원 탈퇴 (인증 필요)
  */
-export async function withdrawal(memberId?: number): Promise<void> {
-  const endpoint = memberId ? `/members/${memberId}` : '/members/me';
-  return apiRequest<void>(endpoint, {
+export async function withdrawal(): Promise<void> {
+  return apiRequest<void>('/members/me', {
     method: 'DELETE',
   });
 }
 
-// 프로필 이미지 업로드는 imageApi.ts로 이동
-export { uploadProfileImage } from './imageApi';
+/**
+ * 회원가입
+ */
+export async function signup(data: SignupRequest): Promise<SignupResponse> {
+  return apiRequestPublic<SignupResponse>('/members/signup', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
 
 /**
  * 이메일 중복 확인
@@ -95,3 +121,4 @@ export async function checkEmail(email: string): Promise<boolean> {
 export async function checkNickname(nickname: string): Promise<boolean> {
   return apiRequestPublic<boolean>(`/members/check/nickname?nickname=${encodeURIComponent(nickname)}`);
 }
+
