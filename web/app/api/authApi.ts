@@ -82,10 +82,3 @@ export async function refreshToken(refreshToken: string): Promise<{ accessToken:
     body: JSON.stringify({ refreshToken }),
   });
 }
-
-/**
- * 닉네임 자동 생성
- */
-export async function generateNickname(): Promise<{ nickname: string }> {
-  return apiRequestPublic<{ nickname: string }>('/auth/nickname/generate');
-}
