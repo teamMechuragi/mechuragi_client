@@ -1,7 +1,7 @@
 /**
  * 인증 관련 API
  */
-import { apiRequestPublic } from './apiClient';
+import { apiRequest, apiRequestPublic } from './apiClient';
 
 // ============================================
 // 타입 정의
@@ -65,10 +65,10 @@ export async function signup(data: SignupRequest): Promise<SignupResponse> {
 }
 
 /**
- * 로그아웃
+ * 로그아웃 (인증 필요)
  */
 export async function logout(): Promise<void> {
-  return apiRequestPublic<void>('/auth/logout', {
+  return apiRequest<void>('/auth/logout', {
     method: 'POST',
   });
 }
