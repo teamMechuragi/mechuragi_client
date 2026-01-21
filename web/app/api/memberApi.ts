@@ -18,9 +18,8 @@ export interface MemberResponse {
   status: string;
 }
 
-export interface UpdateProfileRequest {
-  nickname?: string;
-  profileImageUrl?: string;
+export interface UpdateNicknameRequest {
+  nickname: string;
 }
 
 export interface ChangePasswordRequest {
@@ -52,14 +51,31 @@ export async function getMyInfo(): Promise<MemberResponse> {
 }
 
 /**
- * 내 프로필 수정 (인증 필요)
+ * 내 닉네임 변경 (인증 필요)
  */
-export async function updateProfile(data: UpdateProfileRequest): Promise<MemberResponse> {
-  return apiRequest<MemberResponse>('/members/me/profile', {
+export async function updateNickname(data: UpdateNicknameRequest): Promise<MemberResponse> {
+  return apiRequest<MemberResponse>('/members/me/nickname', {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
+
+/**
+ * 내 프로필 이미지 변경 (인증 필요)
+ */
+export async function updateProfileImage(
+  file: File
+): Promise<void> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return apiRequest<void>('/members/me/profile-image', {
+    method: 'PATCH',
+    body: formData,
+  });
+}
+
+
 
 /**
  * 비밀번호 변경
@@ -79,9 +95,6 @@ export async function withdrawal(): Promise<void> {
     method: 'DELETE',
   });
 }
-
-// 프로필 이미지 업로드는 imageApi.ts로 이동
-export { uploadProfileImage } from './imageApi';
 
 /**
  * 회원가입
@@ -108,3 +121,4 @@ export async function checkEmail(email: string): Promise<boolean> {
 export async function checkNickname(nickname: string): Promise<boolean> {
   return apiRequestPublic<boolean>(`/members/check/nickname?nickname=${encodeURIComponent(nickname)}`);
 }
+
