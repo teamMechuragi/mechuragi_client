@@ -80,11 +80,10 @@ export async function changePassword(data: ChangePasswordRequest): Promise<void>
 }
 
 /**
- * 회원 탈퇴
+ * 회원 탈퇴 (인증 필요)
  */
-export async function withdrawal(memberId?: number): Promise<void> {
-  const endpoint = memberId ? `/members/${memberId}` : '/members/me';
-  return apiRequest<void>(endpoint, {
+export async function withdrawal(): Promise<void> {
+  return apiRequest<void>('/members/me', {
     method: 'DELETE',
   });
 }
