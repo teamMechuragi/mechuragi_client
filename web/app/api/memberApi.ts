@@ -28,6 +28,18 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface SignupRequest {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface SignupResponse {
+  id: number;
+  email: string;
+  nickname: string;
+}
+
 // ============================================
 // API 함수들
 // ============================================
@@ -79,6 +91,16 @@ export async function withdrawal(memberId?: number): Promise<void> {
 
 // 프로필 이미지 업로드는 imageApi.ts로 이동
 export { uploadProfileImage } from './imageApi';
+
+/**
+ * 회원가입
+ */
+export async function signup(data: SignupRequest): Promise<SignupResponse> {
+  return apiRequestPublic<SignupResponse>('/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
 
 /**
  * 이메일 중복 확인

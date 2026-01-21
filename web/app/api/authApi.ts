@@ -28,18 +28,6 @@ export interface LoginResponse {
   };
 }
 
-export interface SignupRequest {
-  email: string;
-  password: string;
-  nickname: string;
-}
-
-export interface SignupResponse {
-  id: number;
-  email: string;
-  nickname: string;
-}
-
 // ============================================
 // API 함수들
 // ============================================
@@ -49,16 +37,6 @@ export interface SignupResponse {
  */
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   return apiRequestPublic<LoginResponse>('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-/**
- * 회원가입
- */
-export async function signup(data: SignupRequest): Promise<SignupResponse> {
-  return apiRequestPublic<SignupResponse>('/auth/signup', {
     method: 'POST',
     body: JSON.stringify(data),
   });
