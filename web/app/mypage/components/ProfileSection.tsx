@@ -5,7 +5,7 @@ import Image from 'next/image';
 import ToggleItem from './ToggleItem';
 import { useUser } from '@/app/context/UserContext';
 import { useState, useEffect } from 'react';
-import { getMember } from '@/app/api/memberApi';
+import { getMyInfo } from '@/app/api/memberApi';
 import { activatePreference } from '@/app/api/preferenceApi';
 
 export default function ProfileSection() {
@@ -20,18 +20,15 @@ export default function ProfileSection() {
   // 사용자 정보 조회
   const fetchUserProfile = async () => {
     try {
-      const userStr = localStorage.getItem('user');
+      const token = localStorage.getItem('accessToken');
 
-      if (!userStr) {
+      if (!token) {
         setLoading(false);
         return;
       }
 
-      const currentUser = JSON.parse(userStr);
-      const memberId = currentUser.id;
-
       // API를 통한 회원 정보 조회
-      const data = await getMember(memberId);
+      const data = await getMyInfo();
 
       // 사용자 정보 업데이트
       const userData = {

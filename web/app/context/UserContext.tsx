@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
-import { getMember } from "@/app/api/memberApi";
+import { getMyInfo } from "@/app/api/memberApi";
 import { getPreferences, getPreference } from "@/app/api/preferenceApi";
 
 export interface User {
@@ -112,24 +112,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // localStorage에서 사용자 정보 확인
-      const storedUser = localStorage.getItem("user");
-
-      // localStorage에도 없으면 로그인 전 상태이므로 API 호출하지 않음
-      if (!storedUser) {
-        return;
-      }
-
-      const currentUser = JSON.parse(storedUser);
-      const memberId = currentUser.id;
-
-      if (!memberId) {
-        console.error("memberId가 없습니다.");
-        return;
-      }
-
       // API 호출로 최신 사용자 정보 조회
-      const data = await getMember(memberId);
+      const data = await getMyInfo();
 
       // 사용자 정보 매핑
       const userData: User = {

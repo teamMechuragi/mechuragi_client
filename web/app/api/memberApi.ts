@@ -45,17 +45,10 @@ export interface SignupResponse {
 // ============================================
 
 /**
- * 내 정보 조회
+ * 내 정보 조회 (인증 필요)
  */
 export async function getMyInfo(): Promise<MemberResponse> {
   return apiRequest<MemberResponse>('/members/me');
-}
-
-/**
- * 특정 회원 정보 조회
- */
-export async function getMember(memberId: number): Promise<MemberResponse> {
-  return apiRequest<MemberResponse>(`/members/${memberId}`);
 }
 
 /**
