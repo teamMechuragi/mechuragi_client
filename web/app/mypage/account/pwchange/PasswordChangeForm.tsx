@@ -4,19 +4,21 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 interface PasswordChangeFormProps {
-  form: { 
-    currentPassword: string; 
-    newPassword: string; 
+  form: {
+    currentPassword: string;
+    newPassword: string;
     confirmPassword: string;
   };
   onFormChange: (name: string, value: string) => void;
   errors: Partial<Record<keyof PasswordChangeFormProps["form"], string>>;
+  disabled?: boolean;
 }
 
-export default function PasswordChangeForm({ 
-  form, 
-  onFormChange, 
+export default function PasswordChangeForm({
+  form,
+  onFormChange,
   errors,
+  disabled = false,
 }: PasswordChangeFormProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -41,9 +43,10 @@ export default function PasswordChangeForm({
             placeholder="비밀번호를 입력해 주세요"
             className={`w-full border-b py-2 pr-10 focus:outline-none transition-all ${
               errors.currentPassword ? "border-red-500" : "border-gray-300"
-            }`}
+            } ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`}
             value={form.currentPassword}
             onChange={handleChange}
+            disabled={disabled}
           />
           <button
             type="button"
@@ -70,9 +73,10 @@ export default function PasswordChangeForm({
             placeholder="비밀번호를 입력해 주세요"
             className={`w-full border-b py-2 pr-10 focus:outline-none transition-all ${
               errors.newPassword ? "border-red-500" : "border-gray-300"
-            }`}
+            } ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`}
             value={form.newPassword}
             onChange={handleChange}
+            disabled={disabled}
           />
           <button
             type="button"
@@ -104,14 +108,15 @@ export default function PasswordChangeForm({
             type={showConfirmPassword ? "text" : "password"}
             placeholder="비밀번호를 입력해 주세요"
             className={`w-full border-b py-2 pr-10 focus:outline-none transition-all ${
-              errors.confirmPassword 
-                ? "border-red-500" 
+              errors.confirmPassword
+                ? "border-red-500"
                 : form.confirmPassword && form.newPassword === form.confirmPassword
                   ? "border-[#3CDCBA]"
                   : "border-gray-300"
-            }`}
+            } ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`}
             value={form.confirmPassword}
             onChange={handleChange}
+            disabled={disabled}
           />
           <button
             type="button"
