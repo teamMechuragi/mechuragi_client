@@ -1,43 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import type { Notification } from '@/app/types/notification';
+import { useContext } from 'react';
+import { NotificationContext } from '@/app/context/NotificationContext';
 
 interface NotificationBellProps {
   onClick?: () => void;
 }
 
 export default function NotificationBell({ onClick }: NotificationBellProps) {
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-
-  useEffect(() => {
-    const checkUnreadNotifications = () => {
-      const notifications = localStorage.getItem('notifications');
-      if (notifications) {
-        const notificationList: Notification[] = JSON.parse(notifications);
-        const hasUnread = notificationList.some(notification => !notification.isRead);
-        setHasUnreadNotifications(hasUnread);
-      } else {
-        setHasUnreadNotifications(false);
-      }
-    };
-
-    checkUnreadNotifications();
-    window.addEventListener('storage', checkUnreadNotifications);
-    window.addEventListener('notificationsUpdated', checkUnreadNotifications);
-
-    return () => {
-      window.removeEventListener('storage', checkUnreadNotifications);
-      window.removeEventListener('notificationsUpdated', checkUnreadNotifications);
-    };
-  }, []);
+  // useNotification() 대신 직접 context 사용 (에러 throw 방지)
+  const context = useContext(NotificationContext);
+  const unreadCount = context?.unreadCount ?? 0;
 
   return (
     <button onClick={onClick} className="relative">
       <Image src="/icon/bell.png" alt="알림" width={24} height={24} />
-      {hasUnreadNotifications && (
-        <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
       )}
     </button>
   );

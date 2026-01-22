@@ -27,6 +27,14 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface UpdateNotificationSettingRequest{
+  enabled: boolean;
+}
+
+export interface NotificationSettingResponse{
+  enabled: boolean;
+}
+
 export interface SignupRequest {
   email: string;
   password: string;
@@ -43,15 +51,17 @@ export interface SignupResponse {
 // API 함수들
 // ============================================
 
+// 인증 필요 api
+
 /**
- * 내 정보 조회 (인증 필요)
+ * 내 정보 조회 
  */
 export async function getMyInfo(): Promise<MemberResponse> {
   return apiRequest<MemberResponse>('/members/me');
 }
 
 /**
- * 내 닉네임 변경 (인증 필요)
+ * 내 닉네임 변경 
  */
 export async function updateNickname(data: UpdateNicknameRequest): Promise<MemberResponse> {
   return apiRequest<MemberResponse>('/members/me/nickname', {
@@ -61,7 +71,7 @@ export async function updateNickname(data: UpdateNicknameRequest): Promise<Membe
 }
 
 /**
- * 내 프로필 이미지 변경 (인증 필요)
+ * 내 프로필 이미지 변경
  */
 export async function updateProfileImage(
   file: File
@@ -88,13 +98,31 @@ export async function changePassword(data: ChangePasswordRequest): Promise<void>
 }
 
 /**
- * 회원 탈퇴 (인증 필요)
+ * 내 알림 설정 상태 조회
+ */
+export async function getNotificationSetting(): Promise<NotificationSettingResponse> {
+  return apiRequest<NotificationSettingResponse>('/members/me/notification-setting');
+}
+
+// 내 알림 설정 상태 변경(토글)
+export async function updateNotificationSetting(data: UpdateNotificationSettingRequest): Promise<void> {
+  return apiRequest<void>('/members/me/notification-setting', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}    
+
+
+/**
+ * 회원 탈퇴
  */
 export async function withdrawal(): Promise<void> {
   return apiRequest<void>('/members/me', {
     method: 'DELETE',
   });
 }
+
+// 인증 필요없는 api
 
 /**
  * 회원가입
