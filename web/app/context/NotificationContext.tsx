@@ -96,7 +96,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             }
           }
         },
-        onclose: () => setIsConnected(false),
+        onclose: () => {
+          setIsConnected(false);
+          // 정상 종료(타임아웃 포함) 시에도 재연결 시도
+          if (retryCountRef.current < SSE_MAX_RETRIES) {
+            retryCountRef.current += 1;
+            console.log(`[SSE] 연결 종료, 재연결 시도 (${retryCountRef.current}/${SSE_MAX_RETRIES})`);
+            setTimeout(() => connectSSE(), 1000 * retryCountRef.current); // 지수 백오프
+          }
+        },
         onerror: (error) => {
           setIsConnected(false);
           if (retryCountRef.current < SSE_MAX_RETRIES) {
