@@ -6,18 +6,21 @@ import Header from "./common/Header";
 import Footer from "./common/Footer";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
 
-    // 🔴 OAuth 콜백 경로는 레이아웃 없이 children만 렌더링
-  if (pathname.startsWith("/login/oauth2") || pathname.startsWith("/oauth2/callback")) {
-    return <>{children}</>;
-  }
+  // trailing slash 정규화 (루트 경로 제외)
+  const pathname = rawPathname === "/" ? "/" : rawPathname.replace(/\/$/, "");
 
   useEffect(() => {
     console.log("[ClientLayout] Pathname changed:", pathname);
     console.log("[ClientLayout] Current URL:", window.location.href);
   }, [pathname]);
-  
+
+  // 🔴 OAuth 콜백 경로는 레이아웃 없이 children만 렌더링
+  if (pathname.startsWith("/login/oauth2") || pathname.startsWith("/oauth2/callback")) {
+    return <>{children}</>;
+  }
+
   // 커뮤니티 상세 페이지 여부
   const isCommunityDetail = pathname.startsWith("/community/") && pathname !== "/community";
 
