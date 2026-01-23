@@ -113,8 +113,9 @@ export interface VoteCommentUpdateRequest {
 
 // 인기 메뉴 응답
 export interface PopularMenuResponse {
-  rank: number;
-  menuName: string;
-  totalVotes: number;
-  averageWinRate: number;
+  menu: string;                    // 메뉴명
+  score: number;                   // 최종 점수
+  mentionCount: number;            // 언급 횟수
+  averageVotePercentage: number;   // 평균 투표율 (실시간)
+  averageRecency: number;          // 평균 최근성
 }
