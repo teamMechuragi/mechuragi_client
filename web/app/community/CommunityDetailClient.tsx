@@ -75,7 +75,9 @@ export default function CommunityDetailClient() {
 
   // 옵션 선택/해제 핸들러
   const handleOptionClick = (optionId: number) => {
-    if (hasVoted) return;
+    // 만료된 투표거나 이미 투표한 경우 선택 불가
+    const expired = new Date(vote?.deadline || '') < new Date();
+    if (hasVoted || expired) return;
 
     if (vote?.allowMultipleChoice) {
       // 다중 선택 허용
@@ -93,6 +95,12 @@ export default function CommunityDetailClient() {
   // 투표 제출 핸들러
   const handleVote = async () => {
     if (selectedOptions.length === 0 || !vote) return;
+
+    // 만료된 투표인지 다시 확인
+    if (new Date(vote.deadline) < new Date()) {
+      alert('투표 기간이 만료되었습니다.');
+      return;
+    }
 
     try {
       await participateVote({
@@ -155,6 +163,10 @@ export default function CommunityDetailClient() {
   // 이미지가 있는 옵션이 하나라도 있는지 확인
   const hasImages = vote.options.some(opt => opt.imageUrl);
 
+  // 투표 만료 여부 확인 (deadline 체크)
+  const isExpired = new Date(vote.deadline) < new Date();
+  const isVoteActive = vote.status === 'ACTIVE' && !isExpired;
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header backLink="/community" title="투표" />
@@ -167,7 +179,7 @@ export default function CommunityDetailClient() {
           <span>·</span>
           <span>{getRelativeTime(vote.createdAt)}</span>
           <span>·</span>
-          <span>{vote.status === 'ACTIVE' ? '투표중' : '종료'}</span>
+          <span>{isVoteActive ? '투표중' : '종료'}</span>
           <span className="text-[#3CDCBA] ml-auto">{vote.totalParticipants}표 투표중</span>
         </div>
 
@@ -337,9 +349,9 @@ export default function CommunityDetailClient() {
 
       <Footer
         type="button"
-        buttonText={hasVoted ? '다시 투표하기' : '투표하기'}
+        buttonText={isExpired ? '투표가 종료되었습니다' : hasVoted ? '다시 투표하기' : '투표하기'}
         onButtonClick={hasVoted ? handleRevote : handleVote}
-        disabled={!hasVoted && selectedOptions.length === 0}
+        disabled={isExpired || (!hasVoted && selectedOptions.length === 0)}
       />
     </div>
   );

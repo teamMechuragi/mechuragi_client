@@ -29,6 +29,10 @@ export default function PostCard({ vote }: PostCardProps) {
   // 첫 번째 옵션의 이미지를 대표 이미지로 사용
   const thumbnailImage = vote.options.find(opt => opt.imageUrl)?.imageUrl || null;
 
+  // 투표 만료 여부 확인
+  const isExpired = new Date(vote.deadline) < new Date();
+  const isVoteActive = vote.status === 'ACTIVE' && !isExpired;
+
   return (
     <div
       onClick={() => router.push(`/community/detail?id=${vote.id}`)}
@@ -41,7 +45,7 @@ export default function PostCard({ vote }: PostCardProps) {
         <span>·</span>
         <span>{getRelativeTime(vote.createdAt)}</span>
         <span>·</span>
-        <span>{vote.status === 'ACTIVE' ? '투표중' : '종료'}</span>
+        <span>{isVoteActive ? '투표중' : '종료'}</span>
       </div>
 
       <div className="flex gap-3">

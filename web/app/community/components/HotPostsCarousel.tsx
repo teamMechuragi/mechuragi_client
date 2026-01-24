@@ -49,6 +49,10 @@ export default function HotPostsCarousel({ votes }: HotPostsCarouselProps) {
 
   const currentVote = votes[currentSlide];
 
+  // 투표 만료 여부 확인
+  const isExpired = currentVote ? new Date(currentVote.deadline) < new Date() : false;
+  const isVoteActive = currentVote?.status === 'ACTIVE' && !isExpired;
+
   // currentVote가 없으면 빈 상태 표시
   if (!currentVote) {
     return (
@@ -73,7 +77,7 @@ export default function HotPostsCarousel({ votes }: HotPostsCarouselProps) {
             <span>·</span>
             <span>{getRelativeTime(currentVote.createdAt)}</span>
             <span>·</span>
-            <span>{currentVote.status === 'ACTIVE' ? '투표중' : '종료'}</span>
+            <span>{isVoteActive ? '투표중' : '종료'}</span>
             <span className="text-[#3CDCBA] ml-auto">{currentVote.totalParticipants}표 투표중</span>
           </div>
 
