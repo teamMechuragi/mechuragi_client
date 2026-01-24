@@ -24,6 +24,27 @@ export default function IngredientPage() {
   const [loading, setLoading] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
 
+  // 페이지 마운트 시 sessionStorage에서 재료 상태 복원
+  useEffect(() => {
+    const saved = sessionStorage.getItem("selected_ingredients");
+    if (saved) {
+      try {
+        setSelectedIngredients(JSON.parse(saved));
+      } catch (e) {
+        console.error("재료 상태 복원 실패:", e);
+      }
+    }
+  }, []);
+
+  // 재료 상태 변경 시 sessionStorage에 저장
+  useEffect(() => {
+    if (selectedIngredients.length > 0) {
+      sessionStorage.setItem("selected_ingredients", JSON.stringify(selectedIngredients));
+    } else {
+      sessionStorage.removeItem("selected_ingredients");
+    }
+  }, [selectedIngredients]);
+
   const handleAddIngredient = (name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
@@ -51,10 +72,22 @@ export default function IngredientPage() {
       const urgentItems = selectedIngredients.filter(i => i.isUrgent).map(i => `${i.name}(유통기한 임박)`);
       const normalItems = selectedIngredients.filter(i => !i.isUrgent).map(i => i.name);
 
-      const mySeasonings = localStorage.getItem("my_seasonings") || "기본 양념 위주";
+      // 저장된 양념 목록 파싱
+      const savedSeasonings = localStorage.getItem("my_seasonings");
+      let seasoningText = "기본 양념 위주";
+      if (savedSeasonings) {
+        try {
+          const seasoningArray = JSON.parse(savedSeasonings);
+          if (Array.isArray(seasoningArray) && seasoningArray.length > 0) {
+            seasoningText = seasoningArray.join(", ");
+          }
+        } catch (e) {
+          console.error("양념 데이터 파싱 실패:", e);
+        }
+      }
 
       // 재료 목록에 양념 정보도 포함
-      const allIngredients = [...urgentItems, ...normalItems, `양념: ${mySeasonings}`];
+      const allIngredients = [...urgentItems, ...normalItems, `양념: ${seasoningText}`];
 
       const data = await getIngredientsRecommendation({
         ingredients: allIngredients,
@@ -66,6 +99,8 @@ export default function IngredientPage() {
         dislikedFoods: activePreferenceDetail?.dislikedFoods,
       });
 
+      // 추천 완료 후 저장된 재료 상태 정리
+      sessionStorage.removeItem("selected_ingredients");
       router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {
       console.error("추천 요청 에러:", error);
