@@ -1,47 +1,49 @@
 /**
- * 북마크(스크랩) 관련 API
+ * 북마크 관련 API
  */
 import { apiRequest } from './apiClient';
 
-// 백엔드 RecommendedFoodResponse에 맞춘 타입
+// 개별 음식 응답 타입
 export interface RecommendedFoodResponse {
   id: number;
-  foodName: string;
-  imageUrl?: string;
+  name: string;
   description?: string;
   reason?: string;
+  ingredients?: string;
+  cookingTime?: string;
+  difficulty?: string;
   isScrapped: boolean;
   createdAt: string;
 }
 
-/**
- * 모든 추천 음식 조회 (인증 필요)
- */
-export async function getAllRecommendations(): Promise<RecommendedFoodResponse[]> {
-  return apiRequest<RecommendedFoodResponse[]>('/ai/recommended-foods');
+// 북마크된 세션 응답 타입
+export interface BookmarkedSessionResponse {
+  sessionId: number;
+  foods: RecommendedFoodResponse[];
+  createdAt: string;
 }
 
 /**
- * 스크랩한 추천 음식 목록 조회 (인증 필요)
+ * 북마크된 추천 세션 목록 조회 (인증 필요)
  */
-export async function getScrappedFoods(): Promise<RecommendedFoodResponse[]> {
-  return apiRequest<RecommendedFoodResponse[]>('/ai/recommended-foods/scrapped');
+export async function getBookmarkedSessions(): Promise<BookmarkedSessionResponse[]> {
+  return apiRequest<BookmarkedSessionResponse[]>('/ai/recommended-foods/bookmarks');
 }
 
 /**
- * 추천 음식 스크랩 추가 (인증 필요)
+ * 가장 최근 추천 세션 북마크 (인증 필요)
  */
-export async function scrapFood(foodId: number): Promise<void> {
-  return apiRequest<void>(`/ai/recommended-foods/${foodId}/scrap`, {
+export async function bookmarkLatestSession(): Promise<void> {
+  return apiRequest<void>('/ai/recommended-foods/bookmark', {
     method: 'POST',
   });
 }
 
 /**
- * 추천 음식 스크랩 취소 (인증 필요)
+ * 특정 추천 세션 북마크 토글 (인증 필요)
  */
-export async function unscrapFood(foodId: number): Promise<void> {
-  return apiRequest<void>(`/ai/recommended-foods/${foodId}/scrap`, {
-    method: 'DELETE',
+export async function toggleSessionBookmark(sessionId: number): Promise<void> {
+  return apiRequest<void>(`/ai/recommended-foods/sessions/${sessionId}/bookmark`, {
+    method: 'POST',
   });
 }
