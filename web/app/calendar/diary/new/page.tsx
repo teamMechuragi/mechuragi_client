@@ -140,9 +140,11 @@ function DiaryFormContent() {
   };
 
   const handleSave = async () => {
-    // 날짜 검증
-    const today = new Date().toISOString().split('T')[0];
-    const diaryDate = selectedDate || new Date().toISOString().split('T')[0]; // 선택된 날짜 또는 현재 날짜
+    // 한국 시간 기준으로 날짜 생성 (서버와 타임존 일치)
+    const getKoreanDate = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+
+    const today = getKoreanDate();
+    const diaryDate = selectedDate || getKoreanDate(); // 선택된 날짜 또는 현재 날짜
 
     if (diaryDate > today) {
       alert('미래 날짜는 선택할 수 없습니다.');
