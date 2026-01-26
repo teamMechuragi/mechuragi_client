@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Header from '@/app/common/Header';
 import Footer from '@/app/common/Footer';
-import { getScrappedFoods, unscrapFood, type RecommendedFoodResponse } from '@/app/api/bookmarkApi';
+import { getBookmarkedSessions, toggleSessionBookmark, type BookmarkedSessionResponse } from '@/app/api/bookmarkApi';
 
 export default function BookmarksPage() {
-  const [bookmarks, setBookmarks] = useState<RecommendedFoodResponse[]>([]);
+  const [sessions, setSessions] = useState<BookmarkedSessionResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedSession, setExpandedSession] = useState<number | null>(null);
   const hasFetched = useRef(false);
 
   useEffect(() => {
@@ -17,8 +18,8 @@ export default function BookmarksPage() {
     const fetchBookmarks = async () => {
       try {
         setLoading(true);
-        const data = await getScrappedFoods();
-        setBookmarks(data);
+        const data = await getBookmarkedSessions();
+        setSessions(data);
       } catch (error) {
         console.error('북마크 로딩 실패:', error);
       } finally {
@@ -29,16 +30,25 @@ export default function BookmarksPage() {
     fetchBookmarks();
   }, []);
 
-  const handleUnscrap = async (foodId: number) => {
+  const handleRemoveBookmark = async (sessionId: number) => {
     if (!confirm('북마크를 해제하시겠습니까?')) return;
 
     try {
-      await unscrapFood(foodId);
-      setBookmarks(prev => prev.filter(item => item.id !== foodId));
+      await toggleSessionBookmark(sessionId);
+      setSessions(prev => prev.filter(session => session.sessionId !== sessionId));
     } catch (error) {
       console.error('북마크 해제 실패:', error);
       alert('북마크 해제에 실패했습니다.');
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   };
 
   if (loading) {
@@ -58,42 +68,84 @@ export default function BookmarksPage() {
       <Header backLink="/mypage" title="북마크" />
 
       <div className="flex-1 pt-14 pb-20 overflow-y-auto">
-        {bookmarks.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {bookmarks.map(item => (
+        {sessions.length > 0 ? (
+          <div className="px-4 py-4 space-y-4">
+            {sessions.map(session => (
               <div
-                key={item.id}
-                className="px-6 py-4 flex items-center gap-4"
+                key={session.sessionId}
+                className="bg-gray-50 rounded-2xl overflow-hidden"
               >
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.foodName}
-                    className="w-16 h-16 rounded-xl object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">🍽️</span>
-                  </div>
-                )}
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base truncate">{item.foodName}</h3>
-                  {item.description && (
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                      {item.description}
-                    </p>
+                {/* 세션 헤더 */}
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer"
+                  onClick={() => setExpandedSession(
+                    expandedSession === session.sessionId ? null : session.sessionId
                   )}
+                >
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-500">{formatDate(session.createdAt)}</p>
+                    <p className="font-semibold text-gray-800 mt-1">
+                      {session.foods.map(f => f.name).join(', ')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveBookmark(session.sessionId);
+                      }}
+                      className="p-2 text-[#00D9A0] hover:text-red-500 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+                      </svg>
+                    </button>
+                    <svg
+                      className={`w-5 h-5 text-gray-400 transition-transform ${
+                        expandedSession === session.sessionId ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => handleUnscrap(item.id)}
-                  className="p-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
-                >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-                  </svg>
-                </button>
+                {/* 펼쳐진 음식 목록 */}
+                {expandedSession === session.sessionId && (
+                  <div className="border-t border-gray-200 p-4 space-y-4">
+                    {session.foods.map((food, index) => (
+                      <div key={index} className="bg-white rounded-xl p-4">
+                        <h4 className="font-bold text-[#00D9A0] mb-2">{food.name}</h4>
+                        {food.description && (
+                          <p className="text-sm text-gray-700 mb-2">{food.description}</p>
+                        )}
+                        {food.reason && (
+                          <p className="text-sm text-gray-600 mb-2">{food.reason}</p>
+                        )}
+                        {food.ingredients && (
+                          <p className="text-sm text-gray-600">
+                            <span className="font-semibold">재료:</span> {food.ingredients}
+                          </p>
+                        )}
+                        <div className="flex gap-2 mt-2">
+                          {food.cookingTime && (
+                            <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
+                              ⏱️ {food.cookingTime}
+                            </span>
+                          )}
+                          {food.difficulty && (
+                            <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
+                              👨‍🍳 {food.difficulty}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
