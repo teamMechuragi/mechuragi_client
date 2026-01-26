@@ -8,25 +8,25 @@ const CLOUDFRONT_DOMAIN = process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN;
 
 const onboardingContent = [
   {
-    cardImage: `${CLOUDFRONT_DOMAIN}/onboarding/1-card.png`,
+    cardImage: `${CLOUDFRONT_DOMAIN}/images/onboarding/1-card.png`,
     subtitle: 'AI SMART CURATION',
     title: '나보다 내 취향을 더 잘 아는\n스마트한 AI 메뉴 추천',
     themeColor: '#3CDCBA',
   },
   {
-    cardImage: `${CLOUDFRONT_DOMAIN}/onboarding/2-card.png`,
+    cardImage: `${CLOUDFRONT_DOMAIN}/images/onboarding/2-card.png`,
     subtitle: 'DAILY FOOD LOG',
     title: '나만의 맛있는 일상을\n차곡차곡 기록해 보세요',
     themeColor: '#FF9E2C',
   },
   {
-    cardImage: `${CLOUDFRONT_DOMAIN}/onboarding/3-card.png`,
+    cardImage: `${CLOUDFRONT_DOMAIN}/images/onboarding/3-card.png`,
     subtitle: 'COMMUNITY VOTE',
     title: '고민될 땐 망설이지 말고\n함께 투표로 결정하기',
     themeColor: '#00BCD4',
   },
   {
-    cardImage: `${CLOUDFRONT_DOMAIN}/onboarding/4-card.png`,
+    cardImage: `${CLOUDFRONT_DOMAIN}/images/onboarding/4-card.png`,
     subtitle: 'PERSONALIZED',
     title: '더 정교한 상세 설정으로\n완벽한 메뉴 추천을 경험하세요',
     themeColor: '#AB47BC',
