@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import PopularMenuList from "./components/PopularMenuList";
 import AiRecommendationGrid from "./components/AiRecommendationGrid";
 import { motion } from "framer-motion";
+import { useUser } from "@/app/context/UserContext";
 
 export default function HomePage() {
-  const [userName, setUserName] = useState("지민"); 
+  const { user } = useUser();
   const [currentTime, setCurrentTime] = useState("");
   const [greeting, setGreeting] = useState({ top: "", bottom: "" });
 
@@ -44,7 +45,7 @@ export default function HomePage() {
             Today's Recommendation
           </p>
           <h1 className="text-[22px] font-bold text-[#1A1A1A] leading-[1.35] tracking-tight">
-            <span className="text-[#3CDCBA]">{userName}</span>님 <br />
+            <span className="text-[#3CDCBA]">{user?.username || '회원'}</span>님 <br />
             {greeting.top} <br />
             {greeting.bottom}
           </h1>
