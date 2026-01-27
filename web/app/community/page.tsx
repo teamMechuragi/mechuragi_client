@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '../common/Header';
 import Footer from '../common/Footer';
 import HotPostsCarousel from './components/HotPostsCarousel';
@@ -10,6 +11,7 @@ import { getHotVotes, getActiveVotes } from '@/app/api/voteApi';
 import type { VoteResponse } from '@/types/vote';
 
 export default function CommunityPage() {
+  const router = useRouter();
   const [hotVotes, setHotVotes] = useState<VoteResponse[]>([]);
   const [recentVotes, setRecentVotes] = useState<VoteResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +29,9 @@ export default function CommunityPage() {
           console.error('핫한 투표 로딩 실패:', error);
         }
 
-        // 최근 투표 가져오기
+        // 최근 투표 가져오기 (메인에서는 5개만)
         try {
-          const response = await getActiveVotes(0, 10);
+          const response = await getActiveVotes(0, 5);
           setRecentVotes(response?.content || []);
         } catch (error) {
           console.error('최근 투표 로딩 실패:', error);
@@ -68,7 +70,10 @@ export default function CommunityPage() {
 
       {/* 최근 투표 섹션 */}
       <div className="mt-2 bg-white">
-        <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+        <div
+          className="px-6 py-4 flex items-center justify-between border-b border-gray-100 cursor-pointer"
+          onClick={() => router.push('/community/recent')}
+        >
           <h2 className="text-lg font-bold">최근 투표</h2>
           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
