@@ -21,6 +21,7 @@ export interface VoteResponse {
   allowMultipleChoice: boolean;
   totalParticipants: number;
   totalLikes: number;
+  authorId: number;
   authorName: string;
   createdAt: string; // ISO 8601 형식
   options: VoteOptionResponse[];
@@ -63,6 +64,13 @@ export interface VoteCreateRequest {
   deadline: string; // ISO 8601 형식
   allowMultipleChoice?: boolean;
   options: VoteOptionRequest[];
+}
+
+// 투표 수정 요청 (제목, 설명, 마감일만 수정 가능)
+export interface VoteUpdateRequest {
+  title: string;
+  description?: string;
+  deadline: string;
 }
 
 // 투표 옵션 요청

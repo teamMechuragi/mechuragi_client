@@ -6,6 +6,7 @@ import type {
   VoteResponse,
   PageResponse,
   VoteCreateRequest,
+  VoteUpdateRequest,
   VoteParticipationRequest,
   VoteParticipationResponse,
   VoteCommentResponse,
@@ -73,9 +74,9 @@ export async function getMyVotes(
 }
 
 /**
- * 투표 수정 (인증 필요)
+ * 투표 수정 (인증 필요) - 제목, 설명, 마감일만 수정 가능
  */
-export async function updateVote(voteId: number, data: VoteCreateRequest): Promise<VoteResponse> {
+export async function updateVote(voteId: number, data: VoteUpdateRequest): Promise<VoteResponse> {
   return apiRequest<VoteResponse>(`/votes/${voteId}`, {
     method: 'PUT',
     body: JSON.stringify(data),
