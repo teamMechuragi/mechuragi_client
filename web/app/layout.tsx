@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientLayout from "./ClientLayout";
 import { UserProvider } from "./context/UserContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ToastProvider } from "./common/ToastProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <UserProvider>
           <NotificationProvider>
-            <ClientLayout>{children}</ClientLayout>
+            <ToastProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </ToastProvider>
           </NotificationProvider>
         </UserProvider>
       </body>

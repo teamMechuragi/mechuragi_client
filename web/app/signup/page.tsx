@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
 import SignupForm from "./components/SignupForm";
-import { ToastProvider, useToast } from "./components/ToastContainer";
+import { useToast } from "@/app/common/ToastProvider";
 import { signup, checkEmail, checkNickname } from "@/app/api/memberApi";
 
 function SignupPageContent() {
@@ -157,9 +157,5 @@ function SignupPageContent() {
 }
 
 export default function SignupPage() {
-  return (
-    <ToastProvider>
-      <SignupPageContent />
-    </ToastProvider>
-  );
+  return <SignupPageContent />;
 }
