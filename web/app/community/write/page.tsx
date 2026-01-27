@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/common/Header';
 import VoteTypeSelect from './components/VoteTypeSelect';
 import VoteOptionInput from './components/VoteOptionInput';
 import TimeSelector from './components/TimeSelector';
-import { createVote, uploadVoteImage } from '@/app/api/voteApi';
+import { createVote, updateVote, getVote, uploadVoteImage } from '@/app/api/voteApi';
 import type { VoteOptionRequest } from '@/types/vote';
 
 type VoteType = '사진' | '일반' | null;
 
-export default function CommunityWritePage() {
+function CommunityWriteContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('editId');
 
   const [title, setTitle] = useState('투표 제목');
   const [content, setContent] = useState('');
@@ -20,6 +22,7 @@ export default function CommunityWritePage() {
   const [options, setOptions] = useState<string[]>(['', '']);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isMultipleChoice, setIsMultipleChoice] = useState(false);
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
@@ -28,6 +31,35 @@ export default function CommunityWritePage() {
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(30);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 수정 모드일 때 기존 투표 데이터 로드
+  useEffect(() => {
+    if (editId) {
+      const loadVote = async () => {
+        try {
+          const vote = await getVote(Number(editId));
+          setTitle(vote.title);
+          setContent(vote.description || '');
+          setIsMultipleChoice(vote.allowMultipleChoice);
+          setOptions(vote.options.map(opt => opt.optionText));
+
+          // 이미지가 있는지 확인
+          const hasImages = vote.options.some(opt => opt.imageUrl);
+          setVoteType(hasImages ? '사진' : '일반');
+
+          if (hasImages) {
+            const urls = vote.options.map(opt => opt.imageUrl || '');
+            setExistingImageUrls(urls);
+            setImagePreviews(urls);
+          }
+        } catch (error) {
+          console.error('투표 불러오기 실패:', error);
+          alert('투표를 불러오는데 실패했습니다.');
+        }
+      };
+      loadVote();
+    }
+  }, [editId]);
 
   const handleTimeConfirm = (d: number, h: number, m: number) => {
     setDays(d);
@@ -57,7 +89,8 @@ export default function CommunityWritePage() {
       alert('모든 투표 옵션을 입력해주세요');
       return;
     }
-    if (voteType === '사진' && images.length !== options.length) {
+    // 새 투표일 때만 이미지 개수 검증 (수정 모드에서는 기존 이미지 사용 가능)
+    if (voteType === '사진' && !editId && images.length !== options.length) {
       alert('모든 옵션에 사진을 추가해주세요');
       return;
     }
@@ -80,6 +113,7 @@ export default function CommunityWritePage() {
           let imageUrl: string | undefined = undefined;
 
           if (images[i]) {
+            // 새 이미지가 있으면 업로드
             try {
               const uploadResult = await uploadVoteImage(images[i]);
               imageUrl = uploadResult.imageUrl;
@@ -89,6 +123,9 @@ export default function CommunityWritePage() {
               setIsSubmitting(false);
               return;
             }
+          } else if (existingImageUrls[i]) {
+            // 기존 이미지 URL 사용 (수정 모드)
+            imageUrl = existingImageUrls[i];
           }
 
           voteOptions.push({
@@ -105,19 +142,27 @@ export default function CommunityWritePage() {
         }
       }
 
-      // 투표 생성 요청
-      const newVote = await createVote({
-        title: title.trim(),
-        description: content.trim() || undefined,
-        deadline: deadlineDate.toISOString(),
-        allowMultipleChoice: isMultipleChoice,
-        options: voteOptions,
-      });
-
-      console.log('투표 생성 성공:', newVote);
-
-      // 생성된 투표 페이지로 이동
-      router.push(`/community/detail?id=${newVote.id}`);
+      if (editId) {
+        // 투표 수정 요청 (제목, 설명, 마감일만 수정 가능)
+        const updatedVote = await updateVote(Number(editId), {
+          title: title.trim(),
+          description: content.trim() || undefined,
+          deadline: deadlineDate.toISOString(),
+        });
+        console.log('투표 수정 성공:', updatedVote);
+        router.push(`/community/detail?id=${updatedVote.id}`);
+      } else {
+        // 투표 생성 요청
+        const newVote = await createVote({
+          title: title.trim(),
+          description: content.trim() || undefined,
+          deadline: deadlineDate.toISOString(),
+          allowMultipleChoice: isMultipleChoice,
+          options: voteOptions,
+        });
+        console.log('투표 생성 성공:', newVote);
+        router.push(`/community/detail?id=${newVote.id}`);
+      }
     } catch (error) {
       console.error('투표 생성 실패:', error);
       alert('투표 생성에 실패했습니다. 다시 시도해주세요.');
@@ -125,17 +170,23 @@ export default function CommunityWritePage() {
     }
   };
 
+  // 수정 모드에서는 기존 이미지도 유효한 것으로 처리
+  const hasAllImages = editId
+    ? options.every((_, i) => images[i] || existingImageUrls[i])
+    : images.length === options.length;
+
   const isFormValid = title.trim() && title !== '투표 제목' && voteType && options.every(opt => opt.trim()) &&
-    (voteType === '일반' || images.length === options.length);
+    (voteType === '일반' || hasAllImages);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header
         isWrite={true}
         backLink="/community"
-        title="투표 작성"
+        title={editId ? "투표 수정" : "투표 작성"}
         onSubmit={handleSubmit}
         submitDisabled={!isFormValid || isSubmitting}
+        submitText={editId ? "수정" : "등록"}
       />
 
       <div className="flex-1 px-6 pt-20 pb-6 overflow-y-auto">
@@ -161,7 +212,7 @@ export default function CommunityWritePage() {
           />
         </div>
 
-        <VoteTypeSelect voteType={voteType} onSelect={setVoteType} />
+        <VoteTypeSelect voteType={voteType} onSelect={setVoteType} disabled={!!editId} />
 
         {voteType && (
           <VoteOptionInput
@@ -172,6 +223,7 @@ export default function CommunityWritePage() {
             setImages={setImages}
             imagePreviews={imagePreviews}
             setImagePreviews={setImagePreviews}
+            disabled={!!editId}
           />
         )}
 
@@ -181,11 +233,13 @@ export default function CommunityWritePage() {
             <div className="border border-gray-200 rounded-2xl p-4 bg-white">
               <div className="space-y-4">
                 {/* 복수 선택 가능 */}
-                <label 
-                  className="flex items-center justify-between cursor-pointer"
+                <label
+                  className={`flex items-center justify-between ${editId ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsMultipleChoice(!isMultipleChoice);
+                    if (!editId) {
+                      setIsMultipleChoice(!isMultipleChoice);
+                    }
                   }}
                 >
                   <span className="text-sm text-gray-700">복수 선택 가능</span>
@@ -242,5 +296,13 @@ export default function CommunityWritePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CommunityWritePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center text-gray-400">불러오는 중...</div>}>
+      <CommunityWriteContent />
+    </Suspense>
   );
 }

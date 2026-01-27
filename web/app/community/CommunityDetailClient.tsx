@@ -6,19 +6,24 @@ import Header from '@/app/common/Header';
 import Footer from '@/app/common/Footer';
 import Image from 'next/image';
 import type { VoteResponse } from '@/types/vote';
-import { getVote, participateVote, getMyParticipation, cancelParticipation } from '@/app/api/voteApi';
+import { getVote, participateVote, getMyParticipation, cancelParticipation, deleteVote } from '@/app/api/voteApi';
 import LikeButton from './components/LikeButton';
 import CommentSection from './components/CommentSection';
 import { getRelativeTime } from '@/lib/utils/dateFormat';
+import { useUser } from '@/app/context/UserContext';
+import { useToast } from '@/app/common/ToastProvider';
 
 export default function CommunityDetailClient() {
   const router = useRouter();
+  const { user } = useUser();
+  const { showToast } = useToast();
   const [vote, setVote] = useState<VoteResponse | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [hasVoted, setHasVoted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voteId, setVoteId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // URL 파라미터에서 ID 가져오기
   useEffect(() => {
@@ -136,6 +141,32 @@ export default function CommunityDetailClient() {
     }
   };
 
+  // 투표 삭제 핸들러
+  const handleDelete = async () => {
+    if (!voteId) return;
+    try {
+      await deleteVote(voteId);
+      router.push('/community');
+    } catch (err) {
+      console.error('투표 삭제 실패:', err);
+      alert('투표 삭제에 실패했습니다.');
+    }
+  };
+
+  // 투표 수정 핸들러
+  const handleEdit = () => {
+    // 종료된 투표는 수정 불가
+    const expired = vote && new Date(vote.deadline) < new Date();
+    if (expired) {
+      showToast('종료된 투표는 수정이 불가합니다.', 'error');
+      return;
+    }
+    router.push(`/community/write?editId=${voteId}`);
+  };
+
+  // 작성자 여부 확인
+  const isAuthor = user && vote && user.id === vote.authorId;
+
   // 로딩 상태
   if (isLoading) {
     return (
@@ -169,7 +200,13 @@ export default function CommunityDetailClient() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Header backLink="/community" title="투표" />
+      <Header
+        backLink="/community"
+        title="투표"
+        isDetail={isAuthor}
+        onDelete={() => setIsDeleteModalOpen(true)}
+        onEdit={handleEdit}
+      />
 
       <div className="flex-1 px-6 pt-6 pb-24 overflow-y-auto">
         <h2 className="text-2xl font-bold mb-2">{vote.title}</h2>
@@ -353,6 +390,34 @@ export default function CommunityDetailClient() {
         onButtonClick={hasVoted ? handleRevote : handleVote}
         disabled={isExpired || (!hasVoted && selectedOptions.length === 0)}
       />
+
+      {/* 삭제 확인 모달 */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsDeleteModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl p-6 w-full max-w-[280px] text-center shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">투표 삭제</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              정말로 이 투표를 삭제하시겠습니까?<br/>삭제된 내용은 복구할 수 없습니다.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-sm"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-3 bg-[#FF4B4B] text-white rounded-xl font-bold text-sm"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

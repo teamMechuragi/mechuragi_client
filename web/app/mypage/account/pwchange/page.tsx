@@ -7,7 +7,7 @@ import Footer from "@/app/common/Footer";
 import PasswordChangeForm from "./PasswordChangeForm";
 import { changePassword } from "@/app/api/memberApi";
 import { useUser } from "@/app/context/UserContext";
-import { ToastProvider, useToast } from "@/app/signup/components/ToastContainer";
+import { useToast } from "@/app/common/ToastProvider";
 
 function PasswordChangeContent() {
   const router = useRouter();
@@ -170,9 +170,5 @@ function PasswordChangeContent() {
 }
 
 export default function PasswordChangePage() {
-  return (
-    <ToastProvider>
-      <PasswordChangeContent />
-    </ToastProvider>
-  );
+  return <PasswordChangeContent />;
 }
