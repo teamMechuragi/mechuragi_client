@@ -34,6 +34,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/menu-select/result",
     "/settings/details/new",
     "/settings/details/edit",
+    "/settings/details",
     "/mypage",
     "/menu-select/ingredients",
     "/menu-select/ingredients/seasoning",
@@ -49,6 +50,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/signup",             // 회원가입
     "/settings/details/new",   // 상세 설정 (새로 만들기)
     "/settings/details/edit",  // 상세 설정 (수정)
+    "/settings/details",
     "/notifications",
     "/mypage/profile",
     "/mypage/account",

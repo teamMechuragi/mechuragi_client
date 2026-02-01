@@ -197,7 +197,7 @@ export default function EditDetailsClient() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="w-full max-w-md mx-auto sticky top-0 bg-white/90 backdrop-blur-md z-20 border-b border-gray-50">
-        <Header title={editId ? "입맛 수정하기" : "입맛 상세 설정"} backLink="/mypage" />
+        <Header title={editId ? "입맛 수정하기" : "입맛 상세 설정"} backLink="/settings/details" />
       </div>
 
       <div className="flex-1 w-full max-w-md mx-auto px-6 pt-14 pb-40 space-y-12">
