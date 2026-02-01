@@ -70,7 +70,7 @@ export default function MoodPage() {
         <Header title="기분 추천" backLink="/Home" />
       </div>
 
-      <main className="w-full max-w-sm mx-auto px-8 pb-24 flex-1 mt-10">
+      <main className="w-full max-w-sm mx-auto px-8 pb-24 flex-1 pt-14">
         <div className="mb-12">
           <motion.h2 
             initial={{ opacity: 0, x: -10 }}

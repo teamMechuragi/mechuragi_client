@@ -14,7 +14,7 @@ export default function LoginPage() {
         </div>
 
         {/* [상단 컨텐츠] 로고와 문구를 하나의 그룹으로 묶음 */}
-        <div className="relative z-10 px-9 pt-24 pb-12 flex flex-col items-center">
+        <div className="relative z-10 px-9 pb-12 flex flex-col items-center">
           
           {/* [로고 스타일 변경] 단순 이미지가 아닌 원형 유리질(Glassmorphism) 스타일 적용 */}
           <div className="relative w-24 h-24 mb-10 flex items-center justify-center">
