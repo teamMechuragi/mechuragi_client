@@ -4,13 +4,21 @@ import { useState } from "react";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 interface SignupFormProps {
-  form: { email: string; username: string; password: string; confirmPassword: string };
+  form: { 
+    email: string; 
+    username: string; 
+    password: string; 
+    confirmPassword: string;
+    verificationCode: string; // 추가
+  };
   onFormChange: (name: string, value: string) => void;
   errors: Partial<Record<keyof SignupFormProps["form"], string>>;
   emailChecked: boolean;
   usernameChecked: boolean;
+  isEmailVerified: boolean; // 이메일 인증 완료 여부 추가
   onEmailCheck: () => Promise<void>;
   onUsernameCheck: () => Promise<void>;
+  onVerifyCode: () => Promise<void>; // 인증번호 확인 함수 추가
 }
 
 export default function SignupForm({
@@ -19,8 +27,10 @@ export default function SignupForm({
   errors,
   emailChecked,
   usernameChecked,
+  isEmailVerified,
   onEmailCheck,
   onUsernameCheck,
+  onVerifyCode,
 }: SignupFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -49,6 +59,7 @@ export default function SignupForm({
               className={getInputStyle('email', emailChecked)}
               value={form.email}
               onChange={(e) => onFormChange(e.target.name, e.target.value)}
+              disabled={emailChecked} // 중복 확인 후에는 수정 불가하게 처리 (선택 사항)
             />
           </div>
           <button
@@ -66,6 +77,45 @@ export default function SignupForm({
         </div>
         {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.email}</p>}
       </div>
+
+      {/* 이메일 인증 번호 입력 (중복 확인이 완료되었을 때만 노출) */}
+      {emailChecked && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Verification Code</label>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <input
+                name="verificationCode"
+                type="text"
+                placeholder="인증번호 6자리를 입력해주세요"
+                className={getInputStyle('verificationCode', isEmailVerified)}
+                value={form.verificationCode}
+                onChange={(e) => onFormChange(e.target.name, e.target.value)}
+                disabled={isEmailVerified}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onVerifyCode}
+              disabled={isEmailVerified || !form.verificationCode.trim()}
+              className={`px-5 py-2.5 text-[12px] font-black rounded-2xl transition-all h-fit mb-1 ${
+                isEmailVerified 
+                  ? "bg-gray-200 text-gray-500" 
+                  : "bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20"
+              }`}
+            >
+              {isEmailVerified ? '인증됨' : '인증하기'}
+            </button>
+          </div>
+          {errors.verificationCode && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.verificationCode}</p>}
+          {isEmailVerified && (
+            <div className="flex items-center gap-1 mt-2 ml-1 text-[#3CDCBA]">
+              <CheckCircle2 size={12} strokeWidth={3} />
+              <span className="text-[11px] font-black">이메일 인증이 완료되었습니다</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 닉네임 */}
       <div>

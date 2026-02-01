@@ -16,18 +16,21 @@ function SignupPageContent() {
     username: '',
     password: '',
     confirmPassword: '',
+    verificationCode: '',
   });
   const [errors, setErrors] = useState<{
     email?: string;
     username?: string;
     password?: string;
     confirmPassword?: string;
+    verificationCode?: string;
   }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [emailChecked, setEmailChecked] = useState(false);
   const [usernameChecked, setUsernameChecked] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPassword = (password: string) => /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/.test(password);
@@ -95,6 +98,25 @@ function SignupPageContent() {
     }
   };
 
+  const handleVerifyCode = async () => {
+    if (!form.verificationCode.trim()) {
+      showToast('인증번호를 입력해주세요.', 'error');
+      return;
+    }
+    try {
+      // TODO: 실제 인증번호 확인 API 호출
+      // const isValid = await verifyEmailCode(form.email, form.verificationCode);
+      // if (isValid) {
+        setIsEmailVerified(true);
+        showToast('이메일 인증이 완료되었습니다.', 'success');
+      // } else {
+      //   showToast('인증번호가 올바르지 않습니다.', 'error');
+      // }
+    } catch (error) {
+      showToast('인증 확인 중 오류 발생', 'error');
+    }
+  };
+
   const handleSignup = async () => {
     if (loading) return;
     if (!emailChecked || !usernameChecked) {
@@ -139,8 +161,10 @@ function SignupPageContent() {
             errors={errors}
             emailChecked={emailChecked}
             usernameChecked={usernameChecked}
+            isEmailVerified={isEmailVerified}
             onEmailCheck={handleEmailCheck}
             onUsernameCheck={handleUsernameCheck}
+            onVerifyCode={handleVerifyCode}
           />
           {serverError && <p className="text-red-500 text-sm mt-6 text-center font-bold">{serverError}</p>}
         </div>
