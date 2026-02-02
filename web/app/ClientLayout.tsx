@@ -26,46 +26,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 1. 헤더를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideHeaderPaths = [
-    "/",
-    "/login",          // 로그인
-    "/signup",         // 회원가입
-    "/terms",          // 약관
-    "/onboarding",     // 온보딩
-    "/menu-select/result",
-    "/settings/details/new",
-    "/settings/details/edit",
-    "/settings/details",
-    "/mypage",
-    "/menu-select/ingredients",
-    "/menu-select/ingredients/seasoning",
-    "/menu-select/mood",
-    "/menu-select/weather"
+    "/", "/login", "/signup", "/terms", "/onboarding",
+    "/menu-select/result", "/settings/details/new", "/settings/details/edit",
+    "/settings/details", "/mypage", "/menu-select/ingredients",
+    "/menu-select/ingredients/seasoning", "/menu-select/mood", "/menu-select/weather"
   ];
 
   // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideFooterPaths = [
-    "/",
-    "/login",
-    "/terms",              // 약관
-    "/signup",             // 회원가입
-    "/settings/details/new",   // 상세 설정 (새로 만들기)
-    "/settings/details/edit",  // 상세 설정 (수정)
-    "/settings/details",
-    "/notifications",
-    "/mypage/profile",
-    "/mypage/account",
-    "/mypage/account/pwchange",
-    "/mypage/account/withdrawal",
-    "/mypage/notifications",
-    "/menu-select/mood",
-    "/menu-select/weather",
-    "/menu-select/time",
-    "/menu-select/ingredients",
-    "/menu-select/ingredients/seasoning",
-    "/menu-select/Aichat",
-    "/menu-select/result",
-    "/calendar/diary/new",
-    "/onboarding"
+    "/", "/login", "/terms", "/signup", "/settings/details/new",
+    "/settings/details/edit", "/settings/details", "/notifications",
+    "/mypage/profile", "/mypage/account", "/mypage/account/pwchange",
+    "/mypage/account/withdrawal", "/mypage/notifications", "/menu-select/mood",
+    "/menu-select/weather", "/menu-select/time", "/menu-select/ingredients",
+    "/menu-select/ingredients/seasoning", "/menu-select/Aichat",
+    "/menu-select/result", "/calendar/diary/new", "/onboarding"
   ];
 
   // 최종 노출 여부 판단 (정확히 일치하거나 해당 경로로 시작하는 경우 숨김)
@@ -74,21 +49,36 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   const isHome = pathname === "/Home";
 
+  // 온보딩/인증 계열은 화면 전환 시 스크롤바 깜빡임 방지용으로 스크롤을 잠금
+  // (콘텐츠가 1px이라도 넘치면 overflow-y-auto가 스크롤바를 붙였다 떼는 현상이 발생할 수 있음)
+  const lockScrollPaths = ["/onboarding", "/login", "/signup", "/terms"];
+  const shouldLockScroll = lockScrollPaths.some(
+    (path) => pathname === path || (path !== "/" && pathname.startsWith(path + "/"))
+  );
+
   return (
-    <div className="flex flex-col min-h-screen max-w-sm mx-auto bg-white shadow-2xl shadow-black/5 relative overflow-x-hidden">
+    /* [핵심 수정] 
+      1. h-[100dvh]: 화면 높이를 기기 높이에 고정 (위아래 잘림 방지)
+      2. max-w-[430px]: 모든 페이지의 너비를 통일
+      3. overflow-hidden: 액자 밖으로 내용이 나가지 않게 함
+    */
+    <div className="flex flex-col h-[100dvh] max-w-sm mx-auto bg-white shadow-2xl relative overflow-hidden border-x border-gray-100">
       
-      {/* 1. 헤더 렌더링 */}
+      {/* 1. 헤더 (상단 고정) */}
       {!shouldHideHeader && <Header isHome={isHome} />}
 
-      {/* 2. 메인 컨텐츠 영역 */}
-      <main className={`flex-1 w-full 
+      {/* 2. 메인 컨텐츠 영역 
+        - overflow-y-auto: 내용이 길면 여기서만 스크롤이 생김 (푸터/헤더는 고정)
+        - custom-scrollbar: globals.css에 설정한 예쁜 스크롤바 적용
+      */}
+      <main className={`flex-1 w-full relative ${shouldLockScroll ? "overflow-y-hidden" : "overflow-y-auto"}
         ${!shouldHideHeader ? "pt-[60px]" : ""} 
         ${!shouldHideFooter ? "pb-24" : ""}
       `}>
         {children}
       </main>
 
-      {/* 3. 푸터 렌더링 */}
+      {/* 3. 푸터 (하단 고정) */}
       {!shouldHideFooter && <Footer type="nav" />}
     </div>
   );

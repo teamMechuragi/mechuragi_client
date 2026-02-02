@@ -136,8 +136,9 @@ function SignupPageContent() {
   };
 
   return (
-    <div className="flex justify-center items-center w-full min-h-[100dvh] bg-[#F2F4F6]">
-      <div className="relative flex flex-col w-full max-w-[430px] h-[100dvh] bg-white overflow-hidden shadow-2xl">
+    // ClientLayout이 h/[max-w]를 제공하므로, 여기서는 컨텐츠만 렌더링
+    <div className="relative flex flex-col w-full h-full bg-[#F2F4F6]">
+      <div className="relative flex flex-col w-full h-full bg-white overflow-hidden">
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-[#3CDCBA]/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-[25%] -left-20 w-64 h-64 bg-[#3CDCBA]/5 rounded-full blur-[80px] pointer-events-none" />
 

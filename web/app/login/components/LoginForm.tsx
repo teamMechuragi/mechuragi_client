@@ -56,7 +56,7 @@ export default function LoginForm() {
     <div className="flex flex-col items-center w-full relative">
       
       {/* 1. 이메일 입력 칸 */}
-      <div className={`w-full flex items-center px-4 py-4 rounded-2xl border transition-all duration-300 mb-3 ${
+      <div className={`w-full flex items-center px-4 py-4 rounded-[28px] border transition-all duration-300 mb-3 ${
         focusedField === 'email' 
         ? 'border-[#3CDCBA] bg-white shadow-[0_4px_12px_rgba(60,220,186,0.1)]' 
         : 'border-[#E0E0E0] bg-[#F9FAFB]'
@@ -78,7 +78,7 @@ export default function LoginForm() {
       </div>
 
       {/* 2. 비밀번호 입력 칸 */}
-      <div className={`w-full flex items-center px-4 py-4 rounded-2xl border transition-all duration-300 ${
+      <div className={`w-full flex items-center px-4 py-4 rounded-[28px] border transition-all duration-300 ${
         focusedField === 'password' 
         ? 'border-[#3CDCBA] bg-white shadow-[0_4px_12px_rgba(60,220,186,0.1)]' 
         : 'border-[#E0E0E0] bg-[#F9FAFB]'
@@ -107,10 +107,10 @@ export default function LoginForm() {
       {/* 3. 로그인 버튼 - 메인 컬러 적용 */}
       <button
         disabled={!isButtonActive}
-        className={`w-full py-4 rounded-2xl font-bold mt-6 text-[17px] transition-all duration-300 active:scale-[0.98] ${
+        className={`w-full py-3.5 rounded-[45px] font-bold mt-4 text-[17px] transition-all duration-300 active:scale-[0.98] ${
           isButtonActive 
           ? 'bg-[#3CDCBA] text-white shadow-[0_8px_20px_-4px_rgba(60,220,186,0.4)] hover:shadow-[0_12px_24px_-4px_rgba(60,220,186,0.5)]' 
-          : 'bg-[#F2F4F7] text-[#BDBDBD] cursor-not-allowed'
+          : 'bg-[#CCCCCC] text-white cursor-not-allowed'
         }`}
         onClick={handleLogin}
       >
@@ -118,24 +118,23 @@ export default function LoginForm() {
       </button>
 
       {/* 4. 보조 메뉴 */}
-      <div className="flex justify-center items-center text-[13px] text-gray-400 mt-5 gap-3">
+      <div className="flex justify-center items-center text-[13px] text-gray-400 mt-6 gap-3">
         <button className="hover:text-gray-700 transition-colors">이메일 찾기</button>
         <span className="w-[1px] h-3 bg-gray-200" />
         <button className="hover:text-gray-700 transition-colors">비밀번호 찾기</button>
       </div>
 
       {/* 5. 간편 로그인 구분선 */}
-      <div className="relative w-full flex items-center justify-center py-4 mt-12 mb-2">
-        <div className="absolute w-full border-t border-[#F2F4F7]"></div>
-        <span className="bg-white px-4 text-[#ADB5BD] text-[11px] font-black tracking-[0.2em] relative z-10">
-          SNS LOGIN
-        </span>
+      <div className="w-full flex justify-center mt-12 mb-2">
+        
+        <span className="text-gray-300 text-[11px] font-bold tracking-widest uppercase">SNS LOGIN</span>
+        
       </div>
 
       <SocialLogin />
 
       {/* 6. 회원가입 독립 배치 */}
-      <div className="mt-12 text-center pb-6">
+      <div className="mt-6 text-center pb-6">
         <span className="text-[14px] text-gray-400">아직 계정이 없으신가요?</span>
         <Link href="/terms" className="ml-3 text-[14px] font-bold text-[#191F28] border-b-2 border-[#191F28] pb-0.5 hover:text-[#3CDCBA] hover:border-[#3CDCBA] transition-all">
           회원가입하기
