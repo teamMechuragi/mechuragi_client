@@ -46,17 +46,19 @@ export default function OnboardingPage() {
     }
   };
 
+  // 이전 슬라이드로 이동하는 함수 추가
+  const handlePrev = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
   const current = onboardingContent[currentSlide];
 
   return (
-    /**
-     * [수정 핵심]
-     * 1. 최외곽의 flex items-center, min-h-[100dvh], max-w-[430px]를 모두 삭제했습니다.
-     * 2. 이제 ClientLayout이 제공하는 규격(h-full, w-full) 안에서 컨텐츠만 흐릅니다.
-     */
     <div className="relative flex flex-col w-full h-full bg-white">
       
-      {/* 배경: 오로라 효과 (부모 div가 relative이므로 absolute로 잘 붙습니다) */}
+      {/* 배경: 오로라 효과 */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div 
           className="absolute -top-[10%] left-[-10%] w-[120%] h-[50%] rounded-full blur-[100px] opacity-[0.12] transition-colors duration-700 ease-in-out"
@@ -64,9 +66,24 @@ export default function OnboardingPage() {
         />
       </div>
 
-      {/* 상단바: 인디케이터와 Skip 버튼 (여백 pt-12로 최적화) */}
-      <div className="relative flex items-center justify-between px-7 pt-12 shrink-0 z-30">
-        <div className="flex gap-1.5 p-1 rounded-full">
+      {/* 상단바: 좌(이전) / 중(인디케이터) / 우(Skip) */}
+      <div className="relative flex items-center justify-between px-6 pt-8 shrink-0 z-30">
+        {/* 좌측 영역: 이전 버튼 */}
+        <div className="w-10 flex justify-start">
+          {currentSlide > 0 && (
+            <button 
+              onClick={handlePrev}
+              className="p-1 -ml-1 text-gray-400 hover:text-gray-900 transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* 중앙 영역: 인디케이터 */}
+        <div className="flex gap-1.5">
           {onboardingContent.map((_, i) => (
             <div 
               key={i}
@@ -77,12 +94,16 @@ export default function OnboardingPage() {
             />
           ))}
         </div>
-        <button 
-          onClick={() => router.push('/login')} 
-          className="text-gray-400 text-[14px] font-bold hover:text-gray-600 transition-colors"
-        >
-          Skip
-        </button>
+
+        {/* 우측 영역: Skip 버튼 */}
+        <div className="w-10 flex justify-end">
+          <button 
+            onClick={() => router.push('/login')} 
+            className="text-gray-400 text-[14px] font-bold hover:text-gray-600 transition-colors whitespace-nowrap"
+          >
+            Skip
+          </button>
+        </div>
       </div>
 
       {/* 메인 슬라이드 영역 */}
@@ -104,7 +125,7 @@ export default function OnboardingPage() {
                 </h1>
               </div>
 
-              {/* 이미지 영역: 하단 여유 공간 확보를 위해 top-[40px]로 상향 */}
+              {/* 이미지 영역 */}
               <div className="relative flex-1 w-full mt-4">
                 <div className="absolute inset-x-0 top-[40px] bottom-0 flex justify-center items-start">
                   <div className="relative w-full h-[110%] transform-gpu scale-105">
@@ -124,7 +145,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* 푸터 버튼: pb-10으로 버튼 위치 안정화 */}
+      {/* 푸터 버튼 */}
       <div className="relative z-40 px-6 pb-10 bg-white shrink-0">
         <button
           onClick={handleNext}
