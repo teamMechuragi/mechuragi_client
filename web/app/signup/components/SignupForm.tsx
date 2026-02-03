@@ -14,11 +14,13 @@ interface SignupFormProps {
   onFormChange: (name: string, value: string) => void;
   errors: Partial<Record<keyof SignupFormProps["form"], string>>;
   emailChecked: boolean;
+  emailSent: boolean;
   usernameChecked: boolean;
-  isEmailVerified: boolean; // 이메일 인증 완료 여부 추가
+  isEmailVerified: boolean;
   onEmailCheck: () => Promise<void>;
+  onSendVerification: () => Promise<void>;
   onUsernameCheck: () => Promise<void>;
-  onVerifyCode: () => Promise<void>; // 인증번호 확인 함수 추가
+  onVerifyCode: () => Promise<void>;
 }
 
 export default function SignupForm({
@@ -26,9 +28,11 @@ export default function SignupForm({
   onFormChange,
   errors,
   emailChecked,
+  emailSent,
   usernameChecked,
   isEmailVerified,
   onEmailCheck,
+  onSendVerification,
   onUsernameCheck,
   onVerifyCode,
 }: SignupFormProps) {
@@ -78,8 +82,21 @@ export default function SignupForm({
         {errors.email && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{errors.email}</p>}
       </div>
 
-      {/* 이메일 인증 번호 입력 (중복 확인이 완료되었을 때만 노출) */}
-      {emailChecked && (
+      {/* 인증메일 발송 버튼 (중복 확인 완료 후 노출) */}
+      {emailChecked && !emailSent && !isEmailVerified && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <button
+            type="button"
+            onClick={onSendVerification}
+            className="w-full py-3 text-[13px] font-black rounded-2xl bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20 transition-all"
+          >
+            인증메일 발송
+          </button>
+        </div>
+      )}
+
+      {/* 이메일 인증 번호 입력 (인증메일 발송 후 노출) */}
+      {emailSent && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
           <label className="text-[12px] font-black text-gray-400 uppercase tracking-widest ml-0">Verification Code</label>
           <div className="flex items-end gap-3">
@@ -99,8 +116,8 @@ export default function SignupForm({
               onClick={onVerifyCode}
               disabled={isEmailVerified || !form.verificationCode.trim()}
               className={`px-5 py-2.5 text-[12px] font-black rounded-2xl transition-all h-fit mb-1 ${
-                isEmailVerified 
-                  ? "bg-gray-200 text-gray-500" 
+                isEmailVerified
+                  ? "bg-gray-200 text-gray-500"
                   : "bg-[#3CDCBA] text-white shadow-lg shadow-[#3CDCBA]/20"
               }`}
             >
