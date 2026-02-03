@@ -7,6 +7,7 @@ import Footer from "../common/Footer";
 import SignupForm from "./components/SignupForm";
 import { useToast } from "@/app/common/ToastProvider";
 import { signup, checkEmail, checkNickname } from "@/app/api/memberApi";
+import { sendVerificationEmail, verifyEmailCode } from "@/app/api/emailApi";
 
 function SignupPageContent() {
   const router = useRouter();
@@ -29,6 +30,7 @@ function SignupPageContent() {
   const [loading, setLoading] = useState(false);
 
   const [emailChecked, setEmailChecked] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [usernameChecked, setUsernameChecked] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
 
@@ -80,6 +82,16 @@ function SignupPageContent() {
     }
   };
 
+  const handleSendVerification = async () => {
+    try {
+      await sendVerificationEmail(form.email);
+      setEmailSent(true);
+      showToast('인증 메일이 발송되었습니다.', 'success');
+    } catch (error: any) {
+      showToast(error.message || '인증 메일 발송 중 오류 발생', 'error');
+    }
+  };
+
   const handleUsernameCheck = async () => {
     if (!form.username.trim()) {
       showToast('닉네임을 입력해주세요.', 'error');
@@ -104,16 +116,11 @@ function SignupPageContent() {
       return;
     }
     try {
-      // TODO: 실제 인증번호 확인 API 호출
-      // const isValid = await verifyEmailCode(form.email, form.verificationCode);
-      // if (isValid) {
-        setIsEmailVerified(true);
-        showToast('이메일 인증이 완료되었습니다.', 'success');
-      // } else {
-      //   showToast('인증번호가 올바르지 않습니다.', 'error');
-      // }
-    } catch (error) {
-      showToast('인증 확인 중 오류 발생', 'error');
+      await verifyEmailCode(form.email, form.verificationCode);
+      setIsEmailVerified(true);
+      showToast('이메일 인증이 완료되었습니다.', 'success');
+    } catch (error: any) {
+      showToast(error.message || '인증번호가 올바르지 않습니다.', 'error');
     }
   };
 
@@ -161,9 +168,11 @@ function SignupPageContent() {
             onFormChange={handleChange}
             errors={errors}
             emailChecked={emailChecked}
+            emailSent={emailSent}
             usernameChecked={usernameChecked}
             isEmailVerified={isEmailVerified}
             onEmailCheck={handleEmailCheck}
+            onSendVerification={handleSendVerification}
             onUsernameCheck={handleUsernameCheck}
             onVerifyCode={handleVerifyCode}
           />

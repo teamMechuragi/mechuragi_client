@@ -118,7 +118,12 @@ export async function apiRequestPublic<T>(
     return {} as T;
   }
 
-  return response.json();
+  const text = await response.text();
+  if (!text || text.trim() === '') {
+    return {} as T;
+  }
+
+  return JSON.parse(text);
 }
 
 export { API_BASE_URL, RECOMMEND_BASE_URL };
