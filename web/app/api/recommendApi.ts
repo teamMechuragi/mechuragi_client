@@ -108,7 +108,7 @@ async function recommendRequest(data: RecommendRequest): Promise<FoodRecommendat
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${RECOMMEND_BASE_URL}`, {
+  const response = await fetch(`${RECOMMEND_BASE_URL}/food`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
