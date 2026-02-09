@@ -93,27 +93,56 @@ export async function deleteVote(voteId: number): Promise<void> {
 }
 
 /**
- * 투표 이미지 업로드
+ * 이미지 업로드용 Pre-signed URL 발급
  */
-export async function uploadVoteImage(file: File): Promise<{ imageUrl: string }> {
-  const formData = new FormData();
-  formData.append('file', file);
-
+async function getPresignedUploadUrl(filename: string, contentType: string): Promise<{ uploadUrl: string; imageUrl: string }> {
   const token = localStorage.getItem('accessToken');
 
-  const response = await fetch(`${API_BASE_URL}/votes/upload-image`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/votes/presigned-url?filename=${encodeURIComponent(filename)}&contentType=${encodeURIComponent(contentType)}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!response.ok) {
-    throw new Error('이미지 업로드 실패');
+    throw new Error('Pre-signed URL 발급 실패');
   }
 
   return response.json();
+}
+
+/**
+ * 투표 이미지 업로드 (Pre-signed URL 방식)
+ * 1. 서버에서 Pre-signed URL 발급
+ * 2. S3에 직접 업로드
+ * 3. CDN URL 반환
+ */
+export async function uploadVoteImage(file: File): Promise<{ imageUrl: string }> {
+  // 1. Pre-signed URL 발급
+  const { uploadUrl, imageUrl } = await getPresignedUploadUrl(
+    file.name,
+    file.type || 'image/jpeg'
+  );
+
+  // 2. S3에 직접 업로드
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type || 'image/jpeg',
+    },
+    body: file,
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error('이미지 업로드 실패');
+  }
+
+  // 3. CDN URL 반환
+  return { imageUrl };
 }
 
 // ============================================
