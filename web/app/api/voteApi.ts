@@ -2,6 +2,7 @@
  * 투표(커뮤니티) 관련 API
  */
 import { apiRequest, apiRequestPublic, API_BASE_URL } from './apiClient';
+import imageCompression from 'browser-image-compression';
 import type {
   VoteResponse,
   PageResponse,
@@ -116,32 +117,53 @@ async function getPresignedUploadUrl(filename: string, contentType: string): Pro
 }
 
 /**
- * 투표 이미지 업로드 (Pre-signed URL 방식)
- * 1. 서버에서 Pre-signed URL 발급
- * 2. S3에 직접 업로드
- * 3. CDN URL 반환
+ * 이미지 압축 옵션
+ */
+const compressionOptions = {
+  maxSizeMB: 1,           // 최대 1MB
+  maxWidthOrHeight: 1920, // 최대 해상도
+  useWebWorker: true,     // 백그라운드 처리로 UI 블로킹 방지
+  fileType: 'image/jpeg', // JPEG로 변환 (압축률 좋음)
+};
+
+/**
+ * 투표 이미지 업로드 (Pre-signed URL 방식 + 이미지 압축)
+ * 1. 클라이언트에서 이미지 압축
+ * 2. 서버에서 Pre-signed URL 발급
+ * 3. S3에 직접 업로드
+ * 4. CDN URL 반환
  */
 export async function uploadVoteImage(file: File): Promise<{ imageUrl: string }> {
-  // 1. Pre-signed URL 발급
+  // 1. 이미지 압축
+  let compressedFile: File;
+  try {
+    compressedFile = await imageCompression(file, compressionOptions);
+    console.log(`이미지 압축: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+  } catch (error) {
+    console.warn('이미지 압축 실패, 원본 사용:', error);
+    compressedFile = file;
+  }
+
+  // 2. Pre-signed URL 발급
   const { uploadUrl, imageUrl } = await getPresignedUploadUrl(
-    file.name,
-    file.type || 'image/jpeg'
+    file.name.replace(/\.[^/.]+$/, '.jpg'), // 확장자를 jpg로 변경
+    'image/jpeg'
   );
 
-  // 2. S3에 직접 업로드
+  // 3. S3에 직접 업로드
   const uploadResponse = await fetch(uploadUrl, {
     method: 'PUT',
     headers: {
-      'Content-Type': file.type || 'image/jpeg',
+      'Content-Type': 'image/jpeg',
     },
-    body: file,
+    body: compressedFile,
   });
 
   if (!uploadResponse.ok) {
     throw new Error('이미지 업로드 실패');
   }
 
-  // 3. CDN URL 반환
+  // 4. CDN URL 반환
   return { imageUrl };
 }
 
