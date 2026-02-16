@@ -68,17 +68,18 @@ export default function OAuthSuccess() {
           // 4. preferences 로드
           await refreshPreferences();
 
-          // 5. 홈으로 이동
-          window.location.href = "/Home";
+          // 5. 홈으로 이동 (window.location.href 대신 router.push 사용)
+          // window.location.href는 풀 리로드 → CloudFront가 루트 index.html(온보딩) fallback → 온보딩+홈 섞임
+          router.push("/Home");
         } catch (error) {
           console.error("🔴 [OAuth] getMyInfo 실패:", error);
           alert("로그인 처리 중 오류가 발생했습니다");
-          window.location.href = "/login";
+          router.push("/login");
         }
       } else {
         console.log("🔴 [OAuth] 토큰이 없음 - else 블록 진입");
         alert("로그인 실패 또는 토큰이 없습니다");
-        window.location.href = "/login";
+        router.push("/login");
       }
     };
 
