@@ -165,7 +165,7 @@ export default function CommunityDetailClient() {
   };
 
   // 작성자 여부 확인
-  const isAuthor = user && vote && user.id === vote.authorId;
+  const isAuthor = !!(user && vote && user.id === vote.authorId);
 
   // 로딩 상태
   if (isLoading) {
