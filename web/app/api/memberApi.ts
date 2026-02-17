@@ -1,7 +1,8 @@
 /**
  * 회원 정보 관련 API
  */
-import { apiRequest, apiRequestPublic } from './apiClient';
+import { apiRequest, apiRequestPublic, API_BASE_URL } from './apiClient';
+import imageCompression from 'browser-image-compression';
 
 // ============================================
 // 타입 정의
@@ -71,17 +72,78 @@ export async function updateNickname(data: UpdateNicknameRequest): Promise<Membe
 }
 
 /**
- * 내 프로필 이미지 변경
+ * 이미지 압축 옵션
  */
-export async function updateProfileImage(
-  file: File
-): Promise<void> {
-  const formData = new FormData();
-  formData.append('file', file);
+const compressionOptions = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1920,
+  useWebWorker: true,
+  fileType: 'image/jpeg' as const,
+};
 
-  return apiRequest<void>('/members/me/profile-image', {
+/**
+ * 프로필 이미지 업로드용 Pre-signed URL 발급
+ */
+async function getProfilePresignedUrl(filename: string, contentType: string): Promise<{ uploadUrl: string; imageUrl: string }> {
+  const token = localStorage.getItem('accessToken');
+
+  const response = await fetch(
+    `${API_BASE_URL}/members/me/profile-image/presigned-url?filename=${encodeURIComponent(filename)}&contentType=${encodeURIComponent(contentType)}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Pre-signed URL 발급 실패');
+  }
+
+  return response.json();
+}
+
+/**
+ * 내 프로필 이미지 변경 (Pre-signed URL 방식)
+ * 1. 이미지 압축
+ * 2. Pre-signed URL 발급
+ * 3. S3에 직접 업로드
+ * 4. 서버에 imageUrl 전달
+ */
+export async function updateProfileImage(file: File): Promise<void> {
+  // 1. 이미지 압축
+  let compressedFile: File;
+  try {
+    compressedFile = await imageCompression(file, compressionOptions);
+  } catch (error) {
+    console.warn('이미지 압축 실패, 원본 사용:', error);
+    compressedFile = file;
+  }
+
+  // 2. Pre-signed URL 발급
+  const { uploadUrl, imageUrl } = await getProfilePresignedUrl(
+    file.name.replace(/\.[^/.]+$/, '.jpg'),
+    'image/jpeg'
+  );
+
+  // 3. S3에 직접 업로드
+  const uploadResponse = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'image/jpeg',
+    },
+    body: compressedFile,
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error('S3 업로드 실패');
+  }
+
+  // 4. 서버에 imageUrl 전달
+  await apiRequest<void>('/members/me/profile-image', {
     method: 'PATCH',
-    body: formData,
+    body: JSON.stringify({ imageUrl }),
   });
 }
 
