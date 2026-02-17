@@ -36,6 +36,11 @@ export interface NotificationSettingResponse{
   enabled: boolean;
 }
 
+export interface ResetPasswordRequest {
+  email: string;
+  newPassword: string;
+}
+
 export interface SignupRequest {
   email: string;
   password: string;
@@ -192,6 +197,16 @@ export async function withdrawal(): Promise<void> {
 export async function signup(data: SignupRequest): Promise<SignupResponse> {
   return apiRequestPublic<SignupResponse>('/members/signup', {
     method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * 비밀번호 재설정 (비로그인 상태, 이메일 인증 후)
+ */
+export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
+  return apiRequestPublic<void>('/members/reset-password', {
+    method: 'PUT',
     body: JSON.stringify(data),
   });
 }

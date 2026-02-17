@@ -26,7 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 1. 헤더를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideHeaderPaths = [
-    "/", "/login", "/signup", "/terms", "/onboarding",
+    "/", "/login", "/signup", "/terms", "/onboarding", "/find-pw",
     "/menu-select/result", "/settings/details/new", "/settings/details/edit",
     "/settings/details", "/mypage", "/menu-select/ingredients",
     "/menu-select/ingredients/seasoning", "/menu-select/mood", "/menu-select/weather"
@@ -34,7 +34,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)
   const hideFooterPaths = [
-    "/", "/login", "/terms", "/signup", "/settings/details/new",
+    "/", "/login", "/terms", "/signup", "/find-pw", "/settings/details/new",
     "/settings/details/edit", "/settings/details", "/notifications",
     "/mypage/profile", "/mypage/account", "/mypage/account/pwchange",
     "/mypage/account/withdrawal", "/mypage/notifications", "/menu-select/mood",
@@ -51,7 +51,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 온보딩/인증 계열은 화면 전환 시 스크롤바 깜빡임 방지용으로 스크롤을 잠금
   // (콘텐츠가 1px이라도 넘치면 overflow-y-auto가 스크롤바를 붙였다 떼는 현상이 발생할 수 있음)
-  const lockScrollPaths = ["/onboarding", "/login", "/signup", "/terms"];
+  const lockScrollPaths = ["/onboarding", "/login", "/signup", "/terms", "/find-pw"];
   const shouldLockScroll = lockScrollPaths.some(
     (path) => pathname === path || (path !== "/" && pathname.startsWith(path + "/"))
   );

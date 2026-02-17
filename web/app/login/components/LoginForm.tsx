@@ -119,9 +119,7 @@ export default function LoginForm() {
 
       {/* 4. 보조 메뉴 */}
       <div className="flex justify-center items-center text-[13px] text-gray-400 mt-6 gap-3">
-        <button className="hover:text-gray-700 transition-colors">이메일 찾기</button>
-        <span className="w-[1px] h-3 bg-gray-200" />
-        <button className="hover:text-gray-700 transition-colors">비밀번호 찾기</button>
+        <Link href="/find-pw" className="hover:text-gray-700 transition-colors">비밀번호 찾기</Link>
       </div>
 
       {/* 5. 간편 로그인 구분선 */}
