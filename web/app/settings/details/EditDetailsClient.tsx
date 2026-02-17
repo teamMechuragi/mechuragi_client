@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
+import { useToast } from "@/app/common/ToastProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   getPreference,
@@ -37,6 +38,7 @@ const SectionTitle = ({ title, isDone = false, required = false, sub = "" }: { t
 export default function EditDetailsClient() {
   const router = useRouter();
   const { refreshPreferences } = useUser();
+  const { showToast } = useToast();
   const [editId, setEditId] = useState<string | null>(null);
 
   // 쿼리 파라미터에서 id 가져오기 (클라이언트에서만 실행)
@@ -109,7 +111,7 @@ export default function EditDetailsClient() {
           // 데이터 유효성 검증
           if (!data || !data.preferenceName) {
             console.error("[EditDetails] 유효하지 않은 응답 데이터:", data);
-            alert("데이터를 불러오는데 실패했습니다. (빈 응답)");
+            showToast("데이터를 불러오는데 실패했습니다.", "error");
             return;
           }
 
@@ -127,7 +129,7 @@ export default function EditDetailsClient() {
           console.log("[EditDetails] 상태 업데이트 완료");
         } catch (error) {
           console.error("[EditDetails] 데이터 로드 실패:", error);
-          alert(`데이터를 불러오는데 실패했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
+          showToast("데이터를 불러오는데 실패했습니다.", "error");
         }
       };
       fetchDetail();
@@ -144,9 +146,9 @@ export default function EditDetailsClient() {
 
   // ✅ 저장 로직
   const handleSave = async () => {
-    if (!nickname.trim()) return alert("별칭을 입력해주세요!");
-    if (selectedPreferences.length === 0) return alert("선호 카테고리를 선택해주세요.");
-    if (!selectedDiet || !selectedVegan || !selectedSpiceLevel) return alert("필수 항목을 모두 선택해주세요.");
+    if (!nickname.trim()) { showToast("별칭을 입력해주세요!", "error"); return; }
+    if (selectedPreferences.length === 0) { showToast("선호 카테고리를 선택해주세요.", "error"); return; }
+    if (!selectedDiet || !selectedVegan || !selectedSpiceLevel) { showToast("필수 항목을 모두 선택해주세요.", "error"); return; }
 
     setIsSubmitting(true);
 
@@ -174,7 +176,7 @@ export default function EditDetailsClient() {
 
     } catch (error) {
       console.error("API 저장 에러:", error);
-      alert(`저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
+      showToast("저장 중 오류가 발생했습니다.", "error");
     } finally {
       setIsSubmitting(false);
     }
