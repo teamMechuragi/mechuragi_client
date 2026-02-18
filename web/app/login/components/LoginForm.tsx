@@ -7,6 +7,7 @@ import SocialLogin from "./SocialLogin";
 import Link from "next/link";
 import { useUser } from "@/app/context/UserContext";
 import { login } from "@/app/api/authApi";
+import { ApiError } from "@/app/api/apiClient";
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -46,7 +47,11 @@ export default function LoginForm() {
       await refreshPreferences();
       router.push("/Home");
     } catch (err) {
-      setError("아이디 또는 비밀번호가 잘못되었습니다.");
+      if (err instanceof ApiError && err.code === 'M005') {
+        setError('카카오로 가입된 계정입니다. 아래 카카오 로그인을 이용해주세요.');
+      } else {
+        setError("아이디 또는 비밀번호가 잘못되었습니다.");
+      }
     }
   };
 

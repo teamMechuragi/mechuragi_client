@@ -2,6 +2,20 @@
  * 공통 API 클라이언트 설정
  */
 
+/**
+ * 백엔드 에러 코드를 포함하는 커스텀 에러 클래스
+ * code: 백엔드 ErrorCode enum의 code 값 (예: "M005", "M002")
+ */
+export class ApiError extends Error {
+  code: string;
+
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+  }
+}
+
 // 일반 API URL (백엔드 서버)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -63,8 +77,9 @@ export async function apiRequest<T>(
 
     const errorData = await response.json().catch(() => ({}));
     const errorMessage = errorData.message || `API Error: ${response.status}`;
-    console.error(`[API Error] ${errorMessage}`, errorData);
-    throw new Error(errorMessage);
+    const errorCode = errorData.code || 'UNKNOWN_ERROR';
+    console.error(`[API Error] code=${errorCode}, message=${errorMessage}`, errorData);
+    throw new ApiError(errorMessage, errorCode);
   }
 
   // 204 No Content인 경우 빈 객체 반환
@@ -111,7 +126,9 @@ export async function apiRequestPublic<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `API Error: ${response.status}`);
+    const errorMessage = errorData.message || `API Error: ${response.status}`;
+    const errorCode = errorData.code || 'UNKNOWN_ERROR';
+    throw new ApiError(errorMessage, errorCode);
   }
 
   if (response.status === 204) {
