@@ -7,6 +7,7 @@ import Footer from "../common/Footer";
 import SignupForm from "./components/SignupForm";
 import { useToast } from "@/app/common/ToastProvider";
 import { signup, checkEmail, checkNickname } from "@/app/api/memberApi";
+import { ApiError } from "@/app/api/apiClient";
 import { sendVerificationEmail, verifyEmailCode } from "@/app/api/emailApi";
 
 function SignupPageContent() {
@@ -75,7 +76,7 @@ function SignupPageContent() {
         setEmailChecked(true);
         showToast('사용 가능한 이메일입니다.', 'success');
       } else {
-        showToast('이미 사용중인 이메일입니다.', 'error');
+        showToast('이미 사용 중인 이메일입니다. 카카오로 가입하셨다면 카카오 로그인을 이용해주세요.', 'error');
       }
     } catch (error) {
       showToast('중복 확인 중 오류 발생', 'error');
@@ -136,7 +137,17 @@ function SignupPageContent() {
       showToast("회원가입 성공!", "success");
       setTimeout(() => router.push("/login"), 1000);
     } catch (error: any) {
-      setServerError(error.message || "서버 통신 실패");
+      if (error instanceof ApiError) {
+        if (error.code === 'M005') {
+          setServerError('카카오로 가입된 이메일입니다. 카카오 로그인을 이용해주세요.');
+        } else if (error.code === 'M002') {
+          setServerError('이미 사용 중인 이메일입니다. 이메일 중복 확인을 다시 해주세요.');
+        } else {
+          setServerError(error.message || '서버 통신 실패');
+        }
+      } else {
+        setServerError(error.message || '서버 통신 실패');
+      }
     } finally {
       setLoading(false);
     }

@@ -28,9 +28,23 @@ export default function OAuthSuccess() {
       const params = new URLSearchParams(window.location.search);
       const accessToken = params.get("accessToken");
       const refreshToken = params.get("refreshToken");
+      const errorCode = params.get("error");
+      const errorMessage = params.get("message");
 
       console.log("🔴 [OAuth] accessToken 존재:", !!accessToken);
       console.log("🔴 [OAuth] refreshToken 존재:", !!refreshToken);
+
+      // 백엔드 OAuth2FailureHandler가 에러 코드를 쿼리파라미터로 전달한 경우
+      if (errorCode) {
+        console.error("🔴 [OAuth] 로그인 실패 - errorCode:", errorCode, "message:", errorMessage);
+        if (errorCode === "M002") {
+          alert("이미 이메일로 가입된 계정입니다. 이메일과 비밀번호로 로그인해주세요.");
+        } else {
+          alert(errorMessage || "로그인에 실패했습니다. 다시 시도해주세요.");
+        }
+        router.push("/login");
+        return;
+      }
 
       if (accessToken && refreshToken) {
         // 1. 토큰 저장
