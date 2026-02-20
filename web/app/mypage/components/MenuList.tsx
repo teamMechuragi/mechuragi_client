@@ -12,6 +12,7 @@ export default function MenuList() {
     { label: '알림 설정', path: '/mypage/notifications' },
     { label: '사용가이드 FAQ', path: '/mypage/faq' },
     { label: '공지사항', path: '/mypage/notice' },
+    { label: '문의하기', path: '/mypage/contact' },
   ];
 
   return (
