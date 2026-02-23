@@ -126,7 +126,7 @@ export default function TabOneScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <WebView
         ref={webViewRef}
-        source={{ uri: 'https://mechuragi.site/Home' }}
+        source={{ uri: 'https://mechuragi.site/' }}
         style={styles.webview}
         onMessage={handleMessage}
         javaScriptEnabled={true}
