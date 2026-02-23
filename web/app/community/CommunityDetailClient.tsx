@@ -239,10 +239,10 @@ export default function CommunityDetailClient() {
                 <button
                   key={option.id}
                   onClick={() => handleOptionClick(option.id)}
-                  disabled={hasVoted}
+                  disabled={hasVoted || isExpired}
                   className="w-full rounded-2xl text-left transition-all relative overflow-hidden"
                 >
-                  {!hasVoted && (
+                  {!hasVoted && !isExpired && (
                     <div className={`p-5 rounded-2xl ${
                       isSelected
                         ? 'bg-[#3CDCBA] text-white'
@@ -265,7 +265,7 @@ export default function CommunityDetailClient() {
                     </div>
                   )}
 
-                  {hasVoted && (
+                  {(hasVoted || isExpired) && (
                     <div className="relative bg-gray-200 rounded-2xl">
                       <div
                         className={`absolute top-0 left-0 h-full rounded-2xl transition-all duration-500 ${
@@ -312,7 +312,7 @@ export default function CommunityDetailClient() {
                 <button
                   key={option.id}
                   onClick={() => handleOptionClick(option.id)}
-                  disabled={hasVoted}
+                  disabled={hasVoted || isExpired}
                   className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden"
                 >
                   {option.imageUrl ? (
@@ -334,7 +334,7 @@ export default function CommunityDetailClient() {
                     </p>
                   </div>
 
-                  {!hasVoted && isSelected && (
+                  {!hasVoted && !isExpired && isSelected && (
                     <>
                       <div className="absolute inset-0 bg-[#3CDCBA]/30" />
                       <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#3CDCBA] flex items-center justify-center shadow-lg">
@@ -345,7 +345,7 @@ export default function CommunityDetailClient() {
                     </>
                   )}
 
-                  {hasVoted && (
+                  {(hasVoted || isExpired) && (
                     <>
                       {isSelected && (
                         <>
