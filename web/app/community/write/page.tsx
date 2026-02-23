@@ -7,6 +7,7 @@ import VoteTypeSelect from './components/VoteTypeSelect';
 import VoteOptionInput from './components/VoteOptionInput';
 import TimeSelector from './components/TimeSelector';
 import { createVote, updateVote, getVote, uploadVoteImage } from '@/app/api/voteApi';
+import { ApiError } from '@/app/api/apiClient';
 import type { VoteOptionRequest } from '@/types/vote';
 
 type VoteType = '사진' | '일반' | null;
@@ -79,6 +80,14 @@ function CommunityWriteContent() {
     // 유효성 검사
     if (!title.trim() || title === '투표 제목') {
       alert('제목을 입력해주세요');
+      return;
+    }
+    if (title.trim().length > 30) {
+      alert('제목은 30자 이하로 작성해주세요');
+      return;
+    }
+    if (content.trim().length > 100) {
+      alert('내용은 100자 이하로 작성해주세요');
       return;
     }
     if (!voteType) {
@@ -165,7 +174,11 @@ function CommunityWriteContent() {
       }
     } catch (error) {
       console.error('투표 생성 실패:', error);
-      alert('투표 생성에 실패했습니다. 다시 시도해주세요.');
+      if (error instanceof ApiError) {
+        alert(error.message);
+      } else {
+        alert('투표 생성에 실패했습니다. 다시 시도해주세요.');
+      }
       setIsSubmitting(false);
     }
   };
@@ -196,6 +209,7 @@ function CommunityWriteContent() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            maxLength={30}
             className="w-full text-2xl font-bold text-gray-800 bg-white border-0 outline-none p-0 placeholder:text-gray-300"
             placeholder="투표 제목"
           />
@@ -203,13 +217,22 @@ function CommunityWriteContent() {
 
         {/* 투표 설명 */}
         <div className="mb-6">
-          <input
-            type="text"
+          <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            onInput={(e) => {
+              const el = e.currentTarget;
+              el.style.height = 'auto';
+              el.style.height = `${el.scrollHeight}px`;
+            }}
+            maxLength={100}
+            rows={1}
             placeholder="투표 내용을 작성해보세요"
-            className="w-full text-sm text-gray-500 bg-white border-0 outline-none p-0 placeholder:text-gray-300"
+            className="w-full text-sm text-gray-500 bg-white border-0 outline-none p-0 placeholder:text-gray-300 resize-none overflow-hidden"
           />
+          <p className={`text-xs text-right mt-1 ${content.length >= 100 ? 'text-red-400' : 'text-gray-400'}`}>
+            {content.length}/100
+          </p>
         </div>
 
         <VoteTypeSelect voteType={voteType} onSelect={setVoteType} disabled={!!editId} />
