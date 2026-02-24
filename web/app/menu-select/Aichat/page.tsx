@@ -68,21 +68,17 @@ export default function AIChatPage() {
 
         // 추천 결과 저장
         setLastRecommendations({
-          message: "파티에 어울리는 메뉴를 추천해 드릴게요!",
           recommendations: [
             {
               name: "파티 플래터",
-              description: "다양한 종류의 간식과 과일이 담긴 화려한 플래터",
               reason: "분위기를 밝게 만들기에 딱인 메뉴예요.",
             },
             {
               name: "샤브샤브",
-              description: "신선한 고기와 해산물을 넣고 끓여 먹는 음식",
               reason: "각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요.",
             },
             {
               name: "피자 파티",
-              description: "언제나 파티에 잘 어울리는 피자",
               reason: "각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠.",
             },
           ],
@@ -110,26 +106,28 @@ export default function AIChatPage() {
       // API로 채팅 추천 요청
       const data = await getChatRecommendation({
         chatMessage: userMessage.content,
-        dietStatus: activePreferenceDetail.isOnDiet,
+        numberOfDiners: activePreferenceDetail.numberOfDiners,
+        dietStatus: activePreferenceDetail.dietStatus,
         veganOption: activePreferenceDetail.veganOption,
         spiceLevel: activePreferenceDetail.spiceLevel,
         foodTypes: activePreferenceDetail.preferredFoodTypes,
         tastes: activePreferenceDetail.preferredTastes,
-        dislikedFoods: activePreferenceDetail.dislikedFoods,
+        avoidedFoods: activePreferenceDetail.avoidedFoods,
+        allergies: activePreferenceDetail.allergies,
       });
 
       // 추천 결과 저장
       setLastRecommendations(data);
 
       // AI 응답 조합: 메시지 + 추천 결과
-      let responseText = data.message || "";
+      let responseText = "";
 
       const recommendations = data.recommendations || [];
       if (recommendations.length > 0) {
         // 추천 결과를 텍스트로 변환
         recommendations.forEach((food: BedrockRecommendation, index: number) => {
           const menuName = food.name || "메뉴";
-          responseText += `\n\n${menuName}\n${food.description}\n\n${food.reason || ""}`;
+          responseText += `\n\n${menuName}\n\n${food.reason || ""}`;
           if (index < recommendations.length - 1) {
             responseText += "\n\n─────────────";
           }

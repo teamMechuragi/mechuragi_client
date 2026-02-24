@@ -72,21 +72,27 @@ export default function EditDetailsClient() {
   const preferences: FoodType[] = ["한식", "중식", "일식", "양식", "아시안", "디저트", "기타"];
   const habits: TasteType[] = ["단맛", "짠맛", "신맛", "쓴맛", "감칠맛", "고소한맛"];
 
-  // VeganOption UI 표시를 위한 매핑 (UI 라벨: 백엔드 값)
   const veganOptionMap: { label: string; value: VeganOption }[] = [
-    { label: "해당없음", value: "해당없음" },
-    { label: "비건", value: "비건" },
-    { label: "락토", value: "락토_베지테리언" },
-    { label: "오보", value: "오보_베지테리언" },
-    { label: "락토오보", value: "락토_오보_베지테리언" },
-    { label: "페스코", value: "페스코_베지테리언" },
-    { label: "폴로", value: "폴로_베지테리언" },
-    { label: "프루테리언", value: "프루테리언" },
-    { label: "플렉시", value: "플렉시테리언" },
+    { label: "해당없음", value: "NONE" },
+    { label: "비건", value: "VEGAN" },
+    { label: "베지테리언", value: "VEGETARIAN" },
+    { label: "페스코", value: "PESCATARIAN" },
+    { label: "플렉시테리언", value: "FLEXITARIAN" },
   ];
 
-  const dietOptions: DietStatus[] = ["다이어트_중", "해당_없음"];
-  const spiceLevelOptions: SpiceLevel[] = ["맵찔이", "순한맛", "신라면", "불닭", "핵불닭"];
+  const dietOptionMap: { label: string; value: DietStatus }[] = [
+    { label: "해당 없음", value: "NONE" },
+    { label: "다이어트 중", value: "WEIGHT_LOSS" },
+    { label: "근성장", value: "BULKING" },
+    { label: "유지어터", value: "MAINTENANCE" },
+  ];
+  const spiceLevelOptions: { label: string; value: SpiceLevel }[] = [
+    { label: "맵찔이", value: "VERY_MILD" },
+    { label: "순한맛", value: "MILD" },
+    { label: "신라면", value: "MEDIUM" },
+    { label: "불닭", value: "HOT" },
+    { label: "핵불닭", value: "EXTREME" },
+  ];
 
   // ✅ 데이터 불러오기 (수정 모드)
   useEffect(() => {
@@ -118,13 +124,13 @@ export default function EditDetailsClient() {
           // 백엔드 필드명에 맞춰 매핑 (API 명세에 따라 조정 필요)
           setNickname(data.preferenceName);
           setServings(data.numberOfDiners);
-          setAllergies(data.allergyInfo ? data.allergyInfo.split(", ") : []);
-          setSelectedDiet(data.isOnDiet);
+          setAllergies(data.allergies || []);
+          setSelectedDiet(data.dietStatus);
           setSelectedVegan(data.veganOption);
           setSelectedSpiceLevel(data.spiceLevel);
           setSelectedPreferences(data.preferredFoodTypes || []);
           setSelectedHabits(data.preferredTastes || []);
-          setDislikedFoods(data.dislikedFoods || []);
+          setDislikedFoods(data.avoidedFoods || []);
 
           console.log("[EditDetails] 상태 업데이트 완료");
         } catch (error) {
@@ -156,13 +162,13 @@ export default function EditDetailsClient() {
       const payload = {
         preferenceName: nickname.trim(),
         numberOfDiners: servings,
-        allergyInfo: allergies.length > 0 ? allergies.join(", ") : undefined,
-        isOnDiet: selectedDiet,
+        dietStatus: selectedDiet,
         veganOption: selectedVegan,
         spiceLevel: selectedSpiceLevel,
         preferredFoodTypes: selectedPreferences,
         preferredTastes: selectedHabits,
-        dislikedFoods: dislikedFoods.length > 0 ? dislikedFoods : undefined,
+        avoidedFoods: dislikedFoods.length > 0 ? dislikedFoods : undefined,
+        allergies: allergies.length > 0 ? allergies : undefined,
       };
 
       if (editId) {
@@ -191,7 +197,7 @@ export default function EditDetailsClient() {
   const getAnalysisKeywords = () => {
     const tags = [];
     if (selectedPreferences[0]) tags.push(`#${selectedPreferences[0]}`);
-    if (selectedSpiceLevel) tags.push(`#${selectedSpiceLevel}`);
+    if (selectedSpiceLevel) tags.push(`#${spiceLevelOptions.find(o => o.value === selectedSpiceLevel)?.label}`);
     if (servings) tags.push(`#${servings}인분`);
     return tags.slice(0, 3);
   };
@@ -266,14 +272,14 @@ export default function EditDetailsClient() {
         <section>
           <SectionTitle title="매운맛 단계" isDone={selectedSpiceLevel !== ""} required />
           <div className="grid grid-cols-5 gap-1.5">
-            {spiceLevelOptions.map((level) => (
+            {spiceLevelOptions.map((option) => (
               <button
-                key={level}
-                onClick={() => setSelectedSpiceLevel(level)}
+                key={option.value}
+                onClick={() => setSelectedSpiceLevel(option.value)}
                 className={`py-3 rounded-lg text-[10px] font-black border transition-all ${
-                  selectedSpiceLevel === level ? "bg-[#EFFFFB] border-[#3CDCBA] text-[#12B896]" : "bg-white border-gray-100 text-gray-400"
+                  selectedSpiceLevel === option.value ? "bg-[#EFFFFB] border-[#3CDCBA] text-[#12B896]" : "bg-white border-gray-100 text-gray-400"
                 }`}
-              > {level} </button>
+              > {option.label} </button>
             ))}
           </div>
         </section>
@@ -292,15 +298,15 @@ export default function EditDetailsClient() {
               > {v.label} </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            {dietOptions.map((d) => (
+          <div className="grid grid-cols-2 gap-2">
+            {dietOptionMap.map((d) => (
               <button
-                key={d}
-                onClick={() => setSelectedDiet(d)}
-                className={`flex-1 py-4 rounded-xl text-[14px] font-black border transition-all ${
-                  selectedDiet === d ? "bg-[#FF7A5C] border-[#FF7A5C] text-white" : "bg-white border-gray-100 text-gray-400"
+                key={d.value}
+                onClick={() => setSelectedDiet(d.value)}
+                className={`py-4 rounded-xl text-[14px] font-black border transition-all ${
+                  selectedDiet === d.value ? "bg-[#FF7A5C] border-[#FF7A5C] text-white" : "bg-white border-gray-100 text-gray-400"
                 }`}
-              > {d.replace("_", " ")} </button>
+              > {d.label} </button>
             ))}
           </div>
         </section>

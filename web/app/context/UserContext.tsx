@@ -25,13 +25,13 @@ export interface PreferenceDetail {
   id: number;
   preferenceName: string;
   numberOfDiners: number;
-  allergyInfo: string | null;
-  isOnDiet: string;
+  dietStatus: string;
   veganOption: string;
   spiceLevel: string;
   preferredFoodTypes: string[];
   preferredTastes: string[];
-  dislikedFoods: string[];
+  avoidedFoods: string[];
+  allergies: string[];
 }
 
 interface UserContextType {

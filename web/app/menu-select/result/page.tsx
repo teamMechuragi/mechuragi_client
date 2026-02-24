@@ -8,7 +8,6 @@ import { bookmarkLatestSession } from "@/app/api/bookmarkApi";
 
 interface FoodRecommendation {
   name: string;
-  description: string;
   reason: string;
 }
 
@@ -102,10 +101,6 @@ function RecommendResultContent() {
                 <h3 className="text-lg font-bold text-[#00D9A0] mb-2">
                   {food.name}
                 </h3>
-                <p className="text-sm text-gray-700 mb-4 leading-relaxed">
-                  {food.description}
-                </p>
-
                 <div className="space-y-2 text-sm text-gray-600">
                   <p className="leading-relaxed">{food.reason}</p>
                 </div>
