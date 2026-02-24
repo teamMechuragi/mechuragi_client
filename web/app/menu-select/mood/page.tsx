@@ -48,12 +48,14 @@ export default function MoodPage() {
     try {
       const data = await getFeelingRecommendation({
         feeling: selectedOption.message,
-        dietStatus: activePreferenceDetail.isOnDiet,
+        numberOfDiners: activePreferenceDetail.numberOfDiners,
+        dietStatus: activePreferenceDetail.dietStatus,
         veganOption: activePreferenceDetail.veganOption,
         spiceLevel: activePreferenceDetail.spiceLevel,
         foodTypes: activePreferenceDetail.preferredFoodTypes,
         tastes: activePreferenceDetail.preferredTastes,
-        dislikedFoods: activePreferenceDetail.dislikedFoods,
+        avoidedFoods: activePreferenceDetail.avoidedFoods,
+        allergies: activePreferenceDetail.allergies,
       });
       router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);
     } catch (error) {

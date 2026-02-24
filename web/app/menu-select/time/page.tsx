@@ -32,12 +32,14 @@ export default function TimePage() {
     try {
       const data = await getTimeRecommendation({
         mealTime: selectedTime,
-        dietStatus: activePreferenceDetail.isOnDiet,
+        numberOfDiners: activePreferenceDetail.numberOfDiners,
+        dietStatus: activePreferenceDetail.dietStatus,
         veganOption: activePreferenceDetail.veganOption,
         spiceLevel: activePreferenceDetail.spiceLevel,
         foodTypes: activePreferenceDetail.preferredFoodTypes,
         tastes: activePreferenceDetail.preferredTastes,
-        dislikedFoods: activePreferenceDetail.dislikedFoods,
+        avoidedFoods: activePreferenceDetail.avoidedFoods,
+        allergies: activePreferenceDetail.allergies,
       });
 
       router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(data))}`);

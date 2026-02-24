@@ -13,25 +13,25 @@ export interface RecommendRequest {
   type: RecommendationType;
   context: string[];  // type에 따라 다른 값 (WEATHER: ["맑음", "더움"], TIME: ["아침"], etc.)
   // 사용자 취향 데이터
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 // AI가 생성한 개별 추천 항목
 export interface BedrockRecommendation {
   recommendationType: RecommendationType;
   name: string;
-  description: string;
   reason: string;
 }
 
 // API 응답 (여러 추천 항목 포함)
 export interface FoodRecommendationResponse {
-  message: string;
   recommendations: BedrockRecommendation[];
   model: string;
 }
@@ -39,52 +39,62 @@ export interface FoodRecommendationResponse {
 // 편의를 위한 간소화된 요청 인터페이스들
 export interface WeatherRecommendRequest {
   weatherConditions: string[];
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 export interface TimeRecommendRequest {
   mealTime: string;
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 export interface FeelingRecommendRequest {
   feeling: string;
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 export interface IngredientsRecommendRequest {
   ingredients: string[];
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 export interface ChatRecommendRequest {
   chatMessage: string;
+  numberOfDiners?: number;
   dietStatus?: string;
   veganOption?: string;
   spiceLevel?: string;
   foodTypes?: string[];
   tastes?: string[];
-  dislikedFoods?: string[];
+  avoidedFoods?: string[];
+  allergies?: string[];
 }
 
 // ============================================
@@ -126,12 +136,14 @@ export async function getWeatherRecommendation(data: WeatherRecommendRequest): P
   const requestData: RecommendRequest = {
     type: 'WEATHER',
     context: data.weatherConditions,
+    numberOfDiners: data.numberOfDiners,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
     foodTypes: data.foodTypes,
     tastes: data.tastes,
-    dislikedFoods: data.dislikedFoods,
+    avoidedFoods: data.avoidedFoods,
+    allergies: data.allergies,
   };
 
   return recommendRequest(requestData);
@@ -144,12 +156,14 @@ export async function getTimeRecommendation(data: TimeRecommendRequest): Promise
   const requestData: RecommendRequest = {
     type: 'TIME',
     context: [data.mealTime],
+    numberOfDiners: data.numberOfDiners,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
     foodTypes: data.foodTypes,
     tastes: data.tastes,
-    dislikedFoods: data.dislikedFoods,
+    avoidedFoods: data.avoidedFoods,
+    allergies: data.allergies,
   };
 
   return recommendRequest(requestData);
@@ -162,12 +176,14 @@ export async function getFeelingRecommendation(data: FeelingRecommendRequest): P
   const requestData: RecommendRequest = {
     type: 'FEELING',
     context: [data.feeling],
+    numberOfDiners: data.numberOfDiners,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
     foodTypes: data.foodTypes,
     tastes: data.tastes,
-    dislikedFoods: data.dislikedFoods,
+    avoidedFoods: data.avoidedFoods,
+    allergies: data.allergies,
   };
 
   return recommendRequest(requestData);
@@ -180,12 +196,14 @@ export async function getIngredientsRecommendation(data: IngredientsRecommendReq
   const requestData: RecommendRequest = {
     type: 'INGREDIENTS',
     context: data.ingredients,
+    numberOfDiners: data.numberOfDiners,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
     foodTypes: data.foodTypes,
     tastes: data.tastes,
-    dislikedFoods: data.dislikedFoods,
+    avoidedFoods: data.avoidedFoods,
+    allergies: data.allergies,
   };
 
   return recommendRequest(requestData);
@@ -198,12 +216,14 @@ export async function getChatRecommendation(data: ChatRecommendRequest): Promise
   const requestData: RecommendRequest = {
     type: 'CONVERSATION',
     context: [data.chatMessage],
+    numberOfDiners: data.numberOfDiners,
     dietStatus: data.dietStatus,
     veganOption: data.veganOption,
     spiceLevel: data.spiceLevel,
     foodTypes: data.foodTypes,
     tastes: data.tastes,
-    dislikedFoods: data.dislikedFoods,
+    avoidedFoods: data.avoidedFoods,
+    allergies: data.allergies,
   };
 
   return recommendRequest(requestData);

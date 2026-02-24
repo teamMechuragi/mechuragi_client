@@ -119,9 +119,6 @@ export default function BookmarksPage() {
                     {session.foods.map((food, index) => (
                       <div key={index} className="bg-white rounded-xl p-4">
                         <h4 className="font-bold text-[#00D9A0] mb-2">{food.name}</h4>
-                        {food.description && (
-                          <p className="text-sm text-gray-700 mb-2">{food.description}</p>
-                        )}
                         {food.reason && (
                           <p className="text-sm text-gray-600">{food.reason}</p>
                         )}

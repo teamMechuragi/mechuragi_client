@@ -91,12 +91,14 @@ export default function IngredientPage() {
 
       const data = await getIngredientsRecommendation({
         ingredients: allIngredients,
-        dietStatus: activePreferenceDetail?.isOnDiet,
+        numberOfDiners: activePreferenceDetail?.numberOfDiners,
+        dietStatus: activePreferenceDetail?.dietStatus,
         veganOption: activePreferenceDetail?.veganOption,
         spiceLevel: activePreferenceDetail?.spiceLevel,
         foodTypes: activePreferenceDetail?.preferredFoodTypes,
         tastes: activePreferenceDetail?.preferredTastes,
-        dislikedFoods: activePreferenceDetail?.dislikedFoods,
+        avoidedFoods: activePreferenceDetail?.avoidedFoods,
+        allergies: activePreferenceDetail?.allergies,
       });
 
       // 추천 완료 후 저장된 재료 상태 정리
