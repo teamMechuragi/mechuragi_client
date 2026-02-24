@@ -123,25 +123,8 @@ export default function BookmarksPage() {
                           <p className="text-sm text-gray-700 mb-2">{food.description}</p>
                         )}
                         {food.reason && (
-                          <p className="text-sm text-gray-600 mb-2">{food.reason}</p>
+                          <p className="text-sm text-gray-600">{food.reason}</p>
                         )}
-                        {food.ingredients && (
-                          <p className="text-sm text-gray-600">
-                            <span className="font-semibold">재료:</span> {food.ingredients}
-                          </p>
-                        )}
-                        <div className="flex gap-2 mt-2">
-                          {food.cookingTime && (
-                            <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
-                              ⏱️ {food.cookingTime}
-                            </span>
-                          )}
-                          {food.difficulty && (
-                            <span className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
-                              👨‍🍳 {food.difficulty}
-                            </span>
-                          )}
-                        </div>
                       </div>
                     ))}
                   </div>

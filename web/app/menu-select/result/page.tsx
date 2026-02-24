@@ -10,9 +10,6 @@ interface FoodRecommendation {
   name: string;
   description: string;
   reason: string;
-  ingredients: string;
-  cookingTime: string;
-  difficulty: string;
 }
 
 function RecommendResultContent() {
@@ -111,17 +108,6 @@ function RecommendResultContent() {
 
                 <div className="space-y-2 text-sm text-gray-600">
                   <p className="leading-relaxed">{food.reason}</p>
-                  <p className="pt-2 border-t border-gray-200">
-                    <span className="font-semibold text-gray-800">재료:</span> {food.ingredients}
-                  </p>
-                  <div className="flex gap-2 pt-2">
-                    <span className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-gray-700">
-                      ⏱️ {food.cookingTime}
-                    </span>
-                    <span className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-gray-700">
-                      👨‍🍳 난이도: {food.difficulty}
-                    </span>
-                  </div>
                 </div>
               </div>
             ))

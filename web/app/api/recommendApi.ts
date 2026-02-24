@@ -27,9 +27,6 @@ export interface BedrockRecommendation {
   name: string;
   description: string;
   reason: string;
-  ingredients: string;
-  cookingTime: string;
-  difficulty: string;
 }
 
 // API 응답 (여러 추천 항목 포함)

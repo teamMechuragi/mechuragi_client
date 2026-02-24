@@ -9,9 +9,6 @@ export interface RecommendedFoodResponse {
   name: string;
   description?: string;
   reason?: string;
-  ingredients?: string;
-  cookingTime?: string;
-  difficulty?: string;
   isScrapped: boolean;
   createdAt: string;
 }

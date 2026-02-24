@@ -56,71 +56,38 @@ export default function AIChatPage() {
     // 🎨 목업 모드: 가짜 데이터로 응답
     if (MOCK_MODE) {
       setTimeout(() => {
-        const mockResponse = `중감 남의 연을 위기가 능했편대 듣기 좋은 메뉴를 추천해 드릴게요!
-
-파티 플래터
-다양한 종류의 간식과 과일이 담긴 화려한 플래터
-
-다양한 종류의 간식을 한 번에 즐길 수 있는 플래터는 분위기를 밝게 만들기에 딱이야. 치킨, 감자튀김, 새우, 치즈 스틱 등을 담아내게 준비해서 공유하면 누구나 즐길 수 있어.
-
-재료: 치즈, 크래커, 포도, 딸기, 견과류
-⏱️ 15분 | 👨‍🍳 난이도: 하
-
-─────────────
-
-사브사브 또는 쉬리
-주방맛있게 날씨에 각종 신선한 고기, 해산물을 넣고 끓여 먹는 음식이지. 각자 원하는 토핑을 선택해서 즐길 수 있어 좋아.
-
-재료: 채소, 해산물, 고기, 면, 육수
-⏱️ 30분 | 👨‍🍳 난이도: 중
-
-─────────────
-
-피자 파티
-피자는 언제나 파티 음식이 잘 맞아. 각자가 좋아하는 토핑을 골라 피자를 즐길 수 있어서 좋지.
-
-재료: 피자 도우, 토마토 소스, 치즈, 다양한 토핑
-⏱️ 25분 | 👨‍🍳 난이도: 중`;
+        const mockResponse = `파티에 어울리는 메뉴를 추천해 드릴게요!\n\n파티 플래터\n다양한 종류의 간식과 과일이 담긴 화려한 플래터\n\n분위기를 밝게 만들기에 딱인 메뉴예요.\n\n─────────────\n\n샤브샤브\n신선한 고기와 해산물을 넣고 끓여 먹는 음식\n\n각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요.\n\n─────────────\n\n피자 파티\n언제나 파티에 잘 어울리는 피자\n\n각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠.`;
 
         const assistantMessage: Message = {
           role: "assistant",
           content: mockResponse,
           timestamp: new Date(),
         };
-        
+
         setMessages((prev) => [...prev, assistantMessage]);
-        
+
         // 추천 결과 저장
         setLastRecommendations({
-          message: "중감 남의 연을 위기가 능했편대 듣기 좋은 메뉴를 추천해 드릴게요!",
+          message: "파티에 어울리는 메뉴를 추천해 드릴게요!",
           recommendations: [
             {
               name: "파티 플래터",
               description: "다양한 종류의 간식과 과일이 담긴 화려한 플래터",
-              reason: "다양한 종류의 간식을 한 번에 즐길 수 있는 플래터는 분위기를 밝게 만들기에 딱이야. 치킨, 감자튀김, 새우, 치즈 스틱 등을 담아내게 준비해서 공유하면 누구나 즐길 수 있어.",
-              ingredients: "치즈, 크래커, 포도, 딸기, 견과류",
-              cookingTime: "15분",
-              difficulty: "하",
+              reason: "분위기를 밝게 만들기에 딱인 메뉴예요.",
             },
             {
               name: "샤브샤브",
-              description: "주방맛있게 각종 신선한 고기, 해산물을 넣고 끓여 먹는 음식",
-              reason: "주방맛있게 날씨에 각종 신선한 고기, 해산물을 넣고 끓여 먹는 음식이지. 각자 원하는 토핑을 선택해서 즐길 수 있어 좋아.",
-              ingredients: "채소, 해산물, 고기, 면, 육수",
-              cookingTime: "30분",
-              difficulty: "중",
+              description: "신선한 고기와 해산물을 넣고 끓여 먹는 음식",
+              reason: "각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요.",
             },
             {
               name: "피자 파티",
-              description: "피자는 언제나 파티 음식이 잘 맞아",
-              reason: "피자는 언제나 파티 음식이 잘 맞아. 각자가 좋아하는 토핑을 골라 피자를 즐길 수 있어서 좋지.",
-              ingredients: "피자 도우, 토마토 소스, 치즈, 다양한 토핑",
-              cookingTime: "25분",
-              difficulty: "중",
+              description: "언제나 파티에 잘 어울리는 피자",
+              reason: "각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠.",
             },
           ],
         });
-        
+
         setLoading(false);
       }, 1500);
       return;
@@ -162,7 +129,7 @@ export default function AIChatPage() {
         // 추천 결과를 텍스트로 변환
         recommendations.forEach((food: BedrockRecommendation, index: number) => {
           const menuName = food.name || "메뉴";
-          responseText += `\n\n${menuName}\n${food.description}\n\n${food.reason || ""}\n\n재료: ${food.ingredients || "정보 없음"}\n⏱️ ${food.cookingTime || "-"} | 👨‍🍳 난이도: ${food.difficulty || "-"}`;
+          responseText += `\n\n${menuName}\n${food.description}\n\n${food.reason || ""}`;
           if (index < recommendations.length - 1) {
             responseText += "\n\n─────────────";
           }
@@ -260,16 +227,13 @@ export default function AIChatPage() {
                   {message.content.split('\n').map((line, i) => {
                     // 메뉴 이름 감지 (다음 줄이 설명이면 메뉴 이름)
                     const nextLine = message.content.split('\n')[i + 1];
-                    const isMenuName = 
-                      line.trim() && 
-                      !line.includes('재료:') && 
-                      !line.includes('⏱️') && 
+                    const isMenuName =
+                      line.trim() &&
                       !line.includes('─────') &&
                       !line.includes('추천해') &&
                       !line.includes('메뉴를') &&
-                      nextLine && 
-                      nextLine.length > 10 && 
-                      !nextLine.includes('재료');
+                      nextLine &&
+                      nextLine.length > 10;
                     
                     if (isMenuName && line.trim().length < 20) {
                       return (
