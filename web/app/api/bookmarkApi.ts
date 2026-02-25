@@ -9,7 +9,7 @@ export interface RecommendedFoodResponse {
   name: string;
   description?: string;
   reason?: string;
-  isScrapped: boolean;
+  isBookmarked: boolean;
   createdAt: string;
 }
 
