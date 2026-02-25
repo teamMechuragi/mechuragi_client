@@ -18,6 +18,13 @@ export default function LoginForm() {
   const router = useRouter();
   const { setUser, refreshPreferences } = useUser();
 
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      router.replace('/Home');
+    }
+  }, []);
+
   const isValidEmail = (email: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -36,6 +36,14 @@ const onboardingContent = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (hasVisited) {
+      const token = localStorage.getItem('accessToken');
+      router.replace(token ? '/Home' : '/login');
+    }
+  }, []);
 
   const handleNext = () => {
     if (currentSlide < onboardingContent.length - 1) {
@@ -97,8 +105,11 @@ export default function OnboardingPage() {
 
         {/* 우측 영역: Skip 버튼 */}
         <div className="w-10 flex justify-end">
-          <button 
-            onClick={() => router.push('/login')} 
+          <button
+            onClick={() => {
+              localStorage.setItem('hasVisited', 'true');
+              router.push('/login');
+            }}
             className="text-gray-400 text-[14px] font-bold hover:text-gray-600 transition-colors whitespace-nowrap"
           >
             Skip
