@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext"; // 취향 데이터 사용
+import { useLoading } from "@/app/context/LoadingContext"; // 로딩 훅 추가
 import { motion, AnimatePresence } from "framer-motion";
 import { getIngredientsRecommendation } from "@/app/api/recommendApi";
 
@@ -18,6 +19,7 @@ const CATEGORIZED_INGREDIENTS = {
 export default function IngredientPage() {
   const router = useRouter();
   const { activePreferenceDetail } = useUser(); // Context에서 활성화된 상세 취향 가져오기
+  const { startLoading, stopLoading } = useLoading(); // 로딩 훅 사용
   const [activeTab, setActiveTab] = useState<keyof typeof CATEGORIZED_INGREDIENTS>("전체");
   const [inputValue, setInputValue] = useState("");
   const [selectedIngredients, setSelectedIngredients] = useState<{name: string, isUrgent: boolean}[]>([]);
@@ -68,6 +70,8 @@ export default function IngredientPage() {
     if (loading || selectedIngredients.length === 0) return;
 
     setLoading(true);
+    startLoading('AI'); // AI 로딩 스피너 시작
+
     try {
       const urgentItems = selectedIngredients.filter(i => i.isUrgent).map(i => `${i.name}(유통기한 임박)`);
       const normalItems = selectedIngredients.filter(i => !i.isUrgent).map(i => i.name);
@@ -109,6 +113,7 @@ export default function IngredientPage() {
       alert("레시피 추천에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setLoading(false);
+      stopLoading(); // AI 로딩 스피너 종료
     }
   };
 
@@ -141,7 +146,7 @@ export default function IngredientPage() {
             onClick={() => handleAddIngredient(inputValue)}
             className="px-5 py-3.5 bg-[#1A1A1A] text-white rounded-xl font-bold text-[14px]"
           >
-            추가
+            추천
           </button>
         </div>
 

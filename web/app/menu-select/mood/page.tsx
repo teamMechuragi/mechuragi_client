@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
+import { useLoading } from "@/app/context/LoadingContext";
 import { getFeelingRecommendation } from "@/app/api/recommendApi";
 
 export default function MoodPage() {
   const router = useRouter();
   const { activePreferenceDetail } = useUser();
+  const { startLoading, stopLoading } = useLoading();
   const [selectedMood, setSelectedMood] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +47,8 @@ export default function MoodPage() {
     }
 
     setLoading(true);
+    startLoading('AI');
+
     try {
       const data = await getFeelingRecommendation({
         feeling: selectedOption.message,
@@ -63,6 +67,7 @@ export default function MoodPage() {
       alert("추천을 가져오는데 실패했습니다.");
     } finally {
       setLoading(false);
+      stopLoading();
     }
   };
 
@@ -149,6 +154,26 @@ export default function MoodPage() {
           ))}
         </div>
       </main>
+
+      {/* 🌟 활성화된 입맛 배지 표시 🌟 */}
+      {activePreferenceDetail && selectedMood !== "" && (
+        <div className="fixed bottom-[104px] left-0 right-0 flex justify-center z-50 pointer-events-none px-6">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-[#1A1A1A]/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full shadow-xl flex items-center gap-3 pointer-events-auto border border-white/10"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#3CDCBA] rounded-full animate-pulse" />
+              <p className="text-[11px] font-bold">
+                <span className="text-[#3CDCBA]">'{activePreferenceDetail.preferenceName}'</span> 입맛 반영 중
+              </p>
+            </div>
+            <div className="h-3 w-[1px] bg-white/20" />
+            <span className="text-[9px] font-black text-gray-400 uppercase">AI Filter</span>
+          </motion.div>
+        </div>
+      )}
 
       <Footer
         type="button"
