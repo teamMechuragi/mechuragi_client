@@ -29,7 +29,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/", "/login", "/signup", "/terms", "/onboarding", "/find-pw",
     "/menu-select/result", "/settings/details/new", "/settings/details/edit",
     "/settings/details", "/mypage", "/menu-select/ingredients",
-    "/menu-select/ingredients/seasoning", "/menu-select/mood", "/menu-select/weather"
+    "/menu-select/ingredients/seasoning", "/menu-select/mood", "/menu-select/weather" , "/notifications",
+    "/community"
+
   ];
 
   // 2. 푸터를 숨길 경로들 (여기에 숨기고 싶은 경로를 계속 추가하세요)

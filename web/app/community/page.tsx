@@ -62,7 +62,7 @@ export default function CommunityPage() {
 
       {/* 핫한 투표 섹션 */}
       <div className="bg-white pb-6">
-        <div className="px-6 pt-6 pb-4">
+        <div className="px-6 pt-14 pb-4">
           <h2 className="text-lg font-bold">핫한 투표</h2>
         </div>
         <HotPostsCarousel votes={hotVotes} />

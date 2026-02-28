@@ -92,7 +92,7 @@ function GalleryContent() {
         onChange={handleFileChange}
       />
 
-      <main className="pt-14 grid grid-cols-3 gap-[1px]">
+      <main className="grid grid-cols-3 gap-[1px]">
         <div 
           onClick={() => fileInputRef.current?.click()}
           className="relative aspect-square bg-gray-50 flex flex-col items-center justify-center cursor-pointer border border-dashed border-gray-200"

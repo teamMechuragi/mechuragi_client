@@ -58,7 +58,7 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
             className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
-              src={isActive("/calendar/") ? "/icon/calender-active.png" : "/icon/calender.png"} 
+              src={isActive("/calendar/") ? "/icon/calendar-active.png" : "/icon/calendar.png"} 
               alt="캘린더" 
               className="w-10 h-10 object-contain" 
             />
