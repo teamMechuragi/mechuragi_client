@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "메추라기 - AI 메뉴 큐레이션",
     description: "고민은 덜고 취향은 가득채워 AI가 메뉴를 추천해주는 서비스입니다.",
-    images: ["/og-image.png"],
+    images: ["/public/og-image.png"],
   },
 };
 
