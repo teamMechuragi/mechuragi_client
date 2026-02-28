@@ -13,62 +13,55 @@ export default function CalendarGrid({ year, month, diaryEntries, onDateClick }:
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   
-  const weekDays = [
-    { label: '일', color: 'text-red-500' },
-    { label: '월', color: 'text-gray-400' },
-    { label: '화', color: 'text-gray-400' },
-    { label: '수', color: 'text-gray-400' },
-    { label: '목', color: 'text-gray-400' },
-    { label: '금', color: 'text-gray-400' },
-    { label: '토', color: 'text-[#3CDCBA]' },
-  ];
-
+  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+  
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const blanks = Array.from({ length: firstDayOfMonth }, (_, i) => i);
+  
+  // 마지막 주 빈 칸 계산
+  const totalCells = daysInMonth + firstDayOfMonth;
+  const trailingBlanksCount = (7 - (totalCells % 7)) % 7;
+  const trailingBlanks = Array.from({ length: trailingBlanksCount }, (_, i) => i);
 
   return (
-    <div className="w-full select-none">
-      <div className="grid grid-cols-7 mb-2">
-        {weekDays.map((day) => (
-          <div key={day.label} className={`text-center text-[10px] py-2 font-bold ${day.color}`}>
-            {day.label}
+    <div className="w-full">
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 w-full border-t border-l border-gray-100">
+        {weekDays.map((label, i) => (
+          <div key={label} className={`text-center text-[10px] py-2 font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-[#3CDCBA]' : 'text-gray-400'}`}>
+            {label}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 border-t border-l border-gray-100">
+      {/* 날짜 그리드: w-full과 grid-cols-7을 명시적으로 고정 */}
+      <div className="grid grid-cols-7 w-full border-t border-l border-gray-100">
         {blanks.map((_, i) => (
-          <div key={`blank-${i}`} className="h-24 border-b border-r border-gray-100 bg-gray-50/10" />
+          <div key={`blank-${i}`} className="h-24 bg-gray-50/10 border-b border-r border-gray-100" />
         ))}
+        
         {days.map((day) => {
-          // 1. 현재 셀의 날짜를 숫자만 추출 (예: 20260105)
           const currentTarget = `${year}${String(month + 1).padStart(2, '0')}${String(day).padStart(2, '0')}`;
-          
-          // 2. 일기 데이터 중 날짜 숫자만 추출해서 일치하는지 확인
-          const entry = diaryEntries.find(e => {
-            const savedDateNumeric = e.date.replace(/[^0-9]/g, ''); // "2026. 01. 05." -> "20260105"
-            return savedDateNumeric === currentTarget;
-          });
-
+          const entry = diaryEntries.find(e => e.date.replace(/[^0-9]/g, '') === currentTarget);
           const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const dayOfWeek = new Date(year, month, day).getDay();
-
+          
           return (
-            <DateCell
-              key={day}
-              day={day}
-              images={entry?.images}
-              onClick={() => onDateClick(dateString)}
-              isSunday={dayOfWeek === 0}
-              isSaturday={dayOfWeek === 6}
-              isToday={
-                new Date().getFullYear() === year &&
-                new Date().getMonth() === month &&
-                new Date().getDate() === day
-              }
-            />
+            <div key={day} className="h-24 border-b border-r border-gray-100 bg-white">
+              <DateCell
+                day={day}
+                images={entry?.images}
+                onClick={() => onDateClick(dateString)}
+                isSunday={new Date(year, month, day).getDay() === 0}
+                isSaturday={new Date(year, month, day).getDay() === 6}
+                isToday={new Date().getFullYear() === year && new Date().getMonth() === month && new Date().getDate() === day}
+              />
+            </div>
           );
         })}
+
+        {trailingBlanks.map((_, i) => (
+          <div key={`trailing-${i}`} className="h-24 bg-gray-50/10 border-b border-r border-gray-100" />
+        ))}
       </div>
     </div>
   );

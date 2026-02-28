@@ -16,8 +16,8 @@ export default function DateCell({ day, images, onClick, isSunday, isSaturday, i
   return (
     <button
       onClick={onClick}
-      className="relative h-32 w-full flex flex-col items-center overflow-hidden border-b border-r border-gray-100 transition-all active:scale-95 bg-white"
-      /* 모든 셀의 높이를 h-32로 통일하여 줄이 맞도록 설정 */
+      // h-32를 h-full로 변경하여 부모 그리드 높이에 맞춤
+      className="relative h-full w-full flex flex-col items-center overflow-hidden border-b border-r border-gray-100 transition-all active:scale-95 bg-white"
     >
       {/* 1. 날짜 표시: 사진이 없는 날에만 중앙에 표시 */}
       {!hasImages && (
@@ -34,16 +34,16 @@ export default function DateCell({ day, images, onClick, isSunday, isSaturday, i
         </span>
       )}
 
-      {/* 2. 사진 그리드 영역: 사진이 있는 날 전체 영역을 꽉 채움 */}
+      {/* 2. 사진 그리드 영역 */}
       {hasImages && (
         <div className="absolute inset-0 z-0">
           <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-[0.5px]">
-            {/* 사진 1장: 전체 채움 */}
+            {/* 사진 1장 */}
             {images.length === 1 && (
               <img src={images[0]} className="col-span-2 row-span-2 w-full h-full object-cover" alt="" />
             )}
             
-            {/* 사진 2장: 좌우 분할 */}
+            {/* 사진 2장 */}
             {images.length === 2 && (
               <>
                 <img src={images[0]} className="col-span-1 row-span-2 w-full h-full object-cover" alt="" />
@@ -51,7 +51,7 @@ export default function DateCell({ day, images, onClick, isSunday, isSaturday, i
               </>
             )}
 
-            {/* 사진 3장: 왼쪽 크게, 오른쪽 2개 세로 분할 */}
+            {/* 사진 3장 */}
             {images.length === 3 && (
               <>
                 <img src={images[0]} className="col-span-1 row-span-2 w-full h-full object-cover" alt="" />
@@ -62,7 +62,7 @@ export default function DateCell({ day, images, onClick, isSunday, isSaturday, i
               </>
             )}
 
-            {/* 사진 4장 이상: 2x2 격자 및 +N 표시 */}
+            {/* 사진 4장 이상 */}
             {images.length >= 4 && (
               <>
                 <img src={images[0]} className="w-full h-full object-cover" alt="" />
