@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/common/Header";
 import ExitModal from "./components/ExitModal";
 import { useUser } from "@/app/context/UserContext";
+import { useLoading } from "@/app/context/LoadingContext"; 
 import { getChatRecommendation, type FoodRecommendationResponse, type BedrockRecommendation } from "@/app/api/recommendApi";
 
 interface Message {
@@ -16,6 +17,8 @@ interface Message {
 export default function AIChatPage() {
   const router = useRouter();
   const { activePreferenceDetail } = useUser();
+  const { startLoading, stopLoading } = useLoading(); 
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -29,7 +32,6 @@ export default function AIChatPage() {
   const [lastRecommendations, setLastRecommendations] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 🎨 목업 모드 (디자인 확인용)
   const MOCK_MODE = false;
 
   const scrollToBottom = () => {
@@ -51,9 +53,10 @@ export default function AIChatPage() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    
     setLoading(true);
+    startLoading('AI');
 
-    // 🎨 목업 모드: 가짜 데이터로 응답
     if (MOCK_MODE) {
       setTimeout(() => {
         const mockResponse = `파티에 어울리는 메뉴를 추천해 드릴게요!\n\n파티 플래터\n다양한 종류의 간식과 과일이 담긴 화려한 플래터\n\n분위기를 밝게 만들기에 딱인 메뉴예요.\n\n─────────────\n\n샤브샤브\n신선한 고기와 해산물을 넣고 끓여 먹는 음식\n\n각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요.\n\n─────────────\n\n피자 파티\n언제나 파티에 잘 어울리는 피자\n\n각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠.`;
@@ -66,32 +69,21 @@ export default function AIChatPage() {
 
         setMessages((prev) => [...prev, assistantMessage]);
 
-        // 추천 결과 저장
         setLastRecommendations({
           recommendations: [
-            {
-              name: "파티 플래터",
-              reason: "분위기를 밝게 만들기에 딱인 메뉴예요.",
-            },
-            {
-              name: "샤브샤브",
-              reason: "각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요.",
-            },
-            {
-              name: "피자 파티",
-              reason: "각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠.",
-            },
+            { name: "파티 플래터", reason: "분위기를 밝게 만들기에 딱인 메뉴예요." },
+            { name: "샤브샤브", reason: "각자 원하는 토핑을 선택해서 즐길 수 있어 좋아요." },
+            { name: "피자 파티", reason: "각자가 좋아하는 토핑을 골라 즐길 수 있어서 좋죠." },
           ],
         });
 
         setLoading(false);
+        stopLoading();
       }, 1500);
       return;
     }
 
-    // 실제 API 호출
     try {
-      // 활성화된 취향 확인
       if (!activePreferenceDetail) {
         const errorMessage: Message = {
           role: "assistant",
@@ -100,10 +92,10 @@ export default function AIChatPage() {
         };
         setMessages((prev) => [...prev, errorMessage]);
         setLoading(false);
+        stopLoading();
         return;
       }
 
-      // API로 채팅 추천 요청
       const data = await getChatRecommendation({
         chatMessage: userMessage.content,
         numberOfDiners: activePreferenceDetail.numberOfDiners,
@@ -116,15 +108,11 @@ export default function AIChatPage() {
         allergies: activePreferenceDetail.allergies,
       });
 
-      // 추천 결과 저장
       setLastRecommendations(data);
 
-      // AI 응답 조합: 메시지 + 추천 결과
       let responseText = "";
-
       const recommendations = data.recommendations || [];
       if (recommendations.length > 0) {
-        // 추천 결과를 텍스트로 변환
         recommendations.forEach((food: BedrockRecommendation, index: number) => {
           const menuName = food.name || "메뉴";
           responseText += `\n\n${menuName}\n\n${food.reason || ""}`;
@@ -150,6 +138,7 @@ export default function AIChatPage() {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
+      stopLoading();
     }
   };
 
@@ -161,7 +150,6 @@ export default function AIChatPage() {
   };
 
   const handleBackClick = () => {
-    // 추천 결과가 있으면 모달 표시, 없으면 바로 뒤로가기
     if (lastRecommendations) {
       setShowExitModal(true);
     } else {
@@ -170,7 +158,6 @@ export default function AIChatPage() {
   };
 
   const handleExitConfirm = () => {
-    // 추천 결과 페이지로 이동
     if (lastRecommendations) {
       router.push(`/menu-select/result?data=${encodeURIComponent(JSON.stringify(lastRecommendations))}`);
     } else {
@@ -183,23 +170,33 @@ export default function AIChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-[#F2F4F7]">
       {/* 헤더 */}
-      <div className="w-full max-w-sm mx-auto bg-white">
-        <div className="relative flex items-center justify-center py-4 px-6 border-b border-gray-100">
-          <button
-            onClick={handleBackClick}
-            className="absolute left-6"
-          >
+      <div className="w-full max-w-sm mx-auto bg-white sticky top-0 z-20 border-b border-gray-100 shadow-sm">
+        <div className="relative flex items-center justify-center py-4 px-6">
+          <button onClick={handleBackClick} className="absolute left-6">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <h1 className="text-lg font-semibold">AI 대화</h1>
+          
+          <div className="flex flex-col items-center">
+            <h1 className="text-lg font-bold text-gray-800">AI 대화</h1>
+            
+            {/* 상태 인디케이터 (접속 중 / 생각 중) */}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="relative flex h-2 w-2">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${loading ? "bg-amber-400" : "bg-[#00D9A0]"} opacity-75`}></span>
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${loading ? "bg-amber-400" : "bg-[#00D9A0]"}`}></span>
+              </div>
+              <span className={`text-[10px] font-medium tracking-tight ${loading ? "text-amber-500" : "text-gray-400"}`}>
+                {loading ? "생각 중..." : "접속 중"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 모달 */}
       <ExitModal
         isOpen={showExitModal}
         onCancel={handleExitCancel}
@@ -207,100 +204,63 @@ export default function AIChatPage() {
       />
 
       {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 w-full max-w-sm mx-auto">
+      <div className="flex-1 overflow-y-auto px-4 py-6 w-full max-w-sm mx-auto space-y-5">
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`mb-3 flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex animate-in fade-in slide-in-from-bottom-4 duration-300 ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[75%] px-4 py-3 ${
+              className={`max-w-[85%] px-4 py-3 text-[14px] leading-relaxed shadow-sm ${
                 message.role === "user"
                   ? "bg-[#00D9A0] text-white rounded-2xl rounded-tr-sm"
-                  : "bg-white text-gray-800 rounded-2xl rounded-tl-sm shadow-sm"
+                  : "bg-white text-gray-800 rounded-2xl rounded-tl-sm border border-gray-100"
               }`}
             >
               {message.role === "assistant" ? (
-                <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                <div className="whitespace-pre-wrap break-words">
                   {message.content.split('\n').map((line, i) => {
-                    // 메뉴 이름 감지 (다음 줄이 설명이면 메뉴 이름)
                     const nextLine = message.content.split('\n')[i + 1];
-                    const isMenuName =
-                      line.trim() &&
-                      !line.includes('─────') &&
-                      !line.includes('추천해') &&
-                      !line.includes('메뉴를') &&
-                      nextLine &&
-                      nextLine.length > 10;
+                    const isMenuName = line.trim() && !line.includes('─────') && !line.includes('추천해') && !line.includes('메뉴를') && nextLine && nextLine.length > 10;
                     
                     if (isMenuName && line.trim().length < 20) {
-                      return (
-                        <div key={i}>
-                          <strong className="text-[#00D9A0] font-bold">{line}</strong>
-                        </div>
-                      );
+                      return <div key={i} className="font-bold text-[#00D9A0] my-1">{line}</div>;
                     }
                     return <div key={i}>{line || '\u00A0'}</div>;
                   })}
                 </div>
               ) : (
-                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
               )}
             </div>
           </div>
         ))}
-
-        {/* 로딩 중 */}
-        {loading && (
-          <div className="mb-3 flex justify-start">
-            <div className="bg-white px-5 py-3 rounded-2xl rounded-tl-sm shadow-sm">
-              <div className="flex gap-1.5">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></span>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
       {/* 입력 영역 */}
-      <div className="bg-white border-t border-gray-200 w-full max-w-sm mx-auto">
-        <div className="flex items-center gap-2 p-3">
+      <div className="bg-white border-t border-gray-100 w-full max-w-sm mx-auto p-3">
+        <div className="flex items-center gap-2">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="입력하기"
+            placeholder="메뉴를 물어보세요"
             disabled={loading}
-            className="flex-1 px-4 py-3 bg-gray-100 rounded-3xl focus:outline-none focus:bg-gray-200 text-sm transition-colors"
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-[#00D9A0] focus:ring-1 focus:ring-[#00D9A0]/20 text-sm transition-all"
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim() || loading}
-            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
               inputValue.trim() && !loading
-                ? "bg-[#00D9A0] hover:bg-[#00C090] shadow-md"
+                ? "bg-[#00D9A0] hover:bg-[#00C090] shadow-lg shadow-[#00D9A0]/20 scale-100 active:scale-95"
                 : "bg-gray-200"
             }`}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className={inputValue.trim() && !loading ? "text-white" : "text-gray-400"}
-            >
-              <path
-                d="M3 12L21 3L12 21L10 13L3 12Z"
-                fill="currentColor"
-              />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={inputValue.trim() && !loading ? "text-white" : "text-gray-400"}>
+              <path d="M3 12L21 3L12 21L10 13L3 12Z" fill="currentColor" />
             </svg>
           </button>
         </div>

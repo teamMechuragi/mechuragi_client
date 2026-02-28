@@ -6,6 +6,7 @@ import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { useUser } from "@/app/context/UserContext";
 import { useToast } from "@/app/common/ToastProvider";
+import { useLoading } from "@/app/context/LoadingContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   getPreference,
@@ -39,19 +40,17 @@ export default function EditDetailsClient() {
   const router = useRouter();
   const { refreshPreferences } = useUser();
   const { showToast } = useToast();
+  const { startLoading, stopLoading } = useLoading();
   const [editId, setEditId] = useState<string | null>(null);
 
-  // 쿼리 파라미터에서 id 가져오기 (클라이언트에서만 실행)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       setEditId(id && id !== "new" ? id : null);
-      console.log("[EditDetailsClient] Init - URL params id:", id, "editId:", id && id !== "new" ? id : null);
     }
   }, []);
 
-  // 상태 관리
   const [nickname, setNickname] = useState("");
   const [selectedPreferences, setSelectedPreferences] = useState<FoodType[]>([]);
   const [selectedHabits, setSelectedHabits] = useState<TasteType[]>([]);
@@ -94,34 +93,12 @@ export default function EditDetailsClient() {
     { label: "핵불닭", value: "EXTREME" },
   ];
 
-  // ✅ 데이터 불러오기 (수정 모드)
   useEffect(() => {
     if (editId) {
       const fetchDetail = async () => {
         try {
-          console.log("[EditDetails] 데이터 로드 시작, ID:", editId);
-
-          // localStorage 상태 확인
-          const token = localStorage.getItem('accessToken');
-          const user = localStorage.getItem('user');
-          console.log("[EditDetails] localStorage 상태:", {
-            hasToken: !!token,
-            tokenLength: token ? token.length : 0,
-            hasUser: !!user,
-            userPreview: user ? JSON.parse(user).email : 'null'
-          });
-
           const data = await getPreference(parseInt(editId));
-          console.log("[EditDetails] 데이터 로드 성공:", data);
-
-          // 데이터 유효성 검증
-          if (!data || !data.preferenceName) {
-            console.error("[EditDetails] 유효하지 않은 응답 데이터:", data);
-            showToast("데이터를 불러오는데 실패했습니다.", "error");
-            return;
-          }
-
-          // 백엔드 필드명에 맞춰 매핑 (API 명세에 따라 조정 필요)
+          if (!data || !data.preferenceName) return;
           setNickname(data.preferenceName);
           setServings(data.numberOfDiners);
           setAllergies(data.allergies || []);
@@ -131,10 +108,7 @@ export default function EditDetailsClient() {
           setSelectedPreferences(data.preferredFoodTypes || []);
           setSelectedHabits(data.preferredTastes || []);
           setDislikedFoods(data.avoidedFoods || []);
-
-          console.log("[EditDetails] 상태 업데이트 완료");
         } catch (error) {
-          console.error("[EditDetails] 데이터 로드 실패:", error);
           showToast("데이터를 불러오는데 실패했습니다.", "error");
         }
       };
@@ -150,13 +124,13 @@ export default function EditDetailsClient() {
     }
   };
 
-  // ✅ 저장 로직
   const handleSave = async () => {
     if (!nickname.trim()) { showToast("별칭을 입력해주세요!", "error"); return; }
     if (selectedPreferences.length === 0) { showToast("선호 카테고리를 선택해주세요.", "error"); return; }
     if (!selectedDiet || !selectedVegan || !selectedSpiceLevel) { showToast("필수 항목을 모두 선택해주세요.", "error"); return; }
 
     setIsSubmitting(true);
+    startLoading('TASTE');
 
     try {
       const payload = {
@@ -177,14 +151,13 @@ export default function EditDetailsClient() {
         await createPreference(payload);
       }
 
-      await refreshPreferences(); // Context 동기화
-      setIsSaved(true); // 성공 애니메이션 트리거
-
+      await refreshPreferences();
+      setIsSaved(true);
     } catch (error) {
-      console.error("API 저장 에러:", error);
       showToast("저장 중 오류가 발생했습니다.", "error");
     } finally {
       setIsSubmitting(false);
+      stopLoading();
     }
   };
 
@@ -204,12 +177,15 @@ export default function EditDetailsClient() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <div className="w-full max-w-md mx-auto sticky top-0 bg-white/90 backdrop-blur-md z-20 border-b border-gray-50">
-        <Header title={editId ? "입맛 수정하기" : "입맛 상세 설정"} backLink="/settings/details" />
+      <div className="w-full max-w-md mx-auto sticky top-0 bg-white/95 backdrop-blur-md z-20 border-b border-gray-100 px-4 py-3 flex items-center">
+        <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-400 hover:text-black transition-colors">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span className="flex-1 text-center font-black text-[16px]">{editId ? "입맛 수정하기" : "입맛 상세 설정"}</span>
+        <div className="w-10"></div>
       </div>
 
-      <div className="flex-1 w-full max-w-md mx-auto px-6 pt-14 pb-40 space-y-12">
-        {/* 설정 별칭 */}
+      <div className="flex-1 w-full max-w-md mx-auto px-6 pt-8 pb-40 space-y-12">
         <section>
           <SectionTitle title="설정 별칭" isDone={nickname.length > 0} required />
           <input
@@ -221,13 +197,10 @@ export default function EditDetailsClient() {
           />
         </section>
 
-        {/* 식사 인원 */}
         <section>
           <SectionTitle title="식사 인원" isDone={true} required />
           <div className="flex items-center justify-between bg-white border border-gray-100 px-5 py-3.5 rounded-2xl shadow-sm">
-            <span className="text-[15px] font-bold text-[#1A1A1A]">
-              {servings === 1 ? "오늘은 혼자 먹어요 🍚" : `${servings}명이 함께 먹어요 👥`}
-            </span>
+            <span className="text-[15px] font-bold text-[#1A1A1A]">{servings === 1 ? "오늘은 혼자 먹어요 🍚" : `${servings}명이 함께 먹어요 👥`}</span>
             <div className="flex items-center gap-4">
               <button onClick={() => setServings(Math.max(1, servings - 1))} className="w-9 h-9 flex items-center justify-center bg-[#F7F8F9] rounded-full text-gray-500 font-bold active:scale-90">-</button>
               <span className="w-4 text-center font-black text-[16px]">{servings}</span>
@@ -236,82 +209,47 @@ export default function EditDetailsClient() {
           </div>
         </section>
 
-        {/* 선호 카테고리 */}
         <section>
           <SectionTitle title="선호 카테고리" isDone={selectedPreferences.length > 0} required />
           <div className="flex flex-wrap gap-2">
             {preferences.map((pref) => (
-              <button
-                key={pref}
-                onClick={() => toggleSelection(pref, selectedPreferences, setSelectedPreferences)}
-                className={`px-4 py-2.5 rounded-full text-[13px] font-bold border transition-all ${
-                  selectedPreferences.includes(pref) ? "bg-[#3CDCBA] border-[#3CDCBA] text-white shadow-md shadow-[#3CDCBA]/20" : "bg-white border-gray-200 text-gray-400"
-                }`}
-              > {pref} </button>
+              <button key={pref} onClick={() => toggleSelection(pref, selectedPreferences, setSelectedPreferences)} className={`px-4 py-2.5 rounded-full text-[13px] font-bold border transition-all ${selectedPreferences.includes(pref) ? "bg-[#3CDCBA] border-[#3CDCBA] text-white shadow-md shadow-[#3CDCBA]/20" : "bg-white border-gray-200 text-gray-400"}`}> {pref} </button>
             ))}
           </div>
         </section>
-
-        {/* 선호 맛 */}
+        
         <section>
           <SectionTitle title="선호하는 맛" isDone={selectedHabits.length > 0} required />
           <div className="flex flex-wrap gap-2">
             {habits.map((habit) => (
-              <button
-                key={habit}
-                onClick={() => toggleSelection(habit, selectedHabits, setSelectedHabits)}
-                className={`px-4 py-2.5 rounded-full text-[13px] font-bold border transition-all ${
-                  selectedHabits.includes(habit) ? "bg-[#1A1A1A] border-[#1A1A1A] text-white" : "bg-white border-gray-200 text-gray-400"
-                }`}
-              > {habit} </button>
+              <button key={habit} onClick={() => toggleSelection(habit, selectedHabits, setSelectedHabits)} className={`px-4 py-2.5 rounded-full text-[13px] font-bold border transition-all ${selectedHabits.includes(habit) ? "bg-[#1A1A1A] border-[#1A1A1A] text-white" : "bg-white border-gray-200 text-gray-400"}`}> {habit} </button>
             ))}
           </div>
         </section>
 
-        {/* 매운맛 단계 */}
         <section>
           <SectionTitle title="매운맛 단계" isDone={selectedSpiceLevel !== ""} required />
           <div className="grid grid-cols-5 gap-1.5">
             {spiceLevelOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSelectedSpiceLevel(option.value)}
-                className={`py-3 rounded-lg text-[10px] font-black border transition-all ${
-                  selectedSpiceLevel === option.value ? "bg-[#EFFFFB] border-[#3CDCBA] text-[#12B896]" : "bg-white border-gray-100 text-gray-400"
-                }`}
-              > {option.label} </button>
+              <button key={option.value} onClick={() => setSelectedSpiceLevel(option.value)} className={`py-3 rounded-lg text-[10px] font-black border transition-all ${selectedSpiceLevel === option.value ? "bg-[#EFFFFB] border-[#3CDCBA] text-[#12B896]" : "bg-white border-gray-100 text-gray-400"}`}> {option.label} </button>
             ))}
           </div>
         </section>
 
-        {/* 비건 & 식단 */}
         <section>
           <SectionTitle title="비건 & 식단" isDone={selectedVegan !== "" && selectedDiet !== ""} required />
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2 mb-2">
             {veganOptionMap.map((v) => (
-              <button
-                key={v.value}
-                onClick={() => setSelectedVegan(v.value)}
-                className={`px-3 py-1.5 rounded-lg text-[12px] font-bold border transition-all ${
-                  selectedVegan === v.value ? "bg-[#1A1A1A] text-white border-[#1A1A1A]" : "bg-white border-gray-100 text-gray-400"
-                }`}
-              > {v.label} </button>
+              <button key={v.value} onClick={() => setSelectedVegan(v.value)} className={`h-12 flex items-center justify-center rounded-xl text-[12px] font-bold border transition-all ${selectedVegan === v.value ? "bg-[#1A1A1A] text-white border-[#1A1A1A]" : "bg-white border-gray-100 text-gray-400"}`}> {v.label} </button>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-2">
             {dietOptionMap.map((d) => (
-              <button
-                key={d.value}
-                onClick={() => setSelectedDiet(d.value)}
-                className={`py-4 rounded-xl text-[14px] font-black border transition-all ${
-                  selectedDiet === d.value ? "bg-[#FF7A5C] border-[#FF7A5C] text-white" : "bg-white border-gray-100 text-gray-400"
-                }`}
-              > {d.label} </button>
+              <button key={d.value} onClick={() => setSelectedDiet(d.value)} className={`h-12 flex items-center justify-center rounded-xl text-[14px] font-bold border transition-all ${selectedDiet === d.value ? "bg-[#FF7A5C] border-[#FF7A5C] text-white" : "bg-white border-gray-100 text-gray-400"}`}> {d.label} </button>
             ))}
           </div>
         </section>
 
-        {/* 제외 항목 */}
         <section className="pb-10">
           <SectionTitle title="제외 항목" isDone={allergies.length > 0 || dislikedFoods.length > 0} sub="필수 아님" />
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -337,66 +275,52 @@ export default function EditDetailsClient() {
 
       <Footer type="button" buttonText={getButtonSummary()} onButtonClick={handleSave} />
 
-      {/* 🎉 완료 화면 애니메이션 🎉 */}
+      {/* 완료 UI (수정됨) */}
       <AnimatePresence>
         {isSaved && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-white flex flex-col items-center justify-center px-10 text-center"
+            exit={{ opacity: 0 }} 
+            className="fixed inset-0 z-[300] bg-gray-50/90 backdrop-blur-sm flex flex-col items-center justify-center px-6"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", damping: 10, delay: 0.2 }}
-              className="w-24 h-24 bg-[#1A1A1A] rounded-full flex items-center justify-center mb-8 shadow-2xl overflow-hidden relative"
+            <motion.div 
+              initial={{ scale: 0.95, y: 10 }} 
+              animate={{ scale: 1, y: 0 }} 
+              className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-xl border border-white/50 text-center"
             >
-               <motion.div 
-                 animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                 transition={{ repeat: Infinity, duration: 2 }}
-                 className="absolute inset-0 bg-[#3CDCBA]/20"
-               />
-               <span className="text-white text-4xl font-black relative z-10">AI</span>
-            </motion.div>
-
-            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
-              <h2 className="text-[24px] font-black text-[#1A1A1A] mb-2">{editId ? "수정 완료!" : "입맛 저장 완료!"}</h2>
-              <p className="text-[#3CDCBA] font-bold text-[14px] mb-8">"{nickname}" 설정이 성공적으로 반영되었습니다</p>
-            </motion.div>
-
-            <div className="flex flex-wrap justify-center gap-2 mb-10">
-              {getAnalysisKeywords().map((tag, i) => (
-                <motion.span
-                  key={tag}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.8 + i * 0.1 }}
-                  className="px-4 py-1.5 bg-[#F7F8F9] text-[#1A1A1A] text-[12px] font-bold rounded-full border border-gray-100"
-                >
-                  {tag}
-                </motion.span>
-              ))}
-            </div>
-
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="space-y-4 mb-16 px-2">
-              <p className="text-[15px] text-gray-500 font-medium leading-relaxed">
-                이제 마이페이지에서 <span className="text-[#1A1A1A] font-bold">"{nickname}"</span> 토글을 켜면<br />
-                해당 상황에 딱 맞는 추천을 받아볼 수 있어요.
+              <div className="mb-6 flex justify-center">
+                <div className="w-16 h-16 bg-[#F7F8F9] rounded-full flex items-center justify-center text-3xl">✨</div>
+              </div>
+              
+              <h2 className="text-[22px] font-black text-[#1A1A1A] mb-2">{editId ? "수정 완료!" : "설정 완료!"}</h2>
+              <p className="text-gray-500 font-medium text-[14px] mb-6 leading-relaxed">
+                입맛 설정이 성공적으로 저장되었습니다.<br/>이제 AI 추천을 시작해볼까요?
               </p>
-            </motion.div>
+              
+              <div className="flex flex-wrap justify-center gap-1.5 mb-8">
+                 {getAnalysisKeywords().map((tag) => (
+                   <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-500 text-[11px] font-bold rounded-full">
+                     {tag}
+                   </span>
+                 ))}
+              </div>
 
-            <motion.button
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1.6 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.push("/Home")}
-              className="w-full max-w-sm py-5 bg-[#3CDCBA] text-white rounded-[20px] font-black text-[17px] shadow-xl shadow-[#3CDCBA]/20 flex items-center justify-center gap-2 mb-24"
-            >
-              <span>AI와 메뉴 고르러 가기</span>
-              <span className="text-xl">✨</span>
-            </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.98 }} 
+                onClick={() => router.push("/Home")} 
+                className="w-full py-3.5 bg-[#1A1A1A] text-white rounded-xl font-bold text-[15px] shadow-lg shadow-black/10"
+              >
+                메뉴 고르러 가기
+              </motion.button>
+              
+              <button 
+                onClick={() => router.push("/settings/details")} 
+                className="mt-5 text-gray-400 font-bold text-[13px] hover:text-black transition-colors"
+              >
+                 목록으로 돌아가기
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -405,19 +329,12 @@ export default function EditDetailsClient() {
       <AnimatePresence>
         {(showAllergyModal || showDislikedFoodModal) && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-8">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowAllergyModal(false); setShowDislikedFoodModal(false); }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="relative bg-white w-full rounded-[30px] p-8 shadow-2xl">
-              <h4 className="text-[18px] font-black text-center mb-6">{showAllergyModal ? "🥜 알레르기" : "🚫 기피 음식"}</h4>
-              <input
-                type="text"
-                autoFocus
-                value={showAllergyModal ? newAllergy : newDislikedFood}
-                onChange={(e) => showAllergyModal ? setNewAllergy(e.target.value) : setNewDislikedFood(e.target.value)}
-                placeholder="입력 후 완료를 눌러주세요"
-                className="w-full px-4 py-4 bg-[#F7F8F9] rounded-2xl mb-8 outline-none border-2 border-transparent focus:border-[#3CDCBA] text-[16px] font-bold text-center"
-              />
-              <div className="flex gap-3">
-                <button onClick={() => { setShowAllergyModal(false); setShowDislikedFoodModal(false); }} className="flex-1 py-4 text-gray-400 font-bold">취소</button>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setShowAllergyModal(false); setShowDislikedFoodModal(false); }} className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="relative bg-white w-full rounded-[24px] p-6 shadow-xl">
+              <h4 className="text-[17px] font-black text-center mb-5">{showAllergyModal ? "🥜 알레르기" : "🚫 기피 음식"}</h4>
+              <input type="text" autoFocus value={showAllergyModal ? newAllergy : newDislikedFood} onChange={(e) => showAllergyModal ? setNewAllergy(e.target.value) : setNewDislikedFood(e.target.value)} placeholder="직접 입력하세요" className="w-full px-4 py-3 bg-gray-100 rounded-xl mb-6 outline-none border-2 border-transparent focus:border-[#3CDCBA] text-[15px] font-bold text-center" />
+              <div className="flex gap-2">
+                <button onClick={() => { setShowAllergyModal(false); setShowDislikedFoodModal(false); }} className="flex-1 py-3 text-gray-400 font-bold">취소</button>
                 <button onClick={() => {
                   const val = showAllergyModal ? newAllergy : newDislikedFood;
                   if (val.trim()) {
@@ -425,7 +342,7 @@ export default function EditDetailsClient() {
                   }
                   setShowAllergyModal(false); setShowDislikedFoodModal(false);
                   setNewAllergy(""); setNewDislikedFood("");
-                }} className={`flex-1 py-4 text-white rounded-xl font-bold ${showAllergyModal ? 'bg-[#3CDCBA]' : 'bg-[#FF7A5C]'}`}>추가하기</button>
+                }} className={`flex-1 py-3 text-white rounded-xl font-bold ${showAllergyModal ? 'bg-[#3CDCBA]' : 'bg-[#FF7A5C]'}`}>확인</button>
               </div>
             </motion.div>
           </div>

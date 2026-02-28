@@ -30,7 +30,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     "/menu-select/result", "/settings/details/new", "/settings/details/edit",
     "/settings/details", "/mypage", "/menu-select/ingredients",
     "/menu-select/ingredients/seasoning", "/menu-select/mood", "/menu-select/weather" , "/notifications",
-    "/community"
+    "/community", "/menu-select/Aichat"
 
   ];
 

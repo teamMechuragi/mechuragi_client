@@ -5,6 +5,7 @@ import ClientLayout from "./ClientLayout";
 import { UserProvider } from "./context/UserContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ToastProvider } from "./common/ToastProvider";
+import { LoadingProvider } from './context/LoadingContext';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -44,7 +45,9 @@ export default function RootLayout({
           <NotificationProvider>
             <ToastProvider>
               {/* 실제 컨텐츠는 ClientLayout에서 중앙 정렬 및 폭 제한을 수행하게 됩니다 */}
-              <ClientLayout>{children}</ClientLayout>
+              <LoadingProvider>
+                <ClientLayout>{children}</ClientLayout>
+              </LoadingProvider>
             </ToastProvider>
           </NotificationProvider>
         </UserProvider>
