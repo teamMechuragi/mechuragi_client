@@ -16,7 +16,7 @@ export default function AiRecommendationGrid() {
   const router = useRouter();
 
   const cards: Card[] = [
-    { title: "상세정보 설정", description: "알레르기 여부, 선호 음식 등 상세정보 설정하기", bg: "#F2F2F4", link: "/settings/details" },
+    { title: "입맛 보관소", description: "알레르기 여부, 선호 음식 등 상세정보 설정하기", bg: "#F2F2F4", link: "/settings/details" },
     { title: "재료", description: "냉장고 속 재료로 메뉴 추천받기", bg: "#DAFFB7", image: "/icon/ingre.png", link: "/menu-select/ingredients" },
     { title: "기분", description: "오늘의 기분으로 메뉴 추천받기", bg: "#FFFFB5", image: "/icon/feel.png", link: "/menu-select/mood" },
     { title: "날씨", description: "오늘의 날씨로 메뉴 추천받기", bg: "#C0EBFF", image: "/icon/weather.png", link: "/menu-select/weather" },
