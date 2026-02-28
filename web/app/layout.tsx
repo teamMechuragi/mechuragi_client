@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: "메추라기",
     images: [
       {
-        url: "/og-image.png", // public 폴더에 이 이름으로 파일을 넣어주세요
+        url: "https://mechuragi.site/og-image.png", 
         width: 800,
         height: 600,
       },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "메추라기 - AI 메뉴 큐레이션",
     description: "고민은 덜고 취향은 가득채워 AI가 메뉴를 추천해주는 서비스입니다.",
-    images: ["/public/og-image.png"],
+    images: ["https://mechuragi.site/og-image.png"],
   },
 };
 
