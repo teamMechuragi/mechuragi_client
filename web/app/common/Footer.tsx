@@ -47,7 +47,7 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
             className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
-              src={isActive("/Home") ? "/icon/home-active.png" : "/icon/home.png"} 
+              src={isActive("/Home/") ? "/icon/home-active.png" : "/icon/home.png"} 
               alt="홈" 
               className="w-10 h-10 object-contain" 
             />
@@ -58,7 +58,7 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
             className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
-              src={isActive("/calendar") ? "/icon/calender-active.png" : "/icon/calender.png"} 
+              src={isActive("/calendar/") ? "/icon/calender-active.png" : "/icon/calender.png"} 
               alt="캘린더" 
               className="w-10 h-10 object-contain" 
             />
@@ -69,7 +69,7 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
             className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
-              src={isActive("/community") ? "/icon/community-active.png" : "/icon/community.png"} 
+              src={isActive("/community/") ? "/icon/community-active.png" : "/icon/community.png"} 
               alt="커뮤니티" 
               className="w-10 h-10 object-contain" 
             />
@@ -80,7 +80,7 @@ export default function Footer({ type, buttonText, onButtonClick, disabled }: Fo
             className="flex items-center justify-center flex-1 h-full transition-transform active:scale-90"
           >
             <img 
-              src={isActive("/mypage") ? "/icon/mypage-active.png" : "/icon/mypage.png"} 
+              src={isActive("/mypage/") ? "/icon/mypage-active.png" : "/icon/mypage.png"} 
               alt="마이페이지" 
               className="w-10 h-10 object-contain" 
             />
