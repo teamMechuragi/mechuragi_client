@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/app/common/Header';
+import Footer from '@/app/common/Footer';
 import VoteTypeSelect from './components/VoteTypeSelect';
 import VoteOptionInput from './components/VoteOptionInput';
 import TimeSelector from './components/TimeSelector';
@@ -17,7 +18,7 @@ function CommunityWriteContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get('editId');
 
-  const [title, setTitle] = useState('투표 제목');
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [voteType, setVoteType] = useState<VoteType>(null);
   const [options, setOptions] = useState<string[]>(['', '']);
@@ -33,7 +34,6 @@ function CommunityWriteContent() {
   const [minutes, setMinutes] = useState(30);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 수정 모드일 때 기존 투표 데이터 로드
   useEffect(() => {
     if (editId) {
       const loadVote = async () => {
@@ -44,7 +44,6 @@ function CommunityWriteContent() {
           setIsMultipleChoice(vote.allowMultipleChoice);
           setOptions(vote.options.map(opt => opt.optionText));
 
-          // 이미지가 있는지 확인
           const hasImages = vote.options.some(opt => opt.imageUrl);
           setVoteType(hasImages ? '사진' : '일반');
 
@@ -77,8 +76,7 @@ function CommunityWriteContent() {
   };
 
   const handleSubmit = async () => {
-    // 유효성 검사
-    if (!title.trim() || title === '투표 제목') {
+    if (!title.trim()) {
       alert('제목을 입력해주세요');
       return;
     }
@@ -98,7 +96,6 @@ function CommunityWriteContent() {
       alert('모든 투표 옵션을 입력해주세요');
       return;
     }
-    // 새 투표일 때만 이미지 개수 검증 (수정 모드에서는 기존 이미지 사용 가능)
     if (voteType === '사진' && !editId && images.length !== options.length) {
       alert('모든 옵션에 사진을 추가해주세요');
       return;
@@ -107,22 +104,18 @@ function CommunityWriteContent() {
     setIsSubmitting(true);
 
     try {
-      // 마감 시간 계산 (현재 시간 + 설정한 시간)
       const deadlineDate = new Date();
       deadlineDate.setDate(deadlineDate.getDate() + days);
       deadlineDate.setHours(deadlineDate.getHours() + hours);
       deadlineDate.setMinutes(deadlineDate.getMinutes() + minutes);
 
-      // 투표 옵션 준비
       const voteOptions: VoteOptionRequest[] = [];
 
       if (voteType === '사진') {
-        // 이미지가 있는 경우 이미지 업로드
         for (let i = 0; i < options.length; i++) {
           let imageUrl: string | undefined = undefined;
 
           if (images[i]) {
-            // 새 이미지가 있으면 업로드
             try {
               const uploadResult = await uploadVoteImage(images[i]);
               imageUrl = uploadResult.imageUrl;
@@ -133,7 +126,6 @@ function CommunityWriteContent() {
               return;
             }
           } else if (existingImageUrls[i]) {
-            // 기존 이미지 URL 사용 (수정 모드)
             imageUrl = existingImageUrls[i];
           }
 
@@ -143,7 +135,6 @@ function CommunityWriteContent() {
           });
         }
       } else {
-        // 일반 투표 (이미지 없음)
         for (const option of options) {
           voteOptions.push({
             optionText: option,
@@ -152,16 +143,13 @@ function CommunityWriteContent() {
       }
 
       if (editId) {
-        // 투표 수정 요청 (제목, 설명, 마감일만 수정 가능)
         const updatedVote = await updateVote(Number(editId), {
           title: title.trim(),
           description: content.trim() || undefined,
           deadline: deadlineDate.toISOString(),
         });
-        console.log('투표 수정 성공:', updatedVote);
         router.push(`/community/detail?id=${updatedVote.id}`);
       } else {
-        // 투표 생성 요청
         const newVote = await createVote({
           title: title.trim(),
           description: content.trim() || undefined,
@@ -169,7 +157,6 @@ function CommunityWriteContent() {
           allowMultipleChoice: isMultipleChoice,
           options: voteOptions,
         });
-        console.log('투표 생성 성공:', newVote);
         router.push(`/community/detail?id=${newVote.id}`);
       }
     } catch (error) {
@@ -183,12 +170,11 @@ function CommunityWriteContent() {
     }
   };
 
-  // 수정 모드에서는 기존 이미지도 유효한 것으로 처리
   const hasAllImages = editId
     ? options.every((_, i) => images[i] || existingImageUrls[i])
     : images.length === options.length;
 
-  const isFormValid = title.trim() && title !== '투표 제목' && voteType && options.every(opt => opt.trim()) &&
+  const isFormValid = title.trim() && voteType && options.every(opt => opt.trim()) &&
     (voteType === '일반' || hasAllImages);
 
   return (
@@ -203,20 +189,20 @@ function CommunityWriteContent() {
       />
 
       <div className="flex-1 px-6 pt-20 pb-6 overflow-y-auto">
-        {/* 투표 제목 */}
-        <div className="mb-2">
+        {/* 투표 제목 섹션 - 입력란 스타일 적용 */}
+        <div className="mb-6">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={30}
-            className="w-full text-2xl font-bold text-gray-800 bg-white border-0 outline-none p-0 placeholder:text-gray-300"
-            placeholder="투표 제목"
+            className="w-full text-2xl font-bold text-gray-900 bg-transparent border-none outline-none placeholder:text-gray-400"
+            placeholder="투표 제목을 입력하세요"
           />
         </div>
 
         {/* 투표 설명 */}
-        <div className="mb-6">
+        <div className="mb-8">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -270,24 +256,6 @@ function CommunityWriteContent() {
                     isMultipleChoice ? 'border-[#3CDCBA]' : 'border-gray-300'
                   }`}>
                     {isMultipleChoice && (
-                      <div className="w-3 h-3 rounded-full bg-[#3CDCBA]" />
-                    )}
-                  </div>
-                </label>
-
-                {/* 투표 종료 시 일정 받기 */}
-                <label 
-                  className="flex items-center justify-between cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsNotificationEnabled(!isNotificationEnabled);
-                  }}
-                >
-                  <span className="text-sm text-gray-700">투표 종료 시 일정 받기</span>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    isNotificationEnabled ? 'border-[#3CDCBA]' : 'border-gray-300'
-                  }`}>
-                    {isNotificationEnabled && (
                       <div className="w-3 h-3 rounded-full bg-[#3CDCBA]" />
                     )}
                   </div>
