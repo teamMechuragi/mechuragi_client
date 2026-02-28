@@ -208,7 +208,7 @@ export default function CommunityDetailClient() {
         onEdit={handleEdit}
       />
 
-      <div className="flex-1 px-6 pt-6 pb-24 overflow-y-auto">
+      <div className="flex-1 px-6 pt-14 pb-24 overflow-y-auto">
         <h2 className="text-2xl font-bold mb-2">{vote.title}</h2>
 
         <div className="flex items-center gap-2 text-xs text-gray-500 mb-6">

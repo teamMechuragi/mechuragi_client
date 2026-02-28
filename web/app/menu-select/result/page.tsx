@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/app/common/Header";
 import Footer from "@/app/common/Footer";
 import { bookmarkLatestSession } from "@/app/api/bookmarkApi";
@@ -38,17 +39,12 @@ function RecommendResultContent() {
 
   const handleComplete = async () => {
     if (isSubmitting) return;
-
     try {
       setIsSubmitting(true);
-
-      if (isBookmarked) {
-        await bookmarkLatestSession();
-      }
-
+      if (isBookmarked) await bookmarkLatestSession();
       router.push("/Home");
     } catch (error) {
-      console.error("북마크 저장 실패:", error);
+      console.error("저장 실패:", error);
       router.push("/Home");
     } finally {
       setIsSubmitting(false);
@@ -56,67 +52,66 @@ function RecommendResultContent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <div className="w-full max-w-sm mx-auto">
-        {/* 커스텀 헤더 with 북마크 버튼 */}
-        <header className="fixed top-0 left-0 right-0 bg-white z-50 border-b border-gray-100">
-          <div className="max-w-sm mx-auto px-4 h-14 flex items-center justify-between">
-            <button onClick={() => router.push("/Home")} className="p-2 -ml-2">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="font-semibold text-lg">추천 결과</h1>
-            <button
-              onClick={handleBookmarkToggle}
-              className="p-2 -mr-2"
-            >
-              <svg
-                className="w-6 h-6"
-                fill={isBookmarked ? "#00D9A0" : "none"}
-                stroke={isBookmarked ? "#00D9A0" : "currentColor"}
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
+    <div className="flex flex-col min-h-screen bg-[#F9FAFB]">
+      {/* 고정 헤더 */}
+      <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-sm mx-auto px-4 h-14 flex items-center justify-between">
+          <button onClick={() => router.push("/Home")} className="p-2 -ml-2 text-gray-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <span className="font-bold text-gray-900">결과 리포트</span>
+          <button onClick={handleBookmarkToggle} className="p-2 -mr-2">
+            <motion.div whileTap={{ scale: 0.8 }}>
+              <svg className="w-7 h-7" fill={isBookmarked ? "#00D9A0" : "none"} stroke={isBookmarked ? "#00D9A0" : "#333"} strokeWidth={2} viewBox="0 0 24 24">
                 <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
               </svg>
-            </button>
-          </div>
-        </header>
-      </div>
+            </motion.div>
+          </button>
+        </div>
+      </header>
 
-      <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-16">
-        <h2 className="text-2xl font-bold mb-2">오늘의 추천 메뉴</h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {isBookmarked ? "북마크에 저장됩니다" : "오른쪽 상단 아이콘을 눌러 저장하세요"}
-        </p>
+      {/* 메인 컨텐츠 */}
+      <main className="flex-1 pt-20 pb-28 px-5 max-w-sm mx-auto w-full">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 text-center"
+        >
+          <div className="w-16 h-16 bg-[#00D9A0]/10 text-[#00D9A0] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h2 className="text-2xl font-black text-gray-900">메뉴 선정이 완료되었어요!</h2>
+          <p className="text-gray-500 text-sm mt-2">오늘 당신의 취향에 딱 맞는 음식입니다.</p>
+        </motion.div>
 
         <div className="space-y-4">
-          {recommendations.length > 0 ? (
-            recommendations.map((food, index) => (
-              <div
+          <AnimatePresence>
+            {recommendations.map((food, index) => (
+              <motion.div
                 key={index}
-                className="bg-gray-50 rounded-2xl p-5"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white rounded-3xl p-6 border border-gray-100 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.05)]"
               >
-                <h3 className="text-lg font-bold text-[#00D9A0] mb-2">
-                  {food.name}
-                </h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p className="leading-relaxed">{food.reason}</p>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#00D9A0] text-white rounded-full flex items-center justify-center font-bold text-lg shrink-0">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-gray-900 mb-2">{food.name}</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-xl">{food.reason}</p>
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-20 text-gray-400">
-              추천 결과가 없습니다.
-            </div>
-          )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </div>
+      </main>
 
       <Footer
         type="button"
-        buttonText={isSubmitting ? "저장 중..." : "완료"}
+        buttonText={isSubmitting ? "저장 중..." : "확인했습니다"}
         onButtonClick={handleComplete}
       />
     </div>
@@ -126,15 +121,9 @@ function RecommendResultContent() {
 export default function RecommendResultPage() {
   return (
     <Suspense fallback={
-      <div className="flex flex-col min-h-screen bg-white">
-        <div className="w-full max-w-sm mx-auto">
-          <Header title="추천 결과" backLink="/Home" />
-        </div>
-        <div className="w-full max-w-sm mx-auto px-6 pb-24 flex-1 mt-6">
-          <div className="text-center py-20 text-gray-400">
-            로딩 중...
-          </div>
-        </div>
+      <div className="flex flex-col min-h-screen bg-gray-50 items-center justify-center">
+        <div className="animate-spin w-10 h-10 border-4 border-[#00D9A0] border-t-transparent rounded-full" />
+        <p className="mt-4 text-gray-400 font-medium">AI가 메뉴를 분석 중입니다...</p>
       </div>
     }>
       <RecommendResultContent />
